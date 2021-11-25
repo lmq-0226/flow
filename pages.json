@@ -1,0 +1,1144 @@
+{
+	"easycom": {
+		"^u-(.*)": "uview-ui/components/u-$1/u-$1.vue"
+	},
+	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
+		{
+		    "path" : "pages/login/login",
+		    "style" :                                                                                    
+		    {
+		        "navigationBarTitleText": "",
+		        "enablePullDownRefresh": false,
+				"navigationBarBackgroundColor": "#ffffff",
+				"app-plus": {
+					"bounce": "none", //关闭窗口回弹效果
+					"titleNView": {
+						"buttons": [ //原生标题栏按钮配置,
+							{
+								"text": "注册", //原生标题栏增加分享按钮，点击事件可通过页面的 onNavigationBarButtonTap 函数进行监听
+								"fontSize": "30rpx",
+								"color": "#000000",
+								"fontWeight": "bold"
+								// #ifdef APP-PLUS
+								,"width": "150rpx"
+								// #endif
+								// #ifdef H5
+								,"width": "100rpx"
+								// #endif
+							}
+						]
+					}
+				}
+		    }
+		}
+        ,{	// 手机号
+            "path" : "pages/login/forget/forget",
+            "style" :                                                                                    
+            {
+				
+                "navigationBarTitleText": "",
+				"navigationBarBackgroundColor": "#ffffff",
+                "enablePullDownRefresh": false
+            }
+            
+        }
+        ,{	// 验证码
+            "path" : "pages/login/forget/code",
+            "style" :                                                                                    
+            {
+			
+                "navigationBarTitleText": "",
+				"navigationBarBackgroundColor": "#ffffff",
+                "enablePullDownRefresh": false
+            }
+            
+        }
+        ,{
+            "path" : "pages/login/forget/newPass",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+				"navigationBarBackgroundColor": "#ffffff",
+                "enablePullDownRefresh": false
+            }
+            
+        }
+        ,{
+			// 注册
+            "path" : "pages/login/register/register",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+				"navigationBarBackgroundColor": "#ffffff",
+                "enablePullDownRefresh": false
+            }
+            
+        },
+		{
+			"path": "pages/shop/shop",
+			"style": {
+				"navigationBarTitleText": "商城",
+				"navigationStyle": "custom",
+				"enablePullDownRefresh": true,
+				// 自定义导航栏下拉刷新需设置下拉刷新位置
+				"app-plus": {
+					"pullToRefresh":{
+						"support": true,
+						"style": "circle",
+						"height":"50px",
+						"offset": "50px"
+					}
+				}
+			}
+		}
+        ,{
+            "path" : "pages/community/community",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "社区",
+				"navigationStyle": "custom"
+            }
+            
+        }
+        ,{
+            "path" : "pages/leave/leave",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "闲置",
+				"navigationStyle": "custom"
+            }
+            
+        }
+        ,{
+            "path" : "pages/serve/serve",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "服务",
+				"navigationStyle": "custom"
+            }
+            
+        }
+        ,{
+            "path" : "pages/my/my",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "我的",
+				"navigationStyle": "custom"
+            }
+            
+        }
+        ,{
+            "path" : "pages/my/attention/attention",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false,
+				"titleNView": {
+					"tags": [
+						{
+							"tag": "font",
+							"text": "关注",
+							"textStyles":{
+								"weight": "bold"
+							}
+						}
+					]
+				}
+            }
+        }
+        ,{
+            "path" : "pages/my/fans/fans",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false,
+				"titleNView": {
+					"tags": [
+						{
+							"tag": "font",
+							"text": "粉丝",
+							"textStyles":{
+								"weight": "bold"
+							}
+						}
+					]
+				}
+            }
+        }
+        ,{
+            "path" : "pages/my/set/set",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false,
+				"app-plus": {
+					"bounce": "none", //关闭窗口回弹效果
+					"titleNView": {
+						"tags": [
+							{
+								"tag": "font",
+								"text": "设置",
+								"textStyles":{
+									"weight": "bold"
+								}
+							}
+						]
+					}
+				}
+            }
+        }
+        ,{
+            "path" : "pages/my/collect/collect",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "收藏",
+                "enablePullDownRefresh": false,
+				"navigationStyle": "custom"
+            }
+        }
+        ,{
+            "path" : "pages/my/set/accountSecurity/accountSecurity",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false,
+				"app-plus": {
+					"bounce": "none", //关闭窗口回弹效果
+					"titleNView": {
+						"tags": [
+							{
+								"tag": "font",
+								"text": "账号安全",
+								"textStyles":{
+									"weight": "bold"
+								}
+							}
+						]
+					}
+				}
+            }
+        }
+        ,{
+            "path" : "pages/my/set/accountSecurity/bindPhone",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false,
+				"app-plus": {
+					"bounce": "none", //关闭窗口回弹效果
+					"titleNView": {
+						"tags": [
+							{
+								"tag": "font",
+								"text": "绑定手机号",
+								"textStyles":{
+									"weight": "bold"
+								}
+							}
+						],
+						"buttons": [ //原生标题栏按钮配置,
+							{
+								"text": "完成", //原生标题栏增加分享按钮，点击事件可通过页面的 onNavigationBarButtonTap 函数进行监听
+								"fontSize": "30rpx",
+								"color": "#000000",
+								"fontWeight": "bold"
+								// #ifdef APP-PLUS
+								,"width": "150rpx"
+								// #endif
+								// #ifdef H5
+								,"width": "100rpx"
+								// #endif
+							}
+						]
+					}
+				}
+            }
+        }
+        ,{
+            "path" : "pages/my/set/accountSecurity/setPass",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false,
+				"app-plus": {
+					"bounce": "none", //关闭窗口回弹效果
+					"titleNView": {
+						"tags": [
+							{
+								"tag": "font",
+								"text": "设置登录密码",
+								"textStyles":{
+									"weight": "bold"
+								}
+							}
+						]
+					}
+				}
+            }
+        }
+        ,{
+            "path" : "pages/my/set/privacy/privacy",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false,
+				"app-plus": {
+					"bounce": "none", //关闭窗口回弹效果
+					"titleNView": {
+						"tags": [
+							{
+								"tag": "font",
+								"text": "隐私设置",
+								"textStyles":{
+									"weight": "bold"
+								}
+							}
+						]
+					}
+				}
+            }  
+        }
+        ,{
+            "path" : "pages/my/set/privacy/priChat",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false,
+				"app-plus": {
+					"bounce": "none", //关闭窗口回弹效果
+					"titleNView": {
+						"tags": [
+							{
+								"tag": "font",
+								"text": "谁可以私聊我",
+								"textStyles":{
+									"weight": "bold"
+								}
+							}
+						]
+					}
+				}
+            }
+        }
+        ,{
+            "path" : "pages/my/set/about/about",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false,
+				"app-plus": {
+					"bounce": "none", //关闭窗口回弹效果
+					"titleNView": {
+						"tags": [
+							{
+								"tag": "font",
+								"text": "关于流象",
+								"textStyles":{
+									"weight": "bold"
+								}
+							}
+						],
+						"buttons": [ //原生标题栏按钮配置,
+							{
+								"text":"\ue61f",
+								"fontSrc":"/static/iconfont/share.ttf",
+								"fontSize": "24"
+							}
+						]
+					}
+				}
+            }
+        }
+        ,{
+            "path" : "pages/my/footprint/footprint",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "足迹",
+                "enablePullDownRefresh": false,
+				"navigationStyle": "custom"
+            }
+            
+        }
+        ,{
+            "path" : "pages/my/subscribe/subscribe",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false,
+				"app-plus": {
+					"bounce": "none", //关闭窗口回弹效果
+					"titleNView": {
+						"tags": [
+							{
+								"tag": "font",
+								"text": "订阅",
+								"textStyles":{
+									"weight": "bold"
+								}
+							}
+						]
+					}
+				}
+            }
+            
+        }
+        ,{
+            "path" : "pages/my/subscribe/store/store",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false,
+				"navigationStyle": "custom"
+            }
+            
+        }
+        ,{
+            "path" : "pages/my/integral/integral",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false,
+				"app-plus": {
+					"bounce": "none", //关闭窗口回弹效果
+					"titleNView": {
+						"tags": [
+							{
+								"tag": "font",
+								"text": "积分商城",
+								"textStyles":{
+									"weight": "bold"
+								}
+							}
+						]
+					}
+				}
+            }
+            
+        }
+        ,{
+            "path" : "pages/my/wallet/wallet",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false,
+				"app-plus": {
+					"bounce": "none", //关闭窗口回弹效果
+					"titleNView": {
+						"tags": [
+							{
+								"tag": "font",
+								"text": "钱包",
+								"textStyles":{
+									"weight": "bold"
+								}
+							}
+						],
+						"buttons": [ //原生标题栏按钮配置,
+							{
+								"text": "明细", //原生标题栏增加分享按钮，点击事件可通过页面的 onNavigationBarButtonTap 函数进行监听
+								"fontSize": "30rpx",
+								"color": "#000000",
+								"fontWeight": "bold"
+								// #ifdef APP-PLUS
+								,"width": "150rpx"
+								// #endif
+								// #ifdef H5
+								,"width": "100rpx"
+								// #endif
+							}
+						]
+					}
+				}
+            }
+            
+        }
+        ,{
+            "path" : "pages/my/wallet/detail/detail",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false,
+				"titleNView": {
+					"tags": [
+						{
+							"tag": "font",
+							"text": "余额明细",
+							"textStyles":{
+								"weight": "bold"
+							}
+						}
+					]
+				}
+            }
+            
+        }
+        ,{
+            "path" : "pages/my/wallet/discount/discount",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false,
+				"titleNView": {
+					"tags": [
+						{
+							"tag": "font",
+							"text": "优惠券",
+							"textStyles":{
+								"weight": "bold"
+							}
+						}
+					]
+				}
+            }
+            
+        }
+        ,{
+            "path" : "pages/my/wallet/gold/gold",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false,
+				"titleNView": {
+					"tags": [
+						{
+							"tag": "font",
+							"text": "积分",
+							"textStyles":{
+								"weight": "bold"
+							}
+						}
+					]
+				}
+            }
+            
+        }
+        ,{
+            "path" : "pages/my/wallet/bankCard/bankCard",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false,
+				"titleNView": {
+					"tags": [
+						{
+							"tag": "font",
+							"text": "银行卡",
+							"textStyles":{
+								"weight": "bold"
+							}
+						}
+					]
+				}
+            }
+            
+        }
+        ,{
+            "path" : "pages/my/wallet/bankCard/addCard",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false,
+				"titleNView": {
+					"tags": [
+						{
+							"tag": "font",
+							"text": "添加银行卡",
+							"textStyles":{
+								"weight": "bold"
+							}
+						}
+					]
+				}
+            }
+            
+        }
+        ,{
+            "path" : "pages/my/wallet/bankCard/bankCode",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false,
+				"titleNView": {
+					"tags": [
+						{
+							"tag": "font",
+							"text": "验证手机号",
+							"textStyles":{
+								"weight": "bold"
+							}
+						}
+					]
+				}
+            }
+            
+        }
+        ,{
+            "path" : "pages/my/wallet/bankCard/verifyBank",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false,
+				"titleNView": {
+					"tags": [
+						{
+							"tag": "font",
+							"text": "验证银行卡",
+							"textStyles":{
+								"weight": "bold"
+							}
+						}
+					]
+				}
+            }
+            
+        }
+        ,{
+            "path" : "pages/my/wallet/withdrawal/withdrawal",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false,
+				"titleNView": {
+					"tags": [
+						{
+							"tag": "font",
+							"text": "提现",
+							"textStyles":{
+								"weight": "bold"
+							}
+						}
+					]
+				}
+            }
+            
+        }
+        ,{
+            "path" : "pages/my/feedback/feedback",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false,
+				"titleNView": {
+					"tags": [
+						{
+							"tag": "font",
+							"text": "意见反馈",
+							"textStyles":{
+								"weight": "bold"
+							}
+						}
+					]
+				}
+            }
+            
+        }
+        ,{
+            "path" : "pages/my/invite/invite",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false,
+				"titleNView": {
+					"tags": [
+						{
+							"tag": "font",
+							"text": "邀请有礼",
+							"textStyles":{
+								"weight": "bold"
+							}
+						}
+					]
+				}
+            }
+            
+        }
+        ,{
+            "path" : "pages/my/identify/identify",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false,
+				"titleNView": {
+					"tags": [
+						{
+							"tag": "font",
+							"text": "我鉴定的",
+							"textStyles":{
+								"weight": "bold"
+							}
+						}
+					]
+				}
+            }
+            
+        }
+        ,{
+            "path" : "pages/my/identify/detail",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false,
+				"titleNView": {
+					"tags": [
+						{
+							"tag": "font",
+							"text": "鉴定详情",
+							"textStyles":{
+								"weight": "bold"
+							}
+						}
+					]
+				}
+            }
+            
+        }
+        ,{
+            "path" : "pages/my/buy/buy",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false,
+				"titleNView": {
+					"tags": [
+						{
+							"tag": "font",
+							"text": "我买到的",
+							"textStyles":{
+								"weight": "bold"
+							}
+						}
+					]
+				}
+            }
+            
+        }
+        ,{
+            "path" : "pages/my/buy/receiving/receiving",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false,
+				"navigationStyle": "custom"
+            }
+            
+        }
+        ,{
+            "path" : "pages/my/set/address/address",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false,
+				"titleNView": {
+					"tags": [
+						{
+							"tag": "font",
+							"text": "地址管理",
+							"textStyles":{
+								"weight": "bold"
+							}
+						}
+					]
+				}
+            }
+            
+        }
+        ,{
+            "path" : "pages/my/set/address/add",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false,
+				"titleNView": {
+					"tags": [{
+						"tag": "font",
+						"text": "",
+						"textStyles":{
+							"weight": "bold"
+						}
+					}],
+					"buttons": [{
+						"text": "删除地址",
+						"fontSize": "15px",
+						"width": "auto",
+						"fontWeight": "bold"
+					}]
+				}
+            }
+            
+        }
+        ,{
+            "path" : "pages/my/buy/idleOrders/idleOrders",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false,
+				"navigationStyle": "custom"
+            }
+            
+        }
+        ,{
+            "path" : "pages/my/released/released",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false,
+				"titleNView": {
+					"tags": [
+						{
+							"tag": "font",
+							"text": "我发布的",
+							"textStyles":{
+								"weight": "bold"
+							}
+						}
+					]
+				}
+            }
+            
+        }
+        ,{
+            "path" : "pages/my/sell/sell",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false,
+				"titleNView": {
+					"tags": [
+						{
+							"tag": "font",
+							"text": "我卖出的",
+							"textStyles":{
+								"weight": "bold"
+							}
+						}
+					]
+				}
+            }
+            
+        }
+        ,{
+            "path" : "pages/my/sell/detail/detail",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false,
+				"navigationStyle": "custom"
+            }
+            
+        }
+        ,{
+            "path" : "pages/my/refund/refund",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false,
+				"titleNView": {
+					"tags": [
+						{
+							"tag": "font",
+							"text": "退款售后",
+							"textStyles":{
+								"weight": "bold"
+							}
+						}
+					]
+				}
+            }
+            
+        }
+        ,{
+            "path" : "pages/my/refund/detail/detail",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false,
+				"navigationStyle": "custom"
+            }
+            
+        }
+        ,{
+            "path" : "pages/my/refund/detail/rate",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false,
+				"titleNView": {
+					"tags": [
+						{
+							"tag": "font",
+							"text": "退款进度",
+							"textStyles":{
+								"weight": "bold"
+							}
+						}
+					]
+				}
+            }
+            
+        }
+        ,{
+            "path" : "pages/shop/classify/classify",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false,
+				"navigationBarBackgroundColor": "#ffffff",
+				"app-plus": {
+					"titleNView": {
+						"searchInput": {
+							"backgroundColor": "#F6F5FA",
+							"borderRadius": "10rpx", //输入框圆角
+							"placeholder": "请输入搜索内容",
+							"align": "left"
+						}
+					}
+				}
+            }
+        }
+        ,{
+            "path" : "pages/shop/goodsDetail/goodsDetail",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false,
+				"app-plus": {
+					"bounce": "none", //关闭窗口回弹效果
+					"titleNView": {
+						"buttons": [ //原生标题栏按钮配置,
+							{
+								"text":"\ue61f",
+								"fontSrc":"/static/iconfont/iconfont.ttf",
+								"fontSize": "24"
+							},
+							{
+								"text":"\ue6fd",
+								"fontSrc":"/static/iconfont/iconfont.ttf",
+								"fontSize": "24"
+							}
+						]
+					}
+				}
+            }
+            
+        }
+        ,{
+            "path" : "pages/shop/goodsDetail/evaluate/evaluate",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false,
+				"titleNView": {
+					"tags": [
+						{
+							"tag": "font",
+							"text": "评价",
+							"textStyles":{
+								"weight": "bold"
+							}
+						}
+					]
+				}
+            }
+            
+        }
+        ,{
+            "path" : "pages/shop/goodsDetail/recency/recency",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false,
+				"titleNView": {
+					"tags": [
+						{
+							"tag": "font",
+							"text": "最近购买",
+							"textStyles":{
+								"weight": "bold"
+							}
+						}
+					]
+				}
+            }
+        }
+        ,{
+            "path" : "pages/shop/goodsDetail/confirmOrder/confirmOrder",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false,
+				"titleNView": {
+					"tags": [
+						{
+							"tag": "font",
+							"text": "确认订单",
+							"textStyles":{
+								"weight": "bold"
+							}
+						}
+					]
+				}
+            }
+            
+        }
+        ,{
+            "path" : "pages/shop/goodsDetail/confirmOrder/pay",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false,
+				"titleNView": {
+					"tags": [
+						{
+							"tag": "font",
+							"text": "收银台",
+							"textStyles":{
+								"weight": "bold"
+							}
+						}
+					]
+				}
+            }
+            
+        }
+        ,{
+            "path" : "pages/my/buy/logistics/logistics",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false,
+				"titleNView": {
+					"tags": [
+						{
+							"tag": "font",
+							"text": "物流详情",
+							"textStyles":{
+								"weight": "bold"
+							}
+						}
+					]
+				}
+            }
+            
+        }
+        ,{
+            "path" : "pages/community/detail/detail",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "社区图文详情",
+                "enablePullDownRefresh": false,
+				"navigationStyle": "custom",
+				"app-plus":{
+					"softinputMode": "adjustResize"
+				}
+            }
+            
+        }
+        ,{
+            "path" : "pages/serve/consult/consult",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false,
+				"titleNView": {
+					"tags": [
+						{
+							"tag": "font",
+							"text": "热门咨询",
+							"textStyles":{
+								"weight": "bold"
+							}
+						}
+					]
+				}
+            }
+            
+        }
+        ,{
+            "path" : "pages/serve/consult/detail",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false,
+				"navigationStyle": "custom"
+            }
+            
+        }
+        ,{
+            "path" : "pages/serve/life/life",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "生活服务",
+                "enablePullDownRefresh": false,
+				"app-plus": {
+					"bounce": "none", //关闭窗口回弹效果
+					"titleNView": {
+						"buttons": [ //原生标题栏按钮配置,
+							{
+								"text":"\ue60e",
+								"fontSrc":"/static/iconfont/iconfont.ttf",
+								"fontSize": "24"
+							}
+						]
+					}
+				}
+            }
+            
+        }
+        ,{
+            "path" : "pages/serve/life/store",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false
+            }
+            
+        }
+        ,{
+            "path" : "pages/serve/authen/authen",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false
+            }
+            
+        }
+    ],
+	"globalStyle": {
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "uni-app",
+		"navigationBarBackgroundColor": "#FFFFFF",
+		"backgroundColor": "#FFFFFF"
+	},
+	"tabBar": {
+		"color": "#333333",
+		"selectedColor": "#FD414E",
+		"borderStyle": "black",
+		"backgroundColor": "#ffffff",
+		"list": [{
+			"pagePath": "pages/shop/shop",
+			"iconPath": "static/tabbar/shop.png",
+			"selectedIconPath": "static/tabbar/shop_on.png",
+			"text": "商城"
+		}, {
+			"pagePath": "pages/community/community",
+			"iconPath": "static/tabbar/com.png",
+			"selectedIconPath": "static/tabbar/com_on.png",
+			"text": "社区"
+		}, {
+			"pagePath": "pages/leave/leave",
+			"iconPath": "static/tabbar/leave.png",
+			"selectedIconPath": "static/tabbar/leave_on.png",
+			"text": "闲置"
+		}, {
+			"pagePath": "pages/serve/serve",
+			"iconPath": "static/tabbar/serve.png",
+			"selectedIconPath": "static/tabbar/serve_on.png",
+			"text": "服务"
+		}, {
+			"pagePath": "pages/my/my",
+			"iconPath": "static/tabbar/my.png",
+			"selectedIconPath": "static/tabbar/my_on.png",
+			"text": "我的"
+		}]
+	}
+}
