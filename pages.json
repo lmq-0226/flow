@@ -1102,6 +1102,140 @@
             }
             
         }
+        ,{
+            "path" : "pages/serve/authen/kind/kind",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false,
+				"titleNView": {
+					"tags": [
+						{
+							"tag": "font",
+							"text": "实物鉴定",
+							"textStyles":{
+								"weight": "bold"
+							}
+						}
+					]
+				}
+            }
+            
+        }
+        ,{
+            "path" : "pages/serve/authen/cert/cert",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false,
+				"titleNView": {
+					"tags": [
+						{
+							"tag": "font",
+							"text": "证书查询",
+							"textStyles":{
+								"weight": "bold"
+							}
+						}
+					]
+				}
+            }
+            
+        }
+        ,{
+            "path" : "pages/serve/authen/aller/aller",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false,
+				"titleNView": {
+					"tags": [
+						{
+							"tag": "font",
+							"text": "选择鉴定师",
+							"textStyles":{
+								"weight": "bold"
+							}
+						}
+					]
+				}
+            }
+            
+        }
+        ,{
+            "path" : "pages/serve/authen/aller/detail",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false,
+				"titleNView": {
+					"tags": [
+						{
+							"tag": "font",
+							"text": "鉴定师详情",
+							"textStyles":{
+								"weight": "bold"
+							}
+						}
+					]
+				}
+            }
+            
+        }
+        ,{
+            "path" : "pages/serve/authen/aller/identDetail",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false,
+				"titleNView": {
+					"tags": [
+						{
+							"tag": "font",
+							"text": "鉴定详情",
+							"textStyles":{
+								"weight": "bold"
+							}
+						}
+					],
+					"buttons": [ //原生标题栏按钮配置,
+						{
+							"text":"\ue61f",
+							"fontSrc":"/static/iconfont/iconfont.ttf",
+							"fontSize": "24"
+						}
+					]
+				}
+            }
+            
+        }
+        ,{
+            "path" : "pages/serve/authen/school/school",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false,
+				"titleNView": {
+					"tags": [
+						{
+							"tag": "font",
+							"text": "流象商学院",
+							"textStyles":{
+								"weight": "bold"
+							}
+						}
+					],
+					"buttons": [ //原生标题栏按钮配置,
+						{
+							"text":"\ue61f",
+							"fontSrc":"/static/iconfont/iconfont.ttf",
+							"fontSize": "24"
+						}
+					]
+				}
+            }
+            
+        }
     ],
 	"globalStyle": {
 		"navigationBarTextStyle": "black",
