@@ -4,7 +4,7 @@
 			<u-tabs :list="list" :is-scroll="false" :current="current" @change="change" active-color="#FC493D"></u-tabs>
 		</view>
 		<view class="list">
-			<view class="item" v-for="(item,index) in 3" :key="item.id" @click="go('./detail/detail')">
+			<view class="item" v-for="(item,index) in identList" :key="item.id">
 				<view class="title">
 					<view class="">
 						<image src="/static/avatar3.png" mode=""></image>
@@ -22,7 +22,7 @@
 						<text>¥199</text>
 					</view>
 				</view>
-				<view class="state">
+				<view class="state" @click="go('/pages/my/refund/detail/rate')">
 					<view class="">
 						<text>审核</text>
 						<text>等待客服处理</text>
@@ -30,9 +30,9 @@
 					<image src="/static/serve/right.png" mode=""></image>
 				</view>
 				<view class="bot">
-					<text>删除记录</text>
-					<text>填写货运单号</text>
-					<text>查看详情</text>
+					<text @click.stop="del(index)">删除记录</text>
+					<text @click.stop="go('./bill/bill')">填写货运单号</text>
+					<text @click.stop="go('./detail/detail')">查看详情</text>
 				</view>
 			</view>
 		</view>
@@ -52,15 +52,30 @@
 						name: '处理中'
 					}
 				],
-				identList: [1]
+				identList: [
+					1,2,3
+				]
 			};
 		},
 		onLoad() {
 			
 		},
+		onBackPress() {
+			uni.switchTab({
+				url: '../my'
+			})
+			return true
+		},
 		methods:{
 			change(e){
 				this.current = e
+			},
+			del(e){
+				this.identList.splice(e, 1)
+				uni.showToast({
+					title: '删除成功',
+					icon: 'none'
+				})
 			},
 			go(e){
 				uni.navigateTo({

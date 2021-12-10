@@ -1,0 +1,19 @@
+{
+  "navigationBarTitleText": "",
+  "enablePullDownRefresh": false,
+  "titleNView": {
+    "tags": [
+      {
+        "tag": "font",
+        "text": "评价",
+        "textStyles": {
+          "weight": "bold"
+        }
+      }
+    ]
+  },
+  "usingComponents": {
+    "u-rate": "/node-modules/uview-ui/components/u-rate/u-rate",
+    "u-lazy-load": "/node-modules/uview-ui/components/u-lazy-load/u-lazy-load"
+  }
+}

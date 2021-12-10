@@ -2,7 +2,7 @@
 	<view :class="[!tabsShow ? 'hide' : '', 'content']">
 		<view class="status_bar"></view>
 		<view class="nav">
-			<image src="/static/comm/add.png" mode=""></image>
+			<image src="/static/comm/add.png" mode="" @click="go('./publish/publish')"></image>
 			<view class="">
 				<text v-for="(item,index) in navList" :key="index" @click="change(index)" :class="navCheck == index ? 'navChecked' : ''">{{item}}</text>
 			</view>
@@ -35,7 +35,7 @@
 			<!-- 瀑布流 -->
 			<u-waterfall v-model="flowList" ref="uWaterfall">
 				<template v-slot:left="{leftList}">
-					<view class="demo-warter" v-for="(item, index) in leftList" :key="index" @click="go('./detail/detail')">
+					<view class="demo-warter" v-for="(item, index) in leftList" :key="index" @click="go(item.type == 'video' ? './detail/video' : './detail/detail')">
 						<image v-if="item.type == 'video'" class="videoPb" src="/static/comm/video_play.png" mode=""></image>
 						<!-- 警告：微信小程序中需要hx2.8.11版本才支持在template中结合其他组件，比如下方的lazy-load组件 -->
 						<u-lazy-load threshold="-450" border-radius="10" :image="item.image" img-mode="widthFix" :index="index"></u-lazy-load>
@@ -48,14 +48,14 @@
 								<text>珂珂</text>
 							</view>
 							<view class="">
-								<image src="../../static/comm/praise.png" mode=""></image>
+								<image src="/static/comm/praise.png" mode=""></image>
 								<text>1542</text>
 							</view>
 						</view>
 					</view>
 				</template>
 				<template v-slot:right="{rightList}">
-					<view class="demo-warter" v-for="(item, index) in rightList" :key="index" @click="go('./detail/detail')">
+					<view class="demo-warter" v-for="(item, index) in rightList" :key="index" @click="go(item.type == 'video' ? './detail/video' : './detail/detail')">
 						<image v-if="item.type == 'video'" class="videoPb" src="/static/comm/video_play.png" mode=""></image>
 						<u-lazy-load threshold="-450" border-radius="10" :image="item.image" img-mode="widthFix" :index="index"></u-lazy-load>
 						<view class="demo-title">
@@ -67,7 +67,7 @@
 								<text>珂珂</text>
 							</view>
 							<view class="">
-								<image src="../../static/comm/praise.png" mode=""></image>
+								<image src="/static/comm/praise.png" mode=""></image>
 								<text>1542</text>
 							</view>
 						</view>
@@ -218,7 +218,10 @@
 			},
 			go(e){
 				uni.navigateTo({
-					url: e
+					url: e,
+					complete: (err) => {
+						console.log(err)
+					}
 				})
 			}
 		}
@@ -375,6 +378,9 @@
 					image{
 						width: 34rpx;
 						height: 34rpx;
+						border-radius: 50%;
+						background: #ccc;
+						margin-right: 14rpx;
 					}
 					text{
 						font-size: 20rpx;

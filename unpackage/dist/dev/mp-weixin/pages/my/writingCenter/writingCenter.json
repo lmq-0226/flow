@@ -1,0 +1,18 @@
+{
+  "navigationBarTitleText": "",
+  "enablePullDownRefresh": false,
+  "titleNView": {
+    "tags": [
+      {
+        "tag": "font",
+        "text": "创作中心",
+        "textStyles": {
+          "weight": "bold"
+        }
+      }
+    ]
+  },
+  "usingComponents": {
+    "u-swiper": "/node-modules/uview-ui/components/u-swiper/u-swiper"
+  }
+}

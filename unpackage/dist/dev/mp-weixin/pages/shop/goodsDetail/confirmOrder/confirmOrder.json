@@ -1,0 +1,19 @@
+{
+  "navigationBarTitleText": "",
+  "enablePullDownRefresh": false,
+  "titleNView": {
+    "tags": [
+      {
+        "tag": "font",
+        "text": "确认订单",
+        "textStyles": {
+          "weight": "bold"
+        }
+      }
+    ]
+  },
+  "usingComponents": {
+    "u-input": "/node-modules/uview-ui/components/u-input/u-input",
+    "u-popup": "/node-modules/uview-ui/components/u-popup/u-popup"
+  }
+}

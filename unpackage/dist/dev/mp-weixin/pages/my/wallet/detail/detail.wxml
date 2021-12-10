@@ -1,0 +1,1 @@
+<view class="content data-v-6a6f0853"><block wx:for="{{list}}" wx:for-item="item" wx:for-index="index" wx:key="index"><view class="item data-v-6a6f0853"><view class="left data-v-6a6f0853"><text class="data-v-6a6f0853">{{item.name}}</text><text class="data-v-6a6f0853">{{item.time}}</text></view><text class="data-v-6a6f0853">{{item.money}}</text></view></block></view>

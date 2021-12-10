@@ -1,0 +1,19 @@
+{
+  "navigationBarTitleText": "",
+  "enablePullDownRefresh": false,
+  "titleNView": {
+    "tags": [
+      {
+        "tag": "font",
+        "text": "收银台",
+        "textStyles": {
+          "weight": "bold"
+        }
+      }
+    ]
+  },
+  "usingComponents": {
+    "u-count-down": "/node-modules/uview-ui/components/u-count-down/u-count-down",
+    "u-toast": "/node-modules/uview-ui/components/u-toast/u-toast"
+  }
+}

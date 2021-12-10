@@ -1,0 +1,19 @@
+{
+  "navigationBarTitleText": "",
+  "enablePullDownRefresh": false,
+  "navigationBarBackgroundColor": "#F6F5FA",
+  "titleNView": {
+    "tags": [
+      {
+        "tag": "font",
+        "text": "填写快递信息",
+        "textStyles": {
+          "weight": "bold"
+        }
+      }
+    ]
+  },
+  "usingComponents": {
+    "u-input": "/node-modules/uview-ui/components/u-input/u-input"
+  }
+}

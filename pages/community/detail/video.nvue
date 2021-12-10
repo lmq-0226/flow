@@ -1,0 +1,160 @@
+<template>
+	<view class="content">
+		<view class="swipers">
+			<swiper :vertical="true">
+				<swiper-item v-for="(item,index) in swiperList" :key="index" @click.stop="dblclick(item.id)">
+					<view class="swiper-item">
+						<u-lazy-load threshold="-450" :image="item.url" duration="1000" img-mode="widthFix" :index="index"></u-lazy-load>
+						<view class="right">
+							<view class="avatar">
+								<image class="avatarImg" src="/static/comm/avatar.png" mode=""></image>
+								<image v-if="attenList.indexOf(item.id) > -1"  class="add" src="/static/comm/atten.png" mode="" @click.stop="atten(item.id)"></image>
+								<image v-else class="add" src="/static/comm/add2.png" mode="" @click.stop="atten(item.id)"></image>
+							</view>
+							<view class="opera" @click.stop="praise(item.id)">
+								<image v-if="praiseList.indexOf(item.id) > -1" src="/static/comm/videoPraiseOn.png" mode=""></image>
+								<image v-else src="/static/comm/videoPraise.png" mode=""></image>
+								<text>赞</text>
+							</view>
+							<view class="opera">
+								<image src="/static/comm/videoComment.png" mode=""></image>
+								<text>评论</text>
+							</view>
+							<view class="opera">
+								<image src="/static/comm/videoShare.png" mode=""></image>
+								<text>转发</text>
+							</view>
+						</view>
+					</view>
+				</swiper-item>
+			</swiper>
+		</view>
+	</view>
+</template>
+
+<script>
+	export default {
+		data() {
+			return {
+				swiperList: [
+					{id: 1, url: require('@/static/pub/zy.jpg')},
+					{id: 2, url: require('@/static/pub/ttq.png')},
+					{id: 3, url: require('@/static/pub/ch.png')},
+					{id: 4, url: require('@/static/pub/fj.jpg')},
+					{id: 5, url: require('@/static/pub/bbt.png')}
+				],
+				praiseList: [], // 点赞过的数据id
+				attenList: [], // 关注列表
+				touchNum: 0, // 双击
+			};
+		},
+		methods:{
+			praise(e){
+				if(this.praiseList.indexOf(e) > -1){
+					let index = this.praiseList.indexOf(e)
+					this.praiseList.splice(index, 1)
+				}else{
+					this.praiseList.push(e)
+				}
+			},
+			atten(e){
+				if(this.attenList.indexOf(e) > -1){
+					let index = this.attenList.indexOf(e)
+					this.attenList.splice(index, 1)
+				}else{
+					this.attenList.push(e)
+				}
+			},
+			// 双击暂停、开始播放
+			dblclick(e){
+				this.touchNum ++
+				let timer = setTimeout(()=>{
+					if(this.touchNum == 1){
+						// 单击
+					}
+					if(this.touchNum >= 2){
+						// 双击
+						if(this.praiseList.indexOf(e) > -1){
+							let index = this.praiseList.indexOf(e)
+							this.praiseList.splice(index, 1)
+						}else{
+							this.praiseList.push(e)
+						}
+					}
+					this.touchNum = 0
+					clearTimeout(timer)
+				},250)
+			}
+		}
+	}
+</script>
+
+<style lang="scss" scoped>
+	.content{
+		.swipers{
+			uni-swiper{
+				width: 100%;
+				height: 100vh;
+				/* #ifdef H5 */
+				height: calc(100vh - 88rpx);
+				/* #endif */
+				.swiper-item{
+					width: 100%;
+					height: 100vh;
+					/* #ifdef H5 */
+					height: calc(100vh - 88rpx);
+					/* #endif */
+					background: #000;
+					display: flex;
+					justify-content: center;
+					align-items: center;
+					image{
+						width: 100%;
+					}
+					/deep/ .u-wrap{
+						width: 100% !important;
+					}
+					.right{
+						position: fixed;
+						right: 20rpx;
+						top: 50%;
+						transform: translateY(-50%);
+						z-index: 99999;
+						.avatar{
+							display: flex;
+							justify-content: flex-start;
+							align-items: center;
+							.avatarImg{
+								width: 80rpx;
+								height: 80rpx;
+								border-radius: 50%;
+							}
+							.add{
+								width: 44rpx;
+								height: 44rpx;
+								margin-top: -19rpx;
+								border-radius: 50%;
+							}
+						}
+						.opera{
+							display: flex;
+							justify-content: flex-start;
+							align-items: center;
+							margin-top: 20rpx;
+							image{
+								width: 70rpx;
+								height: 70rpx;
+							}
+							text{
+								font-size: 24rpx;
+								font-family: PingFang SC;
+								font-weight: 500;
+								color: #FFFFFF;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+</style>

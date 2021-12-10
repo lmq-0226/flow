@@ -53,6 +53,7 @@
 							scroll-y="true" 
 							@scroll="scrollChange"
 							style="background: #282021;height: 370rpx;padding: 0rpx 60rpx;width: calc(100% - 120rpx);"
+							@touchmove.native.stop.prevent
 						>
 							<view class="scroll">
 								<view class="" v-for="(item,index) in 10" :key="index">
@@ -84,7 +85,7 @@
 				<text>分享邀请好友</text>
 			</view>
 		</view>
-		<u-popup v-model="show" mode="bottom" :safe-area-inset-bottom="true" :mask-close-able="false" :custom-style="{background: 'none'}">
+		<u-popup v-model="show" mode="bottom" :safe-area-inset-bottom="true" :mask-close-able="false" :custom-style="{background: 'none'}" @touchmove.native.stop.prevent>
 			<view class="popup">
 				<view class="canvar">
 					<view class="close">
@@ -138,7 +139,6 @@
 		methods:{
 			scrollChange(e){
 				let height = e.detail.scrollHeight - this.scrollHeight
-				console.log(height,e.detail)
 				this.slideTop = e.detail.scrollTop/height/2*100 
 			},
 			share(){

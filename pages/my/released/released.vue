@@ -18,6 +18,7 @@
 					<view class="">
 						<text>降价</text>
 						<text>编辑</text>
+						<text @click="go('./goodsDetail/goodsDetail')">详情</text>
 					</view>
 				</view>
 			</view>
@@ -49,6 +50,11 @@
 			change(e){
 				this.current = e
 			},
+			go(e){
+				uni.navigateTo({
+					url: e
+				})
+			}
 		}
 	}
 </script>

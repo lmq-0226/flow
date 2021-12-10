@@ -13,9 +13,11 @@
 			</view>
 			<view class="warp">
 				<view :class="['msg',show ? '' : 'active']">
-					<text class="btn" v-if="show" @click="show = false">展开</text>
-					<text class="btn" v-else @click="show = true">收起</text>
+					<text class="btn" @click="show = !show">{{show ? '展开' : '收起'}}</text>
 					<text class="desc">擅长品类：箱包、饰品、腕表、服装、鞋履、配饰、玉石入驻鉴定师 曾任职某典当行高级典当师职位，曾任职某典当行高擅长品类：箱包、饰品、腕表、服装、鞋履、配饰、玉石入驻鉴定师 曾任职某典当行高级典当师职位，曾任职某典当行高</text>
+					<!-- #ifdef APP-PLUS -->
+					<text style="display: inline-block; width: 66rpx;"></text>
+					<!-- #endif -->
 				</view>
 			</view>
 		</view>
@@ -149,7 +151,16 @@
 				this.loadStatus = 'loadmore';
 			}, 1000)
 		},
+		watch:{
+			
+		},
 		methods:{
+			getRem() {
+				const defaultRem = 16;
+				let winWidth = window.innerWidth;
+				let rem = (winWidth / 375) * defaultRem;
+				return rem;
+			},
 			// 模拟数据请求
 			addRandomData() {	
 				for(let i = 0; i < 10; i++) {
@@ -225,12 +236,31 @@
 					text-overflow: ellipsis;
 					display: -webkit-box;
 					-webkit-box-orient: vertical;
+					position: relative;
 					.desc{
 						font-size: 22rpx;
 						font-family: PingFang SC;
 						font-weight: 500;
 						color: #686879;
 						line-height: 32rpx;
+					}
+					.btn{
+						/* #ifdef H5 */
+						float: right;
+						clear: both;
+						/* #endif */
+						font-size: 22rpx;
+						font-family: PingFang SC;
+						font-weight: bold;
+						color: #000;
+						width: 66rpx;
+						height: 35rpx;
+						/* #ifdef APP-PLUS */
+						position: absolute;
+						bottom: 0;
+						right: 0;
+						background: #fff;
+						/* #endif */
 					}
 				}
 				.msg::before{
@@ -239,21 +269,11 @@
 					width: 0;
 					height: calc(100% - 35rpx);
 					background: red;
-					
 				}
 				.active{
 					-webkit-line-clamp: 999;
 				}
-				.btn{
-					float: right;
-					clear: both;
-					font-size: 22rpx;
-					font-family: PingFang SC;
-					font-weight: bold;
-					color: #000;
-					width: 66rpx;
-					height: 35rpx;
-				}
+				
 			}
 			
 		}

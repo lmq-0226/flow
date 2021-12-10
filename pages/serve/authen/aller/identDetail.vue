@@ -10,7 +10,8 @@
 				<view class="result">
 					<text>鉴别为真</text>
 					<text>鉴定结果根据用户所提供图片得出</text>
-					<image src="/static/my/true.png" mode=""></image>
+					<image v-if="status == 1" src="/static/my/true.png" mode=""></image>
+					<image v-else-if="status == 0" src="/static/my/fake.png" mode=""></image>
 				</view>
 				<view class="er">
 					<image src="" mode=""></image>
@@ -33,14 +34,14 @@
 	export default {
 		data() {
 			return {
-				
+				status: 1
 			};
 		},
 		onNavigationBarButtonTap(e){
 			console.log(e)
 		},
-		onLoad() {
-			
+		onLoad(option) {
+			this.status = option.status
 		},
 		methods:{
 			

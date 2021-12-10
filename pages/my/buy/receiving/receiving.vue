@@ -118,15 +118,15 @@
 			<image src="/static/my/tpoint.png" mode=""></image>
 			<view class="" v-if="status == 1">
 				<text>申请售后</text>
-				<text>查看物流</text>
+				<text @click="go('../logistics/logistics')">查看物流</text>
 				<text class="active">确认收货</text>
 			</view>
 			<view class="" v-else-if="status == 2">
-				<text>申请退款</text>
+				<text @click="go('../drawback/drawback')">申请退款</text>
 			</view>
 			<view class="" v-else-if="status == 3">
 				<text>取消退款</text>
-				<text class="active">填写货运单号</text>
+				<text class="active" @click="go('/pages/my/refund/bill/bill')">填写货运单号</text>
 			</view>
 		</view>
 	</view>
@@ -161,6 +161,11 @@
 			},
 			copy(e){
 				setText(e)
+			},
+			go(e){
+				uni.navigateTo({
+					url: e
+				})
 			}
 		}
 	}

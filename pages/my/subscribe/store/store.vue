@@ -1,9 +1,9 @@
 <template>
 	<view class="content">
 		<view class="nav">
-			<view class="status_bar" :style="{backgroundColor: 'rgba(0,0,0,' + opacity + ')'}"></view>
+			<view class="status_bar" :style="{backgroundColor: 'rgba(255,66,67,' + opacity + ')'}"></view>
 			<view class="col_flex">
-				<view class="nav-bar" :style="{backgroundColor: 'rgba(0,0,0,' + opacity + ')'}">
+				<view class="nav-bar" :style="{backgroundColor: 'rgba(255,66,67,' + opacity + ')'}">
 					<image src="/static/my/back.png" mode="" @click="back"></image>
 					<view class="">
 						<image src="/static/my/search.png" mode=""></image>
@@ -66,7 +66,7 @@
 			<!-- 加载更多 -->
 			<u-loadmore bg-color="#F6F5FA" :status="loadStatus" @loadmore="addRandomData"></u-loadmore>
 		</view>
-		<u-popup v-model="show" mode="right" width="670" @close="popupClose" :safe-area-inset-bottom="true">
+		<u-popup v-model="show" mode="right" width="670" @close="popupClose" :safe-area-inset-bottom="true" @touchmove.native.stop.prevent>
 			<view class="popup">
 				<image class="close" src="/static/login/clear.png" mode="" @click="show = false"></image>
 				<scroll-view scroll-y="true" style="height: 100%;">
@@ -130,7 +130,7 @@
 				sortList: [
 					{text: '综合', url: ''},
 					{text: '销量', url: ''},
-					{text: '价格', url: require('@/static/updown.png')},
+					{text: '价格', url: require('@/static/pub/updown.png')},
 					{text: '新品', url: ''},
 					{text: '筛选', url: require('@/static/filter.png')}
 				],
@@ -269,7 +269,7 @@
 							{id: 8, text: '41'}
 						]
 					}
-				]
+				],
 			};
 		},
 		// 导航栏背景及字体颜色初始化
@@ -314,8 +314,19 @@
 					this.show = true
 					uni.setNavigationBarColor({
 					    frontColor: '#000000',
-						backgroundColor: 'rgba(0,0,0,1.0)'
+						backgroundColor: 'rgba(255,255,255,1.0)'
 					})
+				}
+				if(e == 2){
+					this.priceStatus = !this.priceStatus
+					if(this.priceStatus){
+						this.sortList[2].url = require('@/static/pub/up.png')
+					}else{
+						this.sortList[2].url = require('@/static/pub/down.png')
+					}
+				}else{
+					this.priceStatus = false
+					this.sortList[2].url = require('@/static/pub/updown.png')
 				}
 			},
 			// 模拟数据请求
@@ -333,7 +344,7 @@
 			popupClose(){
 				uni.setNavigationBarColor({
 				    frontColor: '#ffffff',
-					backgroundColor: 'rgba(0,0,0,' + this.opacity + ')'
+					backgroundColor: 'rgba(255,66,67,' + this.opacity + ')'
 				})
 			},
 			popuTouch(e){
@@ -523,7 +534,7 @@
 				width: 44rpx;
 				height: 44rpx;
 				z-index: 999;
-				position: absolute;
+				position: fixed;
 				top: 60rpx;
 				right: 40rpx;
 			}

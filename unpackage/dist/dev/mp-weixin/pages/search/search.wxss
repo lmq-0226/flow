@@ -1,0 +1,142 @@
+@charset "UTF-8";
+/**
+ * 这里是uni-app内置的常用样式变量
+ *
+ * uni-app 官方扩展插件及插件市场（https://ext.dcloud.net.cn）上很多三方插件均使用了这些样式变量
+ * 如果你是插件开发者，建议你使用scss预处理，并在插件代码中直接使用这些变量（无需 import 这个文件），方便用户通过搭积木的方式开发整体风格一致的App
+ *
+ */
+/**
+ * 如果你是App开发者（插件使用者），你可以通过修改这些变量来定制自己的插件主题，实现自定义主题功能
+ *
+ * 如果你的项目同样使用了scss预处理，你也可以直接在你的 scss 代码中使用如下变量，同时无需 import 这个文件
+ */
+/* 颜色变量 */
+/* 行为相关颜色 */
+/* 文字基本颜色 */
+/* 背景颜色 */
+/* 边框颜色 */
+/* 尺寸变量 */
+/* 文字尺寸 */
+/* 图片尺寸 */
+/* Border Radius */
+/* 水平间距 */
+/* 垂直间距 */
+/* 透明度 */
+/* 文章场景相关 */
+.content.data-v-4cedc0c6 {
+  padding: 0 30rpx;
+}
+.content .history.data-v-4cedc0c6 {
+  margin-top: 30rpx;
+}
+.content .history .lettle.data-v-4cedc0c6 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.content .history .lettle text.data-v-4cedc0c6 {
+  font-size: 26rpx;
+  font-family: PingFang SC;
+  font-weight: bold;
+  color: #000000;
+}
+.content .history .lettle image.data-v-4cedc0c6 {
+  width: 44rpx;
+  height: 44rpx;
+}
+.content .history .wrap.data-v-4cedc0c6 {
+  display: flex;
+}
+.content .history .wrap .list.data-v-4cedc0c6 {
+  width: 100%;
+  display: -webkit-box;
+  flex-wrap: wrap;
+  position: relative;
+  transition-duration: 0.5s;
+}
+.content .history .wrap .list .btn.data-v-4cedc0c6 {
+  font-size: 22rpx;
+  font-family: PingFang SC;
+  font-weight: bold;
+  color: #000;
+  width: 44rpx;
+  height: 44rpx;
+  transition-duration: 0.5s;
+}
+.content .history .wrap .list .item.data-v-4cedc0c6 {
+  display: inline-block;
+  margin: 19rpx 0 0 10rpx;
+  font-size: 24rpx;
+  font-family: PingFang SC;
+  font-weight: 500;
+  color: #1C1F2F;
+  padding: 6rpx 12rpx;
+  background: #F6F5FA;
+  border-radius: 6rpx;
+}
+.content .history .wrap .list.data-v-4cedc0c6::before {
+  content: '';
+  float: right;
+  width: 0;
+  height: calc(100% - 44rpx);
+  background: red;
+}
+.content .history .wrap .active.data-v-4cedc0c6 {
+  -webkit-line-clamp: 999 !important;
+}
+.content .history .wrap .height.data-v-4cedc0c6 {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+.content .refresh.data-v-4cedc0c6 {
+  margin-top: 30rpx;
+}
+.content .refresh .lettle.data-v-4cedc0c6 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.content .refresh .lettle > text.data-v-4cedc0c6 {
+  font-size: 26rpx;
+  font-family: PingFang SC;
+  font-weight: bold;
+  color: #000000;
+}
+.content .refresh .lettle view.data-v-4cedc0c6 {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+.content .refresh .lettle view text.data-v-4cedc0c6 {
+  font-size: 22rpx;
+  font-family: PingFang SC;
+  font-weight: 500;
+  color: #7E7E8C;
+}
+.content .refresh .lettle view image.data-v-4cedc0c6 {
+  width: 44rpx;
+  height: 44rpx;
+  transition-duration: 2s;
+}
+.content .refresh .list.data-v-4cedc0c6 {
+  width: 100%;
+  display: -webkit-box;
+  flex-wrap: wrap;
+  position: relative;
+  transition-duration: 0.5s;
+}
+.content .refresh .list .item.data-v-4cedc0c6 {
+  display: inline-block;
+  margin: 19rpx 0 0 10rpx;
+  font-size: 24rpx;
+  font-family: PingFang SC;
+  font-weight: 500;
+  color: #1C1F2F;
+  padding: 6rpx 12rpx;
+  background: #F6F5FA;
+  border-radius: 6rpx;
+}
+

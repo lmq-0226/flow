@@ -5,7 +5,7 @@
 			<view class="" @click="back">
 				<image src="/static/my/back.png" mode=""></image>
 			</view>
-			<view class="">
+			<view class="" @click="go('/pages/public/callCenter')">
 				<image src="/static/my/service2.png" mode=""></image>
 			</view>
 		</view>
@@ -88,13 +88,13 @@
 		<view class="bottom">
 			<image src="/static/my/tpoint.png" mode=""></image>
 			<view class="" v-if="status == 1">
-				<text>联系买家</text>
+				<text @click="go('/pages/HM-chat/HM-chat')">联系买家</text>
 				<text>关闭订单</text>
 				<text class="active">去发货</text>
 			</view>
 			<view class="" v-else-if="status == 2 || status == 3 || status == 4">
-				<text>联系买家</text>
-				<text @click="go('../logistics/logistics')">查看物流</text>
+				<text @click="go('/pages/HM-chat/HM-chat')">联系买家</text>
+				<text @click="go('/pages/my/buy/logistics/logistics')">查看物流</text>
 				<text class="active" v-if="status == 2">提醒收货</text>
 				<text class="active" v-else-if="status == 3">提醒评价</text>
 				<text class="active" v-else-if="status == 4">查看评价</text>

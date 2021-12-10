@@ -2,7 +2,7 @@
 	<view class="content">
 		<view class="status_bar"></view>
 		<view class="nav_bar">
-			<view class="nav_left">
+			<view class="nav_left" @click="go('./leaveShop/leaveShop')">
 				<view class="left_top">
 					<text>流象闲置</text>
 					<image src="/static/shop/leave_go.png" mode=""></image>
@@ -17,10 +17,9 @@
 			</view>
 		</view>
 		<view class="search">
-			<view class="nav_search">
-				<!-- <image src="/static/shop/search.png" mode=""></image> -->
-				<input type="text" value="" placeholder="热门搜索" />
-				<image src="/static/shop/camera.png" mode=""></image>
+			<view class="nav_search" @click="go('/pages/search/search')">
+				<input type="text" value="" placeholder="热门搜索" disabled/>
+				<image src="/static/shop/camera.png" mode="" @click.stop="scan"></image>
 			</view>
 		</view>
 
@@ -30,13 +29,13 @@
 		<view class="menus">
 			<scroll-view scroll-x="true" class="scroll-view_H" @scroll="scrollChange">
 				<view class="items">
-					<view class="" v-for="(item,index) in 7" :key="index">
+					<view class="" v-for="(item,index) in 7" :key="index" @click="go('/pages/public/public')">
 						<image src="" mode=""></image>
 						<text>新品发售</text>
 					</view>
 				</view>
 				<view class="items items2">
-					<view class="" v-for="(item,index) in 6" :key="index">
+					<view class="" v-for="(item,index) in 6" :key="index" @click="go('/pages/public/public')">
 						<image src="" mode=""></image>
 						<text>新品发售</text>
 					</view>
@@ -48,7 +47,7 @@
 				</view>
 			</view>
 		</view>
-		<view class="flash">
+		<view class="flash" @click="go('/pages/public/public')">
 			<view class="flash_one">
 				<view class="one_left">
 					<view class="lettle">
@@ -121,7 +120,7 @@
 			<!-- 瀑布流 -->
 			<u-waterfall v-model="flowList" ref="uWaterfall">
 				<template v-slot:left="{leftList}">
-					<view class="demo-warter" v-for="(item, index) in leftList" :key="index" @click="go('/pages/shop/goodsDetail/goodsDetail')">
+					<view class="demo-warter" v-for="(item, index) in leftList" :key="index" @click="go('/pages/leave/leaveShop/goodsDetail/goodsDetail')">
 						<!-- 警告：微信小程序中需要hx2.8.11版本才支持在template中结合其他组件，比如下方的lazy-load组件 -->
 						<u-lazy-load threshold="-450" border-radius="10" :image="item.image" img-mode="widthFix" :index="index"></u-lazy-load>
 						<view class="demo-title">
@@ -129,31 +128,35 @@
 						</view>
 						<view class="num">
 							<text>¥899</text>
-							<text>156人付款</text>
+							<text>/市场价¥17959</text>
+						</view>
+						<view class="grade">
+							<text>S级</text>
+							<text>·全新</text>
 						</view>
 					</view>
 				</template>
 				<template v-slot:right="{rightList}">
-					<view class="demo-warter" v-for="(item, index) in rightList" :key="index" @click="go('/pages/shop/goodsDetail/goodsDetail')">
+					<view class="demo-warter" v-for="(item, index) in rightList" :key="index" @click="go('/pages/my/released/goodsDetail/goodsDetail')">
 						<u-lazy-load threshold="-450" border-radius="10" :image="item.image" img-mode="widthFix" :index="index"></u-lazy-load>
 						<view class="demo-title">
 							{{item.title}}
 						</view>
 						<view class="num">
 							<text>¥899</text>
-							<text>156人付款</text>
+							<text>3人想要</text>
 						</view>
 					</view>
 				</template>
 			</u-waterfall>
 		</view>
-		<view class="bottom" @click="popupShow = true">
+		<view class="bottom" @click="popupShow = true,authenModel = true">
 			<text>卖</text>
 			<text>闲置</text>
 		</view>
-		<u-popup v-model="popupShow" mode="bottom">
+		<u-popup v-model="popupShow" mode="bottom" @touchmove.native.stop.prevent>
 			<view class="popupShow">
-				<view class="item">
+				<view class="item" @click="go('/pages/leave/classify/classify?type=1')">
 					<view class="left">
 						<view class="desc">
 							<text>平台寄卖</text>
@@ -163,7 +166,7 @@
 					</view>
 					<image src="/static/shop/right3.png" mode=""></image>
 				</view>
-				<view class="item">
+				<view class="item" @click="go('/pages/leave/classify/classify?type=2')">
 					<view class="left">
 						<view class="desc">
 							<text>拍图售卖</text>
@@ -175,6 +178,8 @@
 				<image src="/static/shop/close.png" mode="" @click="popupShow = false"></image>
 			</view>
 		</u-popup>
+		<!-- @cancel="popupShow = false" -->
+		<u-modal v-model="authenModel" title="实名认证" content="认证后可以继续进行操作" :show-cancel-button="true" @confirm="go('/pages/my/set/authen/authen')"></u-modal>
 		<!-- 加载更多 -->
 		<u-loadmore bg-color="#F6F5FA" :status="loadStatus" @loadmore="addRandomData"></u-loadmore>
 		<!-- 返回顶部 -->
@@ -186,6 +191,7 @@
 	export default {
 		data() {
 			return {
+				type: 1, // 1 寄卖 2 售卖
 				current: 0,
 				tabList: [{
 						name: '推荐'
@@ -287,7 +293,8 @@
 					},
 				],
 				scrollTop: 0,
-				popupShow: false
+				popupShow: false,
+				authenModel: false // 提示认证弹窗
 			}
 		},
 		onLoad() {
@@ -302,6 +309,7 @@
 		},
 		onHide() {
 			this.popupShow = false
+			this.authenModel = false
 		},
 		onPageScroll(e) {
 			this.scrollTop = e.scrollTop
@@ -318,6 +326,14 @@
 		methods: {
 			change(index) {
 				this.current = index;
+			},
+			scan(){
+				uni.scanCode({
+				    success: function (res) {
+				        console.log('条码类型：' + res.scanType);
+				        console.log('条码内容：' + res.result);
+				    }
+				})
 			},
 			// scrol滚动
 			scrollChange(e){
@@ -619,11 +635,11 @@
 			}
 			.num{
 				display: flex;
-				justify-content: space-between;
+				justify-content: flex-start;
 				align-items: center;
 				margin-top: 20rpx;
 				>:nth-child(1){
-					font-size: 24rpx;
+					font-size: 26rpx;
 					font-family: PingFang SC;
 					font-weight: bold;
 					color: #FF4243;
@@ -633,6 +649,28 @@
 					font-family: PingFang SC;
 					font-weight: 500;
 					color: #9094A6;
+				}
+			}
+			.grade{
+				position: absolute;
+				top: 10rpx;
+				left: 10rpx;
+				width: 107rpx;
+				height: 34rpx;
+				background: #3F3E4A;
+				border-radius: 8rpx;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				>:nth-child(1){
+					font-size: 24rpx;
+					font-family: PingFang SC;
+					font-weight: bold;
+					color: #FFE1BD;
+				}
+				>:nth-child(2){
+					font-size: 20rpx;
+					color: #FEFEFE;
 				}
 			}
 		}

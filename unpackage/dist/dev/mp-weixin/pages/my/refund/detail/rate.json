@@ -1,0 +1,20 @@
+{
+  "navigationBarTitleText": "",
+  "enablePullDownRefresh": false,
+  "titleNView": {
+    "tags": [
+      {
+        "tag": "font",
+        "text": "退款进度",
+        "textStyles": {
+          "weight": "bold"
+        }
+      }
+    ]
+  },
+  "usingComponents": {
+    "u-time-line": "/node-modules/uview-ui/components/u-time-line/u-time-line",
+    "u-time-line-item": "/node-modules/uview-ui/components/u-time-line-item/u-time-line-item",
+    "u-icon": "/node-modules/uview-ui/components/u-icon/u-icon"
+  }
+}

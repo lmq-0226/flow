@@ -5,49 +5,29 @@
 		<view class="title">
 			<text>登录流象</text>
 		</view>
-		<view class="">
+		<view class="form">
 			<!-- form表单 -->
 			<view class="form">
-				<view class="tell">
-					<view class="">
-						<text>+86</text>
-						<u-input 
-							v-model="tell" 
-							type="number" 
-							placeholder="请输入手机号" 
-							maxlength="11" 
-							placeholder-class="ip"
-							:custom-style="custom"
-						/>
-					</view>
-				</view>
-				<view class="code" v-if="loginStatus">
-					<view class="">
-						<text>验证码</text>
-						<u-input
-							v-model="code" 
-							type="number" 
-							placeholder="请输入验证码" 
-							maxlength="6"
-							placeholder-class="ip"
-							:custom-style="custom"
-						/>
-					</view>
-					<text v-if="status" @click="getCode()">获取验证码</text>
-					<text class="timer" v-else>{{timer + '秒后重新获取'}}</text>
-				</view>
-				<view class="pass" v-else>
-					<view class="">
-						<text>密码</text>
-						<u-input
-							v-model="pass" 
-							type="password" 
-							placeholder="请输入密码" 
-							maxlength="20"
-							:custom-style="custom"
-						/>
-					</view>
-				</view>
+				<!-- form表单 -->
+				<u-form v-if="loginStatus" :model="form1" ref="uForm1" label-width="120":label-style="{fontWeight: 'bold'}">
+					<u-form-item label="+86" prop="tell">
+						<u-input v-model="form1.tell" type="number" placeholder="请输入手机号" maxlength="11" />
+					</u-form-item>
+					<u-form-item label="验证码" prop="code">
+						<u-input v-model="form1.code" type="number" placeholder="请输入验证码" />
+						<text class="time" v-if="status" @click="getCode()">获取验证码</text>
+						<text class="time timer" v-else>{{timer + '秒后重新获取'}}</text>
+					</u-form-item>
+				</u-form>
+				<!-- form表单 -->
+				<u-form v-else :model="form2" ref="uForm2" label-width="120":label-style="{fontWeight: 'bold'}">
+					<u-form-item label="+86" prop="tell">
+						<u-input v-model="form2.tell" type="number" placeholder="请输入手机号" maxlength="11" />
+					</u-form-item>
+					<u-form-item label="密码" prop="pass">
+						<u-input v-model="form2.pass" type="password" placeholder="请输入登录密码" maxlength="20" />
+					</u-form-item>
+				</u-form>
 			</view>
 			<!-- 隐私、协议 -->
 			<view class="agreement" @click="radio = !radio">
@@ -72,7 +52,6 @@
 				</view>
 			</view>
 		</view>
-		
 		<!-- wx -->
 		<view class="wx">
 			<image src="/static/login/wx.png" mode=""></image>
@@ -90,14 +69,84 @@
 				status: true,
 				// 隐私、协议状态
 				radio: false,
-				tell: '', // 手机号
-				code: '', // 验证码
-				pass: '', // 密码
 				loginStatus: true ,// 登录方式
 				custom: {
 					"fontSize": "28rpx",
 					"fontWeight": "bold",
 					"letterSpacing": "5rpx"
+				},
+				form1: {
+					tell: '', // 手机号
+					code: '', // 验证码
+				},
+				rules1: {
+					tell: [{
+						required: true,
+						message: '请输入手机号',
+						// 可以单个或者同时写两个触发验证方式 
+						trigger: ['change', 'blur'],
+					},
+					{
+						asyncValidator: (rule, value, callback) => {
+							if(/^1[3|4|5|6|7|8|9][0-9]{9}$/.test(value)) {
+								callback();
+							} else {
+								// 如果校验通过，也要执行callback()回调
+								callback(new Error('手机号为空或格式错误'));
+							}
+						},
+						message: '手机号为空或格式错误',
+						trigger: ['change', 'blur'],
+					}],
+					code: [{
+						required: true,
+						message: '请输入验证码',
+						// 可以单个或者同时写两个触发验证方式 
+						trigger: ['change', 'blur'],
+					}],
+				},
+				form2: {
+					tell: '', // 手机号
+					pass: '', // 密码
+				},
+				rules2: {
+					tell: [{
+						required: true,
+						message: '请输入手机号',
+						// 可以单个或者同时写两个触发验证方式 
+						trigger: ['change', 'blur'],
+					},
+					{
+						asyncValidator: (rule, value, callback) => {
+							if(/^1[3|4|5|6|7|8|9][0-9]{9}$/.test(value)) {
+								callback();
+							} else {
+								// 如果校验通过，也要执行callback()回调
+								callback(new Error('手机号为空或格式错误'));
+							}
+						},
+						message: '手机号为空或格式错误',
+						trigger: ['change', 'blur'],
+					}],
+					pass: [{
+							required: true,
+							message: '请输入登录密码',
+							trigger: 'change'
+						},
+						{
+							pattern: /^[0-9a-zA-Z./*@]*$/g,
+							// 正则检验前先将值转为字符串
+							transform(value) {
+								return String(value);
+							},
+							message: '只能包含字母或数字或./*',
+						},
+						{
+							min: 6,
+							max: 20,
+							message: '6到20位之间'
+						}
+					]
 				}
 			};
 		},
@@ -106,6 +155,10 @@
 			uni.navigateTo({
 				url: 'register/register'
 			})
+		},
+		// 必须要在onReady生命周期，因为onLoad生命周期组件可能尚未创建完毕
+		onReady() {
+			this.$refs.uForm1.setRules(this.rules1)
 		},
 		onLoad() {
 			
@@ -116,17 +169,28 @@
 		methods:{
 			// 获取验证码
 			getCode(){
-				if(/^1[3|4|5|6|7|8|9][0-9]{9}$/.test(this.tell)){
-					this.status = false
-					var time = setInterval(()=>{
-						if(this.timer > 1){
-							this.timer --
-						}else{
-							this.status = false
-							this.timer = 60
-							clearInterval(time)
+				if(/^1[3|4|5|6|7|8|9][0-9]{9}$/.test(this.form1.tell)){
+					this.request({
+						url: '/api/wanlshop/sms/send',
+						method: 'POST',
+						data: {
+							mobile: this.form1.tell,
+							event: 'mobilelogin'
 						}
-					}, 1000)
+					}).then(res=>{
+						if(res.data.code == 1){
+							this.status = false
+							var time = setInterval(()=>{
+								if(this.timer > 1){
+									this.timer --
+								}else{
+									this.status = false
+									this.timer = 60
+									clearInterval(time)
+								}
+							}, 1000)
+						}
+					})
 				}else{
 					uni.showToast({
 						title: '手机号为空或格式错误',
@@ -135,17 +199,67 @@
 				}
 			},
 			// 登录 节流防止一直请求
-			login: throttle(()=>{
-				uni.switchTab({
-					url: '../shop/shop'
-				})
-			}, 3000),
+			login(){
+				if(!this.radio){
+					uni.showToast({
+						title: '请勾选用户协议',
+						icon: 'none'
+					})
+					return
+				}
+				if(this.loginStatus){
+					this.$refs.uForm1.validate(valid => {
+						if (valid) {
+							this.request({
+								url: '/api/wanlshop/user/mobilelogin',
+								method: 'POST',
+								data: {
+									mobile: this.form1.tell,
+									captcha: this.form1.code
+								}
+							}).then(res=>{
+								if(res.data.code == 1){
+									this.store.commit('setUserInfo', res.data.data.userinfo)
+									uni.setStorageSync('userInfo', res.data.data.userinfo)
+									uni.switchTab({
+										url: '../shop/shop'
+									})
+								}
+							})
+						}
+					})
+				}else{
+					this.$refs.uForm2.validate(valid => {
+						if (valid) {
+							this.request({
+								url: '/api/wanlshop/user/mobilelogin',
+								method: 'POST',
+								data: {
+									mobile: this.form2.tell,
+									password: this.form2.pass
+								}
+							}).then(res=>{
+								if(res.data.code == 1){
+									this.store.commit('setUserInfo', res.data.data.userinfo)
+									uni.setStorageSync('userInfo', res.data.data.userinfo)
+									uni.switchTab({
+										url: '../shop/shop'
+									})
+								}
+							})
+						}
+					})
+				}
+			},
 			// 切换登录方式
 			cut(){
-				this.code = ''
-				this.pass = ''
 				var timer = setTimeout(()=>{
 					this.loginStatus = !this.loginStatus
+					if(this.loginStatus){
+						this.$refs['uForm2'].resetFields()
+					}else{
+						this.$refs['uForm1'].resetFields()
+					}
 					clearTimeout(timer)
 				}, 180)
 			},
@@ -153,7 +267,7 @@
 				uni.navigateTo({
 					url: e
 				})
-			}
+			},
 		}
 	}
 </script>
@@ -178,68 +292,20 @@
 		}
 		// form表单
 		.form{
-			.tell,.code,.pass{
-				display: flex;
-				justify-content: space-between;
-				align-items: center;
-				border-bottom: solid 1px #E8E8F1;
-				// padding: 25rpx 0;
-				height: 80rpx;
-				padding: 10rpx 0;
-				view{
-					display: flex;
-					justify-content: flex-start;
-					align-items: center;
-					width: 100%;
-					text{
-						font-size: 24rpx;
-						font-family: PingFang SC;
-						font-weight: bold;
-						color: #000000;
-						display: block;
-						width: 85rpx;
-					}
-				}
+			.time{
+				display: block;
+				text-align: right;
+				width: 150rpx;
+				font-size: 24rpx;
+				font-family: PingFang SC;
+				font-weight: bold;
+				color: #9F9FB5;
 			}
-			.pass{
-				view{
-					text{
-						display: block;
-						width: 85rpx;
-						min-width: 85rpx;
-					}
-				}
-				image{
-					width: 40rpx;
-					height: 40rpx;
-				}
-			}
-			.tell{
-				text{
-					background: url(../../static/login/below.png) no-repeat right;
-					background-size: 46rpx;
-				}
-				image{
-					width: 36rpx;
-					height: 36rpx;
-				}
-			}
-			.code{
-				>text{
-					display: block;
-					text-align: right;
-					width: 150rpx;
-					font-size: 24rpx;
-					font-family: PingFang SC;
-					font-weight: bold;
-					color: #9F9FB5;
-				}
-				.timer{
-					width: 230rpx;
-					/* #ifdef H5 */
-					width: 250rpx;
-					/* #endif */
-				}
+			.timer{
+				width: 230rpx;
+				/* #ifdef H5 */
+				width: 250rpx;
+				/* #endif */
 			}
 		}
 		// 隐私、协议
@@ -313,3 +379,43 @@
 		}
 	}
 </style>
+<!-- <view class="tell">
+					<view class="">
+						<text>+86</text>
+						<u-input 
+							v-model="tell" 
+							type="number" 
+							placeholder="请输入手机号" 
+							maxlength="11" 
+							placeholder-class="ip"
+							:custom-style="custom"
+						/>
+					</view>
+				</view>
+				<view class="code" v-if="loginStatus">
+					<view class="">
+						<text>验证码</text>
+						<u-input
+							v-model="code" 
+							type="number" 
+							placeholder="请输入验证码" 
+							maxlength="6"
+							placeholder-class="ip"
+							:custom-style="custom"
+						/>
+					</view>
+					<text v-if="status" @click="getCode()">获取验证码</text>
+					<text class="timer" v-else>{{timer + '秒后重新获取'}}</text>
+				</view>
+				<view class="pass" v-else>
+					<view class="">
+						<text>密码</text>
+						<u-input
+							v-model="pass" 
+							type="password" 
+							placeholder="请输入密码" 
+							maxlength="20"
+							:custom-style="custom"
+						/>
+					</view>
+				</view> -->

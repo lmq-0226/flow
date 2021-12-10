@@ -21,17 +21,18 @@
 						<text>¥{{item.price}}</text>
 						<text>{{item.status_text}}</text>
 					</view>
-					<view class="status" v-if="item.state == 3">
-						<image v-if="item.type" src="/static/my/true.png" mode=""></image>
-						<image v-else src="/static/my/fake.png" mode=""></image>
+					<view class="status">
+						<image v-if="item.status == 1" src="/static/my/true.png" mode=""></image>
+						<image v-else-if="item.status == 0" src="/static/my/fake.png" mode=""></image>
 					</view>
 				</view>
-				<view class="bot" v-if="item.state == 3">
+				<view class="bot">
 					<text>{{item.time}}</text>
-					<view class="" v-if="item.status == 1">
-						<text>联系客服</text>
+					<view class="">
+						<text @click="go('/pages/public/callCenter')">联系客服</text>
 						<text>查看物流</text>
-						<text @click="go('./detail')">查看详情</text>
+						<text @click="go(item.url + '?status=' + item.status)">查看详情</text>
+						<!-- : '/pages/serve/authen/aller/identDetail' -->
 					</view>
 				</view>
 			</view>
@@ -57,60 +58,66 @@
 					}
 				],
 				identList: [
-					{
-						id: 1,
-						name: '张师傅',
-						price: 88,
-						status_text: '在线鉴定',
-						status: 0,
-						state_text: '交易关闭',
-						state: 1,
-						time: '',
-						type: ''
-					},
+					// 0 假、 1 真、 2 进行中
 					{
 						id: 2,
 						name: '李师傅',
 						price: 99,
 						status_text: '在线鉴定',
-						status: 0,
 						state_text: '进行中',
-						state: 2,
-						time: '',
-						type: ''
+						time: '2021.11.16',
+						url: './detail',
+						status: 2
 					},
 					{
 						id: 3,
 						name: '王师傅',
 						price: 188,
 						status_text: '在线鉴定',
-						status: 0,
 						state_text: '鉴定完成',
-						state: 3,
 						time: '2021.11.16',
-						type: true
+						url: '/pages/serve/authen/aller/identDetail',
+						status: 1
+					},
+					{
+						id: 8,
+						name: '王师傅',
+						price: 188,
+						status_text: '在线鉴定',
+						state_text: '鉴定完成',
+						time: '2021.11.16',
+						url: '/pages/serve/authen/aller/identDetail',
+						status: 0
 					},
 					{
 						id: 4,
 						name: '张师傅',
 						price: 88,
 						status_text: '实物鉴定',
-						status: 1,
-						state_text: '鉴定完成',
-						state: 3,
+						state_text: '进行中',
 						time: '2021.11.16',
-						type: false
+						url: './payIdentDetail',
+						status: 2
+					},
+					{
+						id: 9,
+						name: '张师傅',
+						price: 88,
+						status_text: '实物鉴定',
+						state_text: '鉴定完成',
+						time: '2021.11.16',
+						url: './payIdentDetail',
+						status: 1
 					},
 					{
 						id: 5,
 						name: '李师傅',
 						price: 299,
 						status_text: '实物鉴定',
-						status: 1,
 						state_text: '鉴定完成',
-						state: 3,
 						time: '2021.11.17',
-						type: true
+						url: './payIdentDetail',
+						status: 0
 					}
 				]
 			};
@@ -139,6 +146,9 @@
 			top: 0;
 			background: #fff;
 			z-index: 999;
+			/* #ifdef H5 */
+			top: 88rpx;
+			/* #endif */
 		}
 		.list{
 			.item{
@@ -204,8 +214,8 @@
 						>:nth-child(3){
 							font-size: 22rpx;
 							font-family: PingFang SC;
-							font-weight: 500;
-							color: #9094A6;
+							font-weight: bold;
+							color: #FF4243;
 						}
 					}
 					.status{

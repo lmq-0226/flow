@@ -4,52 +4,29 @@
 			<u-tabs :list="list" :is-scroll="false" :current="current" @change="change" active-color="#FC493D"></u-tabs>
 		</view>
 		<view class="list">
-			<view class="item" v-for="(item,index) in 3" :key="item.id">
+			<view class="item" v-for="(item,index) in orderList" :key="item.id">
 				<view class="title">
 					<view class="">
 						<image src="/static/avatar3.png" mode=""></image>
-						<text>EVISU官方旗舰店</text>
+						<text>{{item.name}}</text>
 					</view>
-					<text class="ing">待收货</text>
+					<text class="ing">{{item.order_text}}</text>
 				</view>
 				<view class="goods">
 					<view class="avatar">
-						<image src="/static/pub/bbt.png" mode=""></image>
+						<image :src="item.goodsImg" mode=""></image>
 					</view>
 					<view class="">
-						<text>adidas / 阿迪达斯</text>
+						<text>{{item.desc}}</text>
 						<text>白色 XXL 数量x1</text>
 						<text>¥199</text>
 					</view>
 				</view>
 				<view class="bot">
-					<text>申请退款</text>
+					<text v-for="(elem,cut) in item.buttons" :key="cut" @click="go('./receiving/receiving?status=' + elem.id)">{{elem.text}}</text>
+					<!-- <text>申请退款</text>
 					<text @click="go('./logistics/logistics')">查看物流</text>
-					<text class="active" @click="go('./receiving/receiving?status=3')">确认收货</text>
-				</view>
-			</view>
-			<view class="item">
-				<view class="title">
-					<view class="">
-						<image src="/static/avatar3.png" mode=""></image>
-						<text>EVISU官方旗舰店</text>
-					</view>
-					<text class="ing">待收货</text>
-				</view>
-				<view class="goods">
-					<view class="avatar">
-						<image src="/static/pub/bbt.png" mode=""></image>
-					</view>
-					<view class="">
-						<text>adidas / 阿迪达斯</text>
-						<text>白色 XXL 数量x1</text>
-						<text>¥199</text>
-					</view>
-				</view>
-				<view class="bot">
-					<text>申请退款</text>
-					<text>查看物流</text>
-					<text class="active" @click="go('./idleOrders/idleOrders')">确认收货</text>
+					<text class="active" @click="go('./receiving/receiving?status=3')">确认收货</text> -->
 				</view>
 			</view>
 		</view>
@@ -73,7 +50,53 @@
 						name: '待收货'
 					}
 				],
-				identList: [1]
+				identList: [1],
+				orderList: [
+					{
+						id: 1,
+						type: 1, // 1官方 2个人寄卖
+						name: 'tb455263296',
+						goodsImg: require('@/static/pub/bbt.png'),
+						desc: '居居侠超级无敌棒棒糖',
+						price: 199,
+						order_status: 0, // 0交易关闭 1待收货 2待发货 3退款售后
+						order_text: '交易失败',
+						buttons: [{id: 0,text: '查看详情'}]
+					},
+					{
+						id: 2,
+						type: 1,
+						name: 'Dyxlhl',
+						goodsImg: require('@/static/pub/ch.png'),
+						desc: '彩虹，又称天弓、天虹、绛等，简称虹',
+						price: 199,
+						order_status: 1, // 0交易关闭 1待收货 2待发货 3退款售后
+						order_text: '待收货',
+						buttons: [{id: 1,text: '确认收货'}]
+					},
+					{
+						id: 3,
+						type: 1,
+						name: 'tb455263296',
+						goodsImg: require('@/static/pub/ttq.png'),
+						desc: '甜甜圈，又称多拿滋、唐纳滋，它是一种用面粉、白砂糖、奶油和鸡蛋混合之后再经过油炸的甜食。',
+						price: 199,
+						order_status: 2, // 0交易关闭 1待收货 2待发货 3退款售后
+						order_text: '待发货',
+						buttons: [{id: 2,text: '申请退款'}]
+					},
+					{
+						id: 4,
+						type: 1,
+						name: 'tb455263296',
+						goodsImg: require('@/static/pub/ttq.png'),
+						desc: '甜甜圈，又称多拿滋、唐纳滋，它是一种用面粉、白砂糖、奶油和鸡蛋混合之后再经过油炸的甜食。',
+						price: 199,
+						order_status: 3, // 0交易关闭 1待收货 2待发货 3退款售后
+						order_text: '退款中',
+						buttons: [{id: 3,text: '退款进度'}]
+					}
+				],
 			};
 		},
 		onLoad() {
@@ -90,6 +113,7 @@
 				this.current = e
 			},
 			go(e){
+				console.log(e)
 				uni.navigateTo({
 					url: e
 				})
@@ -106,6 +130,9 @@
 			top: 0;
 			background: #fff;
 			z-index: 999;
+			/* #ifdef H5 */
+			top: 88rpx;
+			/* #endif */
 		}
 		.list{
 			.item{

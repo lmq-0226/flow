@@ -1,6 +1,28 @@
 <template>
 	<view class="content">
 		<view class="list">
+			<view class="item">
+				<view class="title">
+					<view class="">
+						<image src="/static/avatar3.png" mode=""></image>
+						<text>tb455263296</text>
+					</view>
+					<text class="ing">估价中</text>
+				</view>
+				<view class="goods">
+					<view class="avatar">
+						<image src="/static/pub/bbt.png" mode=""></image>
+					</view>
+					<view class="">
+						<text>这条数据是平台寄卖</text>
+						<text>白色 XXL 数量x1</text>
+						<text>¥999</text>
+					</view>
+				</view>
+				<view class="bot">
+					<text @click="go('/pages/leave/detail/detail?status=1')">查看详情</text>
+				</view>
+			</view>
 			<view class="item" v-for="(item,index) in list" :key="item.id">
 				<view class="title">
 					<view class="">
@@ -19,11 +41,8 @@
 						<text>¥{{item.price}}</text>
 					</view>
 				</view>
-				<view class="bot">
-					<text v-for="(elem,index) in item.buttons" :key="index" @click="go('./detail/detail?status=' + 4)">{{elem}}</text>
-					<!-- <text>联系买家</text>
-					<text>查看物流</text>
-					<text class="active" @click="go('./idleOrders/idleOrders')">提醒收货</text> -->
+				<view class="bot" v-if="item.buttons.length > 0">
+					<text v-for="(elem,index) in item.buttons" :key="index" @click="go('./detail/detail?status=' + elem.id)">{{elem.text}}</text>
 				</view>
 			</view>
 		</view>
@@ -45,7 +64,7 @@
 						price: 199,
 						order_status: 1, // 1待发货，2待收货，3待评价
 						order_text: '待发货',
-						buttons: ['联系买家']
+						buttons: [{id: 1,text: '查看详情'}]
 					},
 					{
 						id: 2,
@@ -55,7 +74,7 @@
 						price: 199,
 						order_status: 2, // 1待发货，2待收货，3待评价
 						order_text: '待收货',
-						buttons: ['联系买家','查看物流','提醒收货']
+						buttons: [{id: 2,text: '提醒收货'}]
 					},
 					{
 						id: 3,
@@ -65,10 +84,16 @@
 						price: 199,
 						order_status: 3, // 1待发货，2待收货，3待评价
 						order_text: '待评价',
-						buttons: ['联系买家','提醒评价']
+						buttons: [{id: 3,text: '提醒评价'}]
 					}
-				]
+				],
 			};
+		},
+		onBackPress() {
+			uni.switchTab({
+				url: '../my'
+			})
+			return true
 		},
 		onLoad() {
 			

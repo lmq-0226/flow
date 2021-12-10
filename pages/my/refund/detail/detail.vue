@@ -5,7 +5,7 @@
 			<view class="" @click="back">
 				<image src="/static/my/back.png" mode=""></image>
 			</view>
-			<view class="">
+			<view class="" @click="go('/pages/public/callCenter')">
 				<image src="/static/my/service2.png" mode=""></image>
 			</view>
 		</view>
@@ -100,8 +100,11 @@
 		},
 		methods:{
 			back(){
-				uni.navigateBack({
-					delta: 1
+				// uni.navigateBack({
+				// 	delta: 1
+				// })
+				uni.navigateTo({
+					url: '../refund'
 				})
 			},
 			go(e){

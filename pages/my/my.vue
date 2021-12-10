@@ -2,19 +2,20 @@
 	<view class="content">
 		<view class="status_bar"></view>
 		<view class="nav">
-			<image src="/static/my/scan.png" mode=""></image>
-			<image src="/static/my/news.png" mode=""></image>
+			<image src="/static/my/scan.png" mode="" @click="scan"></image>
+			<image src="/static/my/news.png" mode="" @click="go('./message/message')"></image>
 			<image src="/static/my/set.png" mode="" @click="go('./set/set')"></image>
 		</view>
 		<view class="user">
-			<view class="info">
-				<image src="/static/avatar.png" mode=""></image>
+			<view class="info" @click="go('./homePage/homePage?type=1')">
+				<image :src="userInfo.avatar" mode=""></image>
 				<view class="name">
 					<view class="nickname">
-						<text>用户名</text>
+						<text v-if="userInfo.nickname">{{userInfo.nickname}}</text>
+						<text v-else @click="go('/pages/login/login')">去登陆</text>
 						<image src="/static/my/right.png" mode=""></image>
 					</view>
-					<text>未设置签名</text>
+					<text>{{userInfo.bio == '' ? '未设置签名' : userInfo.bio}}</text>
 				</view>
 			</view>
 			<view class="number">
@@ -36,7 +37,7 @@
 				</view>
 			</view>
 		</view>
-		<view class="writeCenter">
+		<view class="writeCenter" @click="go('./writingCenter/writingCenter')">
 			<view class="">
 				<text>创作中心</text>
 				<text></text>
@@ -93,11 +94,11 @@
 				</view>
 			</view>
 			<view class="upto">
-				<view class="solder">
+				<view class="solder" @click="go('./enter/enter?title=per')">
 					<text>申请个人卖家</text>
 					<image src="/static/serve/right.png" mode=""></image>
 				</view>
-				<view class="enter">
+				<view class="enter" @click="go('./enter/enter?title=mer')">
 					<text>企业/品牌商家入驻</text>
 					<image src="/static/serve/right.png" mode=""></image>
 				</view>
@@ -110,7 +111,7 @@
 			</view>
 		</view>
 		<!-- 获赞与收藏弹出层 -->
-		<u-popup v-model="praiseShow" mode="center" :border-radius="10">
+		<u-popup v-model="praiseShow" mode="center" :border-radius="10" @touchmove.native.stop.prevent>
 			<view class="praisePopop">
 				<text class="title">获赞与收藏</text>
 				<view class="items">
@@ -135,6 +136,7 @@
 	export default {
 		data() {
 			return {
+				userInfo: uni.getStorageSync('userInfo') || {},
 				praiseShow: false,
 				markList:[
 					{lettle: '收藏', icon: require('@/static/my/collect.png'),url: './collect/collect'},
@@ -160,7 +162,17 @@
 		onLoad() {
 			
 		},
+		onShow() {
+			this.userInfo = uni.getStorageSync('userInfo')
+		},
 		methods:{
+			scan(){
+				uni.scanCode({
+					success: (res) => {
+						console.log(res)
+					}
+				})
+			},
 			go(e){
 				uni.navigateTo({
 					url: e
@@ -196,15 +208,17 @@
 			}
 		}
 		.user{
+			width: 100%;
 			padding: 30rpx 36rpx;
 			.info{
 				display: flex;
 				justify-content: flex-start;
 				align-items: center;
-				image{
+				>image{
 					width: 102rpx;
 					height: 102rpx;
 					border-radius: 50%;
+					background: #ccc;
 				}
 				.name{
 					height: 102rpx;

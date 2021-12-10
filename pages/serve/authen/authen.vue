@@ -1,7 +1,7 @@
 <template>
 	<view class="content">
 		<view class="context">
-			<view class="top">
+			<view class="top" @click="go('/pages/shop/goodsDetail/serviceIntro/serviceIntro')">
 				<view class="left">
 					<view class="">
 						<text>交易保障</text>

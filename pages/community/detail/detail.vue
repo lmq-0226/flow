@@ -2,8 +2,8 @@
 	<view class="content" :catchtouchmove="false">
 		<view class="status_bar"></view>
 		<view class="nav">
-			<view class="left">
-				<image src="/static/comm/back.png" mode="" @click="back"></image>
+			<view class="left" @click="go('/pages/my/homePage/homePage?type=0')">
+				<image src="/static/comm/back.png" mode="" @click.stop="back"></image>
 				<image src="/static/comm/avatar.png" mode=""></image>
 				<view class="">
 					<text>珂珂</text>
@@ -11,7 +11,8 @@
 				</view>
 			</view>
 			<view class="right">
-				<text>关注</text>
+				<text v-if="atten" class="attened" @click="atten = false">已关注</text>
+				<text v-else class="atten" @click="atten = true">关注</text>
 				<image src="/static/serve/share.png" mode="" @click="sharePopup = true"></image>
 				<image src="/static/comm/more.png" mode=""></image>
 			</view>
@@ -126,17 +127,19 @@
 		<view class="bottom">
 			<u-input placeholder="来说两句..." :custom-style="customStyle" confirm-type="send" @confirm="send"/>
 			<view class="right">
-				<view class="">
-					<image src="/static/comm/praise2.png" mode=""></image>
+				<view class="" @click="praise = !praise">
+					<image v-if="praise" src="/static/my/praise_on.png" mode=""></image>
+					<image v-else src="/static/comm/praise2.png" mode=""></image>
 					<text></text>
 				</view>
-				<view class="">
-					<image src="/static/comm/collect.png" mode=""></image>
+				<view class="" @click="collect = !collect">
+					<image v-if="collect" src="/static/my/collect_on.png" mode=""></image>
+					<image v-else src="/static/comm/collect.png" mode=""></image>
 					<text></text>
 				</view>
 			</view>
 		</view>
-		<u-popup v-model="sharePopup" mode="bottom" border-radius="20">
+		<u-popup v-model="sharePopup" mode="bottom" border-radius="20" @touchmove.native.stop.prevent>
 			<view class="sharePopup">
 				<text class="title">分享至</text>
 				<view class="items">
@@ -162,8 +165,7 @@
 				</view>
 			</view>
 		</u-popup>
-		
-		<u-popup v-model="sharePhoto" mode="bottom">
+		<u-popup v-model="sharePhoto" mode="bottom" @touchmove.native.stop.prevent>
 			<view class="sharePhoto">
 				<view class="photo">
 					<!-- #ifdef APP-PLUS -->
@@ -192,7 +194,6 @@
 						取消
 					</view>
 				</view>
-				
 			</view>
 		</u-popup>
 		<u-back-top :scrollTop="scrollTop" top="800"></u-back-top>
@@ -227,7 +228,10 @@
 				},
 				sharePopup: false,
 				sharePhoto: false,
-				ctx: ''
+				ctx: '',
+				atten: false, // 关注状态
+				praise: false ,// 点赞状态
+				collect: false // 收藏状态
 			};
 		},
 		onReady() {
@@ -281,6 +285,11 @@
 			// 点击键盘右下角发送按钮
 			send(e){
 				console.log(e, '11111')
+			},
+			go(e){
+				uni.navigateTo({
+					url: e
+				})
 			},
 			// 下载图片至相册
 			downLoad(){
@@ -459,7 +468,7 @@
 					width: 44rpx;
 					height: 44rpx;
 				}
-				>:nth-child(1){
+				.atten,.attened{
 					display: inline-block;
 					width: 102rpx;
 					height: 48rpx;
@@ -472,6 +481,10 @@
 					font-family: PingFang SC;
 					font-weight: 500;
 					color: #FC493D;
+				}
+				.attened{
+					color: #686879;
+					border: 1px solid #686879;
 				}
 				>:nth-child(2){
 					margin: 0 19rpx 0 24rpx;

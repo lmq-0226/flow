@@ -13,8 +13,8 @@
 			</view>
 		</view>
 		<view class="list">
-			<view class="item" v-for="(item,index) in list" :key="item.id" @click="check(item.id)">
-				<view class="radio" v-if="!status">
+			<view class="item" v-for="(item,index) in list" :key="item.id" @click="go('/pages/shop/goodsDetail/goodsDetail')">
+				<view class="radio" v-if="!status" @click.stop="check(item.id)">
 					<image v-if="checkedList.indexOf(item.id) > -1" src="/static/login/radio_on.png" mode=""></image>
 					<image v-else src="/static/my/radio.png" mode=""></image>
 				</view>
@@ -143,6 +143,11 @@
 					}
 				}
 				this.checkedList = []
+			},
+			go(e){
+				uni.navigateTo({
+					url: e
+				})
 			}
 		},
 		computed:{

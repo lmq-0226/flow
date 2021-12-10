@@ -2,7 +2,7 @@
 	<view class="content">
 		<view class="status_bar"></view>
 		<view class="nav_bar">
-			<view class="nav_left">
+			<view class="nav_left" @click="go('./newPro/newPro')">
 				<view class="left_top">
 					<text>保障全新正品</text>
 					<image src="/static/shop/leave_go.png" mode=""></image>
@@ -17,10 +17,9 @@
 			</view>
 		</view>
 		<view class="search">
-			<view class="nav_search">
-				<!-- <image src="/static/shop/search.png" mode=""></image> -->
-				<input type="text" value="" placeholder="热门搜索" />
-				<image src="/static/shop/camera.png" mode=""></image>
+			<view class="nav_search" @click="go('/pages/search/search')">
+				<input type="text" value="" placeholder="热门搜索" disabled/>
+				<image src="/static/shop/camera.png" mode="" @click.stop="scan"></image>
 			</view>
 		</view>
 		
@@ -32,13 +31,13 @@
 		</view>
 		<view class="menus">
 			<scroll-view scroll-x="true" class="scroll-view_H" @scroll="scrollChange">
-				<view class="items">
+				<view class="items" @click="go('/pages/public/public')">
 					<view class="" v-for="(item,index) in 7" :key="index">
 						<image src="" mode=""></image>
 						<text>新品发售</text>
 					</view>
 				</view>
-				<view class="items items2">
+				<view class="items items2" @click="go('/pages/public/public')">
 					<view class="" v-for="(item,index) in 6" :key="index">
 						<image src="" mode=""></image>
 						<text>新品发售</text>
@@ -49,7 +48,7 @@
 				<view class="" :style="'margin-left:' + slideLeft + '%'"></view>
 			</view>
 		</view>
-		<view class="flash">
+		<view class="flash" @click="go('/pages/public/public')">
 			<view class="flash_one">
 				<view class="one_left">
 					<view class="lettle">
@@ -149,6 +148,13 @@
 		<u-loadmore bg-color="#F6F5FA" :status="loadStatus" @loadmore="addRandomData"></u-loadmore>
 		<!-- 返回顶部 -->
 		<u-back-top :scroll-top="scrollTop" top="1200" :duration="300"></u-back-top>
+		<!-- <u-modal v-model="show" :show-cancel-button="true" confirm-text="升级"
+				title="发现新版本" 
+			>
+			<view class="u-update-content">
+				<rich-text :nodes="content"></rich-text>
+			</view>
+		</u-modal> -->
 	</view>
 </template>
 
@@ -156,6 +162,7 @@
 	export default {
 		data() {
 			return {
+				show: false,
 				current: 0,
 				tabList: [{
 						name: '推荐'
@@ -259,6 +266,20 @@
 				scrollTop: 0
 			}
 		},
+		onReady() {
+			// #ifdef APP-PLUS
+			// 通过 id 获取 nvue 子窗体
+			const subNVue = uni.getSubNVueById('privacy')  
+			// 打开 nvue 子窗体  
+			subNVue.show('fade-in', 300, function(){  
+			    // 打开后进行一些操作...  
+			});  
+			// #endif
+		},
+		onShow() {
+			// 关闭 nvue 子窗体  
+			// subNVue.hide('fade-out', 300)
+		},
 		onLoad() {
 			// scroll可视区域的宽
 			setTimeout(()=>{
@@ -291,6 +312,14 @@
 		methods: {
 			change(index) {
 				this.current = index;
+			},
+			scan(){
+				uni.scanCode({
+				    success: function (res) {
+				        console.log('条码类型：' + res.scanType);
+				        console.log('条码内容：' + res.result);
+				    }
+				})
 			},
 			// scrol滚动
 			scrollChange(e){

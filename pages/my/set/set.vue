@@ -26,13 +26,13 @@
 				setList1: [
 					{text: '账号安全', url: './accountSecurity/accountSecurity'},
 					{text: '支付设置', url: ''},
-					{text: '实名认证', url: ''},
+					{text: '实名认证', url: './authen/authen'},
 					{text: '地址管理', url: './address/address'},
 					{text: '我的尺码', url: ''}
 				],
 				setList2: [
 					{text: '隐私设置', url: './privacy/privacy'},
-					{text: '消息设置', url: ''},
+					{text: '消息设置', url: './newInfor/newInfor'},
 					{text: '通用设置', url: ''},
 					{text: '关于流象', url: './about/about'}
 				]

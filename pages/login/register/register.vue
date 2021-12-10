@@ -5,30 +5,21 @@
 		<view class="title">
 			<text>注册流象</text>
 		</view>
-		<view class="">
+		<view class="form">
 			<!-- form表单 -->
-			<view class="form">
-				<view class="tell">
-					<view class="">
-						<text>+86</text>
-						<input 
-							type="number" v-model="tell" 
-							placeholder="请输入手机号" maxlength="11" 
-							@input="tell == '' ? clear = false : clear = true" 
-							placeholder-class="ip"
-						/>
-					</view>
-					<image v-if="clear" src="/static/login/clear.png" mode="" @click="tell = '',clear = false"></image>
-				</view>
-				<view class="code">
-					<view class="">
-						<text>验证码</text>
-						<input type="number" placeholder="请输入验证码" maxlength="6" placeholder-class="ip" v-model="code"/>
-					</view>
-					<text v-if="status" @click="getCode()">获取验证码</text>
-					<text class="timer" v-else>{{timer + '秒后重新获取'}}</text>
-				</view>
-			</view>
+			<u-form :model="form" ref="uForm" label-width="120":label-style="{fontWeight: 'bold'}">
+				<u-form-item label="+86" prop="tell">
+					<u-input v-model="form.tell" type="number" placeholder="请输入手机号" maxlength="11" />
+				</u-form-item>
+				<u-form-item label="验证码" prop="code">
+					<u-input v-model="form.code" type="number" placeholder="请输入验证码" />
+					<text class="time" v-if="status" @click="getCode()">获取验证码</text>
+					<text class="time timer" v-else>{{timer + '秒后重新获取'}}</text>
+				</u-form-item>
+				<u-form-item label="密码" prop="pass">
+					<u-input v-model="form.pass" type="password" placeholder="6-20位数字、字母、特殊符号组合" />
+				</u-form-item>
+			</u-form>
 			<!-- 隐私、协议 -->
 			<view class="agreement" @click="radio = !radio">
 				<image v-if="radio" src="/static/login/radio_on.png" mode=""></image>
@@ -67,9 +58,61 @@
 				radio: false,
 				// 清除控件的显示状态
 				clear: false,
-				tell: '', // 手机号
-				code: '', // 验证码
+				form: {
+					tell: '', // 手机号
+					code: '', // 验证码
+					pass: '' // 密码
+				},
+				rules: {
+					tell: [{
+						required: true,
+						message: '请输入手机号',
+						// 可以单个或者同时写两个触发验证方式 
+						trigger: ['change', 'blur'],
+					},
+					{
+						asyncValidator: (rule, value, callback) => {
+							if(/^1[3|4|5|6|7|8|9][0-9]{9}$/.test(value)) {
+								callback();
+							} else {
+								// 如果校验通过，也要执行callback()回调
+								callback(new Error('手机号为空或格式错误'));
+							}
+						},
+						message: '手机号为空或格式错误',
+						trigger: ['change', 'blur'],
+					}],
+					code: [{
+						required: true,
+						message: '请输入验证码',
+						// 可以单个或者同时写两个触发验证方式 
+						trigger: ['change', 'blur'],
+					}],
+					pass: [{
+							required: true,
+							message: '请输入登录密码',
+							trigger: 'change'
+						},
+						{
+							pattern: /^[0-9a-zA-Z./*@]*$/g,
+							// 正则检验前先将值转为字符串
+							transform(value) {
+								return String(value);
+							},
+							message: '只能包含字母或数字或./*',
+						},
+						{
+							min: 6,
+							max: 20,
+							message: '6到20位之间'
+						}
+					]
+				}
 			};
+		},
+		// 必须要在onReady生命周期，因为onLoad生命周期组件可能尚未创建完毕
+		onReady() {
+			this.$refs.uForm.setRules(this.rules);
 		},
 		onLoad() {
 			
@@ -80,30 +123,61 @@
 		methods:{
 			// 获取验证码
 			getCode(){
-				if(/^1[3|4|5|6|7|8|9][0-9]{9}$/.test(this.tell)){
-					this.status = false
-					var time = setInterval(()=>{
-						if(this.timer > 1){
-							this.timer --
-						}else{
-							this.status = false
-							this.timer = 60
-							clearInterval(time)
+				if(/^1[3|4|5|6|7|8|9][0-9]{9}$/.test(this.form.tell)) {
+					this.request({
+						url: '/api/wanlshop/sms/send',
+						method: 'POST',
+						data: {
+							mobile: this.form.tell,
+							event: 'resetpwd'
 						}
-					}, 1000)
-				}else{
+					}).then(res=>{
+						if(res.data.code == 1){
+							this.status = false
+							var time = setInterval(()=>{
+								if(this.timer > 1){
+									this.timer --
+								}else{
+									this.status = false
+									this.timer = 60
+									clearInterval(time)
+								}
+							}, 1000)
+						}
+					})
+				} else {
+					// 如果校验通过，也要执行callback()回调
 					uni.showToast({
 						title: '手机号为空或格式错误',
 						icon: 'none'
 					})
 				}
 			},
-			// 登录 节流防止一直请求
-			register: throttle(()=>{
-				uni.navigateTo({
-					url: '../forget/newPass?type=register'
-				})
-			}, 3000),
+			// 注册设置登录密码
+			register(){
+				this.$refs.uForm.validate(valid => {
+					if (valid) {
+						this.request({
+							url: '/api/wanlshop/user/resetpwd',
+							method: 'POST',
+							data: {
+								mobile: this.form.tell,
+								captcha: this.form.code,
+								newpassword: this.form.pass,
+								confirmpassword: this.form.pass,
+							}
+						}).then(res=>{
+							if(res.data.code == 1){
+								// uni.navigateTo({
+								// 	url: '../forget/newPass?type=register'
+								// })
+							}
+						})
+					} else {
+						console.log('验证失败');
+					}
+				});
+			},
 			go(e){
 				if(e == 'back'){
 					uni.navigateBack({
@@ -139,70 +213,20 @@
 		}
 		// form表单
 		.form{
-			.tell,.code{
-				display: flex;
-				justify-content: space-between;
-				align-items: center;
-				border-bottom: solid 1px #E8E8F1;
-				// padding: 25rpx 0;
-				height: 80rpx;
-				padding: 10rpx 0;
-				view{
-					display: flex;
-					justify-content: flex-start;
-					align-items: center;
-					width: 100%;
-					text{
-						font-size: 24rpx;
-						font-family: PingFang SC;
-						font-weight: bold;
-						color: #000000;
-						display: block;
-						width: 85rpx;
-					}
-					input{
-						width: calc(100% - 85rpx);
-						font-size: 28rpx;
-						height: 80rpx;
-						line-height: 80rpx;
-						font-family: PingFang SC;
-						font-weight: bold;
-						color: #000000;
-					}
-					.ip{
-						font-size: 24rpx;
-						font-family: PingFang SC;
-						font-weight: 500;
-						color: #A0A0B2;
-					}
-				}
+			.time{
+				display: block;
+				text-align: right;
+				width: 150rpx;
+				font-size: 24rpx;
+				font-family: PingFang SC;
+				font-weight: bold;
+				color: #9F9FB5;
 			}
-			.tell{
-				text{
-					background: url(../../../static/login/below.png) no-repeat right;
-					background-size: 46rpx;
-				}
-				image{
-					width: 36rpx;
-					height: 36rpx;
-				}
-			}
-			.code{
-				>text{
-					display: block;
-					text-align: right;
-					width: 150rpx;
-					font-size: 24rpx;
-					font-family: PingFang SC;
-					font-weight: bold;
-					color: #9F9FB5;
-				}
-				.timer{
-					width: 230rpx;
-					/* #ifdef H5 */
-					width: 250rpx;
-					/* #endif */
-				}
+			.timer{
+				width: 230rpx;
+				/* #ifdef H5 */
+				width: 250rpx;
+				/* #endif */
 			}
 		}
 		// 隐私、协议
@@ -276,3 +300,23 @@
 		}
 	}
 </style>
+<!-- <view class="tell">
+					<view class="">
+						<text>+86</text>
+						<input 
+							type="number" v-model="tell" 
+							placeholder="请输入手机号" maxlength="11" 
+							@input="tell == '' ? clear = false : clear = true" 
+							placeholder-class="ip"
+						/>
+					</view>
+					<image v-if="clear" src="/static/login/clear.png" mode="" @click="tell = '',clear = false"></image>
+				</view>
+				<view class="code">
+					<view class="">
+						<text>验证码</text>
+						<input type="number" placeholder="请输入验证码" maxlength="6" placeholder-class="ip" v-model="code"/>
+					</view>
+					<text v-if="status" @click="getCode()">获取验证码</text>
+					<text class="timer" v-else>{{timer + '秒后重新获取'}}</text>
+				</view> -->

@@ -1,0 +1,13 @@
+{
+  "navigationBarTitleText": "",
+  "enablePullDownRefresh": false,
+  "usingComponents": {
+    "newPro-u-waterfall-left": "/pages/shop/newPro/newPro-u-waterfall-left",
+    "newPro-u-waterfall-right": "/pages/shop/newPro/newPro-u-waterfall-right",
+    "u-swiper": "/node-modules/uview-ui/components/u-swiper/u-swiper",
+    "u-tabs": "/node-modules/uview-ui/components/u-tabs/u-tabs",
+    "u-waterfall": "/node-modules/uview-ui/components/u-waterfall/u-waterfall",
+    "u-lazy-load": "/node-modules/uview-ui/components/u-lazy-load/u-lazy-load",
+    "u-loadmore": "/node-modules/uview-ui/components/u-loadmore/u-loadmore"
+  }
+}

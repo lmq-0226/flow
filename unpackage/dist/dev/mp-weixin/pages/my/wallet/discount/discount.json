@@ -1,0 +1,19 @@
+{
+  "navigationBarTitleText": "",
+  "enablePullDownRefresh": false,
+  "titleNView": {
+    "tags": [
+      {
+        "tag": "font",
+        "text": "优惠券",
+        "textStyles": {
+          "weight": "bold"
+        }
+      }
+    ]
+  },
+  "usingComponents": {
+    "u-collapse": "/node-modules/uview-ui/components/u-collapse/u-collapse",
+    "u-collapse-item": "/node-modules/uview-ui/components/u-collapse-item/u-collapse-item"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "navigationBarTitleText": "",
+  "enablePullDownRefresh": false,
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "store-u-waterfall-left": "/pages/my/subscribe/store/store-u-waterfall-left",
+    "store-u-waterfall-right": "/pages/my/subscribe/store/store-u-waterfall-right",
+    "u-tabs": "/node-modules/uview-ui/components/u-tabs/u-tabs",
+    "u-waterfall": "/node-modules/uview-ui/components/u-waterfall/u-waterfall",
+    "u-lazy-load": "/node-modules/uview-ui/components/u-lazy-load/u-lazy-load",
+    "u-loadmore": "/node-modules/uview-ui/components/u-loadmore/u-loadmore",
+    "u-popup": "/node-modules/uview-ui/components/u-popup/u-popup",
+    "u-input": "/node-modules/uview-ui/components/u-input/u-input",
+    "u-collapse": "/node-modules/uview-ui/components/u-collapse/u-collapse",
+    "u-collapse-item": "/node-modules/uview-ui/components/u-collapse-item/u-collapse-item"
+  }
+}

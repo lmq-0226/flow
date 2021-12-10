@@ -1,0 +1,23 @@
+{
+  "navigationBarTitleText": "",
+  "enablePullDownRefresh": false,
+  "titleNView": {
+    "tags": [
+      {
+        "tag": "font",
+        "text": "鉴别服务",
+        "textStyles": {
+          "weight": "bold"
+        }
+      }
+    ],
+    "buttons": [
+      {
+        "text": "",
+        "fontSrc": "/static/iconfont/iconfont.ttf",
+        "fontSize": "24"
+      }
+    ]
+  },
+  "usingComponents": {}
+}

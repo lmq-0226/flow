@@ -1,7 +1,7 @@
 <template>
 	<view class="content">
 		<view class="tabs" :style="{'opacity': opacity}">
-			<u-tabs :list="list" :is-scroll="false" :current="cut" @change="changeCut" active-color="#FC493D"></u-tabs>
+			<u-tabs :list="list" :is-scroll="false" :current="cut" duration="0.3" @change="changeCut" active-color="#FC493D"></u-tabs>
 		</view>
 		<imgsBanner :imgList='imgList' :currentImg='current'></imgsBanner>
 		<view class="goodsInfo">
@@ -31,7 +31,7 @@
 				</view>
 			</view>
 			<view class="ident">
-				<view class="">
+				<view class="" @click="go('./serviceIntro/serviceIntro')">
 					<text>先鉴别后发货 全新正品 假一赔十</text>
 					<image src="/static/shop/right2.png" mode=""></image>
 				</view>
@@ -152,7 +152,7 @@
 			</view>
 		</view>
 		<!-- 选择规格弹窗 -->
-		<u-popup v-model="popupShow" mode="bottom" border-radius="20" @touchmove.prevent> 
+		<u-popup v-model="popupShow" mode="bottom" border-radius="20"  @touchmove.native.stop.prevent> 
 			<view class="popupCon">
 				<view class="top">
 					<image class="avatar" src="/static/pub/bbt.png" mode=""></image>
@@ -203,7 +203,7 @@
 			</view>
 		</u-popup>
 		<!-- 优惠券弹窗 -->
-		<u-popup v-model="disPopup" mode="bottom" border-radius="20" @touchmove.prevent>
+		<u-popup v-model="disPopup" mode="bottom" border-radius="20"  @touchmove.native.stop.prevent>
 			<view class="dispopup">
 				<view class="title">
 					<image src="" mode=""></image>
@@ -228,7 +228,7 @@
 			</view>
 		</u-popup>
 		<!-- 平台保障弹窗 -->
-		<u-popup v-model="plaPopup" mode="bottom" border-radius="20" @touchmove.prevent>
+		<u-popup v-model="plaPopup" mode="bottom" border-radius="20"  @touchmove.native.stop.prevent>
 			<view class="plapopup">
 				<view class="title">
 					<image src="" mode=""></image>
@@ -361,9 +361,25 @@
 		onNavigationBarButtonTap(e){
 			if(e.index == 1){
 				console.log('客服1')
+				this.go('/pages/public/callCenter')
 			}else{
 				console.log('分享0')
 			}
+		},
+		onReady() {
+			let timer = setTimeout(()=>{
+				const query = uni.createSelectorQuery().in(this);
+				query.select('.comment').boundingClientRect(res => {
+					this.CTop = res.top - 40
+				}).exec();
+				query.select('.goodsDetail').boundingClientRect(res => {
+					this.GTop = res.top - 40
+				}).exec();
+				query.select('.recommend').boundingClientRect(res => {
+					this.RTop = res.top - 40
+				}).exec();
+				clearTimeout(timer)
+			},500)
 		},
 		// 触底加载更多，切换加载更多loading
 		onReachBottom() {
@@ -383,45 +399,31 @@
 			query.select('.tabs').boundingClientRect(data => {
 				this.opacity = e.scrollTop/data.height/7
 			}).exec();
-			query.select('.comment').boundingClientRect(res => {
-				this.CTop = res.top - 40
-			}).exec();
-			query.select('.goodsDetail').boundingClientRect(res => {
-				this.GTop = res.top - 40
-			}).exec();
-			query.select('.recommend').boundingClientRect(res => {
-				this.RTop = res.top - 40
-			}).exec();
-			if(0 < e.scrollTop < this.CTop){
+			if(e.scrollTop < this.CTop){
 				this.cut = 0
-			}else if(this.CTop <= e.scrollTop < this.GTop){
+			}else if(this.CTop <= e.scrollTop && e.scrollTop < this.GTop){
 				this.cut = 1
-			}else if(this.GTop <= e.scrollTop < this.RTop){
+			}else if(this.GTop <= e.scrollTop && e.scrollTop < this.RTop){
 				this.cut = 2
 			}else if(this.RTop <= e.scrollTop){
 				this.cut = 3
 			}
-			this.$forceUpdate()
 		},
 		methods:{
-			recom(e){
-				console.log(e)
-			},
 			changeCut(e){
-				console.log(e)
 				let top = ''
 				if(e == 0){
 					top = 0
 				}else if(e == 1){
-					top = this.scrollTop + this.CTop
+					top = this.CTop
 				}else if(e == 2){
-					top = this.scrollTop + this.GTop
+					top = this.GTop
 				}else if(e == 3){
-					top = this.scrollTop + this.RTop
+					top = this.RTop+1
 				}
 				uni.pageScrollTo({
 				    scrollTop: top,
-				    duration: 100
+				    duration: 300
 				})
 			},
 			// 模拟数据请求

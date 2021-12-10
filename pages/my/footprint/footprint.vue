@@ -19,8 +19,8 @@
 					<text>{{item.title}}</text>
 				</view>
 				<view class="list">
-					<view class="item" v-for="(elem,cut) in item.list" :key="elem.id">
-						<view class="radio" v-if="!status" @click="Mchoice(index,cut)">
+					<view class="item" v-for="(elem,cut) in item.list" :key="elem.id" @click="go('/pages/shop/goodsDetail/goodsDetail')">
+						<view class="radio" v-if="!status" @click.stop="Mchoice(index,cut)">
 							<image v-if="elem.status" src="/static/login/radio_on.png" mode=""></image>
 							<image v-else src="/static/login/radio.png" mode=""></image>
 						</view>
@@ -178,6 +178,11 @@
 			back(){
 				uni.navigateBack({
 					delta:1
+				})
+			},
+			go(e){
+				uni.navigateTo({
+					url: e
 				})
 			}
 		},

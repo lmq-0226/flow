@@ -1,0 +1,25 @@
+{
+  "navigationBarTitleText": "",
+  "enablePullDownRefresh": false,
+  "titleNView": {
+    "tags": [
+      {
+        "tag": "font",
+        "text": "流象商学院",
+        "textStyles": {
+          "weight": "bold"
+        }
+      }
+    ],
+    "buttons": [
+      {
+        "text": "",
+        "fontSrc": "/static/iconfont/iconfont.ttf",
+        "fontSize": "24"
+      }
+    ]
+  },
+  "usingComponents": {
+    "u-swiper": "/node-modules/uview-ui/components/u-swiper/u-swiper"
+  }
+}

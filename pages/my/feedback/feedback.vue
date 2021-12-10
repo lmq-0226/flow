@@ -33,7 +33,7 @@
 		</view>
 		<u-modal v-model="show" :content="content" @confirm="confirm()" title="" :show-cancel-button="true"></u-modal>
 		<u-toast ref="uToast" />
-		<u-popup v-model="popupShow" mode="bottom" :safe-area-inset-bottom="true" :closeable="false">
+		<u-popup v-model="popupShow" mode="bottom" :safe-area-inset-bottom="true" :closeable="false" @touchmove.native.stop.prevent>
 			<view class="popup">
 				<view class="title">
 					<image src="" mode=""></image>

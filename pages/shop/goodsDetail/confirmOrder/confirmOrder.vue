@@ -68,7 +68,7 @@
 			</view>
 		</view>
 		<!-- 优惠券弹窗 -->
-		<u-popup v-model="disPopup" mode="bottom" border-radius="20" @touchmove.prevent >
+		<u-popup v-model="disPopup" mode="bottom" border-radius="20"  @touchmove.native.stop.prevent>
 			<view class="dispopup">
 				<view class="title">
 					<image src="" mode=""></image>
@@ -97,7 +97,7 @@
 			</view>
 		</u-popup>
 		<!-- 运费弹窗 -->
-		<u-popup v-model="freight" mode="bottom" border-radius="20" @touchmove.prevent >
+		<u-popup v-model="freight" mode="bottom" border-radius="20"  @touchmove.native.stop.prevent>
 			<view class="frepopup">
 				<view class="title">
 					<image src="" mode=""></image>

@@ -12,7 +12,7 @@
 		<view class="top">
 			<u-steps :list="numList" :current="2" mode="number" active-color="#fff" un-active-color="#fff" icon="/static/my/true2.png"></u-steps>
 		</view>
-		<view v-if="status == 1" :class="['flow', status == 1 ? 'marginTop' : '']"  @click="go('../logistics/logistics')">
+		<view v-if="status == 4" :class="['flow', status == 4 ? 'marginTop' : '']"  @click="go('../logistics/logistics')">
 			<view class="">
 				<image src="/static/my/car.png" mode=""></image>
 				<text>派送中</text>
@@ -20,7 +20,7 @@
 			<text>高铁新城某某正在派件(95720为中通快递员外呼专属号码，请...</text>
 			<text class="time">2021-10-15 15:25:24</text>
 		</view>
-		<view :class="['address', status == 2 ? 'marginTop' : '']">
+		<view :class="['address', status == 3 ? 'marginTop' : '']">
 			<view class="">
 				<image src="/static/my/location.png" mode=""></image>
 				<text>王小明  166****1554</text>
@@ -78,9 +78,10 @@
 			<image src="/static/my/tpoint.png" mode=""></image>
 			<view class="">
 				<text>联系卖家</text>
-				<text v-if="status == 2">申请退款</text>
-				<text v-else @click="go('../logistics/logistics')">查看物流</text>
-				<text class="active">提醒发货</text>
+				<text v-if="status == 3">申请退款</text>
+				<text v-else-if="status == 3" class="active">提醒发货</text>
+				<text v-else-if="status == 4" click="go('../logistics/logistics')">查看物流</text>
+				<text v-if="status == 4">确认收货</text>
 			</view>
 		</view>
 	</view>
@@ -116,6 +117,7 @@
 			})
 		},
 		onLoad(option) {
+			this.status = option.status
 			console.log(option)
 		},
 		methods:{

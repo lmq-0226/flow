@@ -1,0 +1,9 @@
+{
+  "navigationBarTitleText": "",
+  "enablePullDownRefresh": false,
+  "navigationBarBackgroundColor": "#ffffff",
+  "usingComponents": {
+    "u-index-list": "/node-modules/uview-ui/components/u-index-list/u-index-list",
+    "u-index-anchor": "/node-modules/uview-ui/components/u-index-anchor/u-index-anchor"
+  }
+}

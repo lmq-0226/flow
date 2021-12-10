@@ -23,7 +23,7 @@
 									<text></text>
 								</view>
 								<view class="items">
-									<view class="" v-for="(item,index) in 9" :key="index">
+									<view class="" v-for="(item,index) in 9" :key="index" @click="go('/pages/public/public')">
 										<image src="" mode=""></image>
 										<text>绒线帽</text>
 									</view>
@@ -31,7 +31,7 @@
 							</view>
 						</view>
 						<u-index-list :scrollTop="scrollTop" :showIndex="Index" active-color="#FC493D">
-							<view v-for="(item, index) in indexList" :key="index">
+							<view v-for="(item, index) in indexList" :key="index" @click="go('/pages/public/public')">
 								<u-index-anchor :index="item" />
 								<view class="list-cell">
 									<image src="" mode=""></image>
@@ -84,6 +84,11 @@
 				this.timer = setInterval(()=>{
 					this.Index = -1
 				}, 3000)
+			},
+			go(e){
+				uni.navigateTo({
+					url: e
+				})
 			}
 		}
 	}

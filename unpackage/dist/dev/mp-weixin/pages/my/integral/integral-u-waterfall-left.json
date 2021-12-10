@@ -1,0 +1,10 @@
+{
+  "component": true,
+  "usingComponents": {
+    "integral-u-waterfall-left": "/pages/my/integral/integral-u-waterfall-left",
+    "integral-u-waterfall-right": "/pages/my/integral/integral-u-waterfall-right",
+    "u-waterfall": "/node-modules/uview-ui/components/u-waterfall/u-waterfall",
+    "u-lazy-load": "/node-modules/uview-ui/components/u-lazy-load/u-lazy-load",
+    "u-loadmore": "/node-modules/uview-ui/components/u-loadmore/u-loadmore"
+  }
+}

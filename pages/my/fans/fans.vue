@@ -1,6 +1,6 @@
 <template>
 	<view class="content">
-		<view class="item" v-for="(item,index) in attenList" :key="item.id">
+		<view class="item" v-for="(item,index) in attenList" :key="item.id" @click="go('/pages/my/homePage/homePage?type=0')">
 			<view class="item_left">
 				<image :src="item.avatar" mode=""></image>
 				<text>{{item.name}}</text>
@@ -50,6 +50,11 @@
 				uni.showToast({
 					title: "操作成功",
 					icon: 'none'
+				})
+			},
+			go(e){
+				uni.navigateTo({
+					url: e
 				})
 			}
 		}

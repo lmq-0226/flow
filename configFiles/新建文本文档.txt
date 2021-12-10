@@ -1,0 +1,52 @@
+安卓
+
+包名: app.liuxiangkeji.com
+别名: app.liuxiangkeji.com
+密码： liuxiang123
+组织名称： liuxiang123
+
+IOS 
+
+app.liuxiangkeji.com
+测试证书密码 zhangqi123
+
+
+高德地图
+
+18112771234 zhangqi123
+SHA1: C549BC49FC8844BD59D20C4E71FC1A8FB16D1009
+
+
+安卓: faea28e5e10063025169a8c599c93221
+
+IOS: f887ef3ff44cb395b38f21f070d886ee
+
+WEB端： e54dc81eda60a741dde19730f1cd3e15
+web服务端： d210b1ae26368deb246f4420f81cd6ce
+
+
+登录地址：https://www.chuanglan.com/control/login
+
+登录名称：51liuxiang
+
+登录密码：8Od(Fg78"161
+
+签名： 流象 
+
+短信模板： 648524       
+
+APP：YZM802028_YZM5240717
+api密钥： ShNTVhy451f7d8
+
+极光推送
+
+APPKEY: e54ded84ee6e4c0de3cb9fc4
+master 
+secret: 21511f0fceda3717537946a1
+
+流象 微信开放平台
+微信开放平台账号：2827708043@qq.com   zblx1234
+AppID：wx3866b5b1ac2c9ddf
+App secret : 032c6d9dfb3c26384f493bdaa0fbb469
+
+Universal Links：https://app.51liuxiang.com/

@@ -7,6 +7,7 @@
 			</view>
 			<view class="" @click="go('./bindPhone')">
 				<text>绑定手机</text>
+				<text>{{userInfo.mobile}}</text>
 			</view>
 			<view class="" @click="go('./setPass')">
 				<text>设置登录密码</text>
@@ -32,11 +33,11 @@
 	export default {
 		data() {
 			return {
-				
+				userInfo: uni.getStorageSync('userInfo') || {}
 			};
 		},
 		onLoad() {
-			
+			console.log(uni.getStorageSync('userInfo'))
 		},
 		methods:{
 			go(e){

@@ -45,11 +45,13 @@
 	export default {
 		data() {
 			return {
+				type: '',
 				payMethed: true
 			};
 		},
-		onLoad() {
-			
+		onLoad(option) {
+			this.type = option.type || ''
+			console.log(option.type)
 		},
 		methods:{
 			end(e){
@@ -60,9 +62,17 @@
 					title: '支付成功',
 					icon: 'none'
 				})
-				uni.navigateTo({
-					url: '/pages/my/buy/idleOrders/idleOrders',
-				})
+				if(this.type == ''){
+					// 商品支付
+					uni.navigateTo({
+						url: '/pages/my/buy/idleOrders/idleOrders',
+					})
+				}else{
+					// 寄卖支付
+					uni.navigateTo({
+						url: '/pages/leave/detail/detail?status=2',
+					})
+				}
 				// this.$refs.uToast.show({
 				// 	title: '支付成功',
 				// 	url: '/pages/my/buy/idleOrders/idleOrders',

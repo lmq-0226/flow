@@ -1,5 +1,5 @@
 {
-    "name" : "Flow",
+    "name" : "流象",
     "appid" : "__UNI__8603AD5",
     "description" : "",
     "versionName" : "1.0.0",
@@ -43,7 +43,13 @@
             /* ios打包配置 */
             "ios" : {},
             /* SDK配置 */
-            "sdkConfigs" : {}
+            "sdkConfigs" : {
+                "ad" : {},
+                "maps" : {},
+                "share" : {},
+                "push" : {},
+                "speech" : {}
+            }
         }
     },
     /* 快应用特有相关 */

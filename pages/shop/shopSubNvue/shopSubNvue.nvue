@@ -1,0 +1,207 @@
+<template>
+	<view class="content" @click.stop="">
+		<view class="popup" v-if="plan">
+			<text class="title">流象法律条款及隐私政策</text>
+			<scroll-view scroll-y="true" class="desc">
+				<mp-html :content="htmls" />
+			</scroll-view>
+			<view class="pro">
+				<text class="pro_text">《法律条款》</text>
+				<text class="pro_text">《隐私政策》</text>
+			</view>
+			<view class="consent" @click.stop="consent()">
+				<text class="con_text">同意</text>
+			</view>
+			<view class="disagree" @click.stop="disagree()">
+				<text class="dis_text">不同意</text>
+			</view>
+		</view>
+		<view class="inform" v-else>
+			<text class="title">开启推送通知</text>
+			<text class="desc">未开启推动通知，可能会错过订单信息、优惠活动等消息</text>
+			<view class="btns">
+				<text class="cancel" @click="cancel()">取消</text>
+				<text class="go" @click="go()">去开启</text>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	import mpHtml from 'mp-html/dist/uni-app/components/mp-html/mp-html'
+	export default {
+		components: {
+		  mpHtml
+		},
+		data() {
+			return {
+				plan: true,
+				htmls: `
+					感谢您选择流象APP!我们非常重视您的个人信息和隐私保护。
+					为了更好地保障您的个人权益，在您使用我们的产品前，
+					请务必审慎阅读《隐私政策》和《用户协议》内的所有条款，
+					尤其是:1.我们对您的个人信息的收集/保存/使用/对外提供/保护等规则条款，以及您的用户权利等条款; 
+					2. 约定我们的限制责任、免责条款; 3.其他以颜色或加粗进行标识的重要条款。如您对以上协议有任何疑问，
+					可通过人工客服或发邮件至2827708043@qq.com 与我们联系。您点击"同意并继续”的行为即表示您已阅读完毕并同意以上协议的全部内容。
+					如您同意以上协议内容，请点击"同意并继续”，开始使用我们的产品和服务!
+				`
+			};
+		},
+		onShow() {
+			plus.key.addEventListener("backbutton",function(){
+				console.log( "BackButton Key pressed!" );
+			});
+		},
+		methods:{
+			consent(){
+				this.plan = false
+				console.log('同意')
+			},
+			disagree(){
+				console.log('不同意')
+				if (uni.getSystemInfoSync().platform == 'ios'){
+				    plus.ios.import("UIApplication").sharedApplication().performSelector("exit")
+				} else if (uni.getSystemInfoSync().platform == 'android'){
+				    plus.runtime.quit();
+				}
+			},
+			// 取消
+			cancel(){
+				// 通过 id 获取 nvue 子窗体
+				const subNVue = uni.getSubNVueById('privacy')  
+				// 关闭 nvue 子窗体  
+				subNVue.close('fade-out', 300, function(){});
+			},
+			go(){
+				// 通过 id 获取 nvue 子窗体
+				const subNVue = uni.getSubNVueById('privacy')  
+				// 关闭 nvue 子窗体  
+				subNVue.close('fade-out', 300);
+				uni.navigateTo({ 
+					url: '/pages/my/set/newInfor/newInfor'
+				})
+			}
+		}
+	}
+</script>
+
+<style lang="scss" scoped>
+	.content{
+		background: rgba(0,0,0,0.7);
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		.popup{
+			width: 650rpx;
+			height: 783rpx;
+			background: #FFFFFF;
+			border-radius: 20rpx;
+			padding: 30rpx 40rpx;
+			.title{
+				font-size: 30rpx;
+				font-family: PingFang SC;
+				font-weight: bold;
+				color: #000000;
+				text-align: center;
+			}
+			.desc{
+				height: 415rpx;
+				margin: 20rpx 0;
+			}
+			.pro{
+				display: flex;
+				flex-direction: row;
+				.pro_text{
+					font-size: 26rpx;
+					font-family: PingFang SC;
+					font-weight: 500;
+					color: #F55454;
+				}
+			}
+			.consent{
+				margin-top: 20rpx;
+				height: 80rpx;
+				background: #F55454;
+				border-radius: 6rpx;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				.con_text{
+					font-size: 30rpx;
+					font-family: PingFang SC;
+					font-weight: 500;
+					color: #FFFFFF;
+				}
+			}
+			.disagree{
+				margin-top: 20rpx;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				height: 80rpx;
+				background: #F9F9FB;
+				border-radius: 6rpx;
+				.dis_text{
+					font-size: 30rpx;
+					font-family: PingFang SC;
+					font-weight: 500;
+					color: #333333;
+				}
+			}
+		}
+		.inform{
+			width: 650rpx;
+			height: 337rpx;
+			background: #FFFFFF;
+			border-radius: 20rpx;
+			padding: 30rpx 40rpx;
+			display: flex;
+			justify-content: space-between;
+			.title{
+				font-size: 30rpx;
+				font-family: PingFang SC;
+				font-weight: bold;
+				color: #000000;
+				text-align: center;
+			}
+			.desc{
+				font-size: 26rpx;
+				font-family: PingFang SC;
+				font-weight: 500;
+				color: #333333;
+				line-height: 38rpx;
+				text-align: center;
+			}
+			.btns{
+				display: flex;
+				flex-direction: row;
+				justify-content: space-between;
+				align-items: center;
+				.cancel{
+					width: 278rpx;
+					height: 80rpx;
+					background: #F9F9FB;
+					border-radius: 6rpx;
+					font-size: 30rpx;
+					font-family: PingFang SC;
+					font-weight: 500;
+					color: #333333;
+					text-align: center;
+					line-height: 80rpx;
+				}
+				.go{
+					width: 278rpx;
+					height: 80rpx;
+					background: #F55454;
+					border-radius: 6rpx;
+					font-size: 30rpx;
+					font-family: PingFang SC;
+					font-weight: 500;
+					color: #fff;
+					text-align: center;
+					line-height: 80rpx;
+				}
+			}
+		}
+	}
+</style>
