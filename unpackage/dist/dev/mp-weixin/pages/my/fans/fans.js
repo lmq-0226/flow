@@ -96,7 +96,7 @@ var components
 try {
   components = {
     uModal: function() {
-      return __webpack_require__.e(/*! import() | node-modules/uview-ui/components/u-modal/u-modal */ "node-modules/uview-ui/components/u-modal/u-modal").then(__webpack_require__.bind(null, /*! uview-ui/components/u-modal/u-modal.vue */ 897))
+      return __webpack_require__.e(/*! import() | node-modules/uview-ui/components/u-modal/u-modal */ "node-modules/uview-ui/components/u-modal/u-modal").then(__webpack_require__.bind(null, /*! uview-ui/components/u-modal/u-modal.vue */ 1083))
     }
   }
 } catch (e) {
@@ -205,6 +205,11 @@ var _default =
       uni.showToast({
         title: "操作成功",
         icon: 'none' });
+
+    },
+    go: function go(e) {
+      uni.navigateTo({
+        url: e });
 
     } } };exports.default = _default;
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./node_modules/@dcloudio/uni-mp-weixin/dist/index.js */ 1)["default"]))

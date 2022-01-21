@@ -3,7 +3,7 @@
 		<view class="top">
 			<u-steps :list="numList" :current="status" mode="number" active-color="#fff" un-active-color="#fff" icon="/static/my/true2.png"></u-steps>
 		</view>
-		<view class="address" v-if="status != 0">
+		<view class="address" v-if="assessInfo.state != 1">
 			<view class="area">
 				<text>收货地址</text>
 				<view class="">
@@ -17,33 +17,36 @@
 			</view>
 			<text>江苏省苏州市相城区南天城路77号高铁新城高融大厦快递快递柜</text>
 		</view>
-		<view :class="['detail',status == 0 ? 'marginTop' : '']">
+		<view :class="['detail',assessInfo.state == 1 ? 'marginTop' : '']">
 		<!-- <view class="detail"> -->
 			<view class="goods">
-				<image src="/static/pub/bbt.png" mode=""></image>
+				<image :src="ImgUrl + goodsDetail.image" mode=""></image>
 				<view class="info">
-					<text>居居侠 超级无敌棒棒糖</text>
-					<text>白色 特大号 数量x1</text>
-					<text>¥1500 / 寄卖价</text>
+					<text>{{goodsDetail.content}}</text>
+					<text>{{goodsDetail.source + '/' + goodsDetail.state}}</text>
+					<text>¥{{goodsDetail.original_price}} / 寄卖价</text>
 				</view>
 			</view>
-			<view class="money">
+			<view class="money" v-if="assessInfo.state != 1">
 				<view class="">
 					<text>出售价格</text>
-					<text>¥1999</text>
+					<text>¥{{goodsDetail.original_price}}</text>
 				</view>
-				<view class="" v-if="status != 0">
-					<text>预估价格</text>
-					<text>¥1500</text>
-				</view>
-				<view class="" v-if="status != 0">
+				<!-- <view class="">
+					
+				</view> -->
+				<view class="" v-if="assessInfo.state != 0">
 					<text @click="popupShow = true">总服务费</text>
-					<text>¥60.00</text>
+					<text>¥{{assessInfo.total_fee}}</text>
 				</view>
-				<view class="" v-if="status != 0">
+				<view class="" v-if="assessInfo.state != 0">
+					<text>预估价格</text>
+					<text>¥{{assessInfo.assess_price}}</text>
+				</view>
+				<!-- <view class="" v-if="assessInfo.state != 0">
 					<text>到手价</text>
-					<text>¥1440</text>
-				</view>
+					<text>¥{{assessInfo.assess_price - assessInfo.total_fee}}</text>
+				</view> -->
 			</view>
 		</view>
 		<view class="msg">
@@ -51,28 +54,29 @@
 			<view class="item">
 				<text>寄卖单号</text>
 				<view class="">
-					<text>145585852112881399</text>
-					<text @click="copy('145585852112881399')">复制</text>
+					<text>{{assessInfo.order_no}}</text>
+					<text @click="copy(assessInfo.order_no)">复制</text>
 				</view>
 			</view>
 			<view class="item">
 				<text>创建时间</text>
-				<text>2021-08-20 10:35:25</text>
+				<text>{{date('YmdHis',assessInfo.createtime*1000)}}</text>
 			</view>
-			<view class="item" v-if="status > 1">
+			<view class="item" v-if="assessInfo.paymenttime != null">
 				<text>支付时间</text>
-				<text>2021-08-20 10:35:25</text>
+				<text>{{assessInfo.paymenttime == null ? '' : date('YmdHis',assessInfo.paymenttime*1000)}}</text>
 			</view>
 		</view>
-		<view class="bottom" v-if="status == 0">
+		<view class="bottom" v-if="assessInfo.state == 1">
 			<text>取消估价</text>
 		</view>
 		<view class="bottom" v-else>
 			<view class="">
-				<text @click="go('/pages/public/callCenter')">联系客服</text>
-				<text>取消寄卖</text>
-				<text v-if="status == 1" class="active" @click="go('/pages/leave/publish/affirm/affirm?type=' + type)">确认寄卖</text>
-				<text v-else class="active" @click="go('./shipments/shipments')">去发货</text>
+				<!-- <text @click="go('/pages/public/callCenter')">联系客服</text> -->
+				<text @click="cancel()" v-if="assessInfo.state != 7 && assessInfo.state != 4">取消寄卖</text>
+				<text v-if="assessInfo.state == 2 || assessInfo.state == 7" class="active" @click="sure">确认寄卖</text>
+				<text v-else-if="assessInfo.state == 3" class="active" @click="go('./shipments/shipments?type=sign&order_id=' + assessInfo.id)">去发货</text>
+				<text v-else-if="assessInfo.state == 4" class="active" @click="go('/pages/my/buy/logistics/logistics?id=' + goodsDetail.id)">查询物流</text>
 			</view>
 		</view>
 		<u-popup v-model="popupShow" mode="bottom" border-radius="20" @touchmove.native.stop.prevent>
@@ -100,6 +104,7 @@
 				</view>
 			</view>
 		</u-popup>
+		<u-toast ref="uToast" />
 	</view>
 </template>
 
@@ -112,11 +117,11 @@
 				status: 1,
 				numList: [
 					{
-						name: '估价中'
+						name: '待估价'
 					}, {
 						name: '已估价'
 					}, {
-						name: '已寄出'
+						name: '待发货'
 					}, {
 						name: '寄卖中'
 					}, {
@@ -134,7 +139,12 @@
 					{text: '专业摄影费',type: 1,op:'¥20.00', money: '¥0.00'},
 					{text: '技术服务费',type: 1,op:'¥20.00', money: '¥0.00'},
 					{text: '服务清理费', money: '¥8.00'}
-				]
+				],
+				order_id: '',
+				address: {},
+				goods: {},
+				assessInfo: {},
+				goodsDetail: {}
 			};
 		},
 		onBackPress() {
@@ -142,10 +152,10 @@
 			// 	return false
 			// }else{
 				
-				uni.navigateTo({
-					url: '/pages/my/sell/sell'
-				})
-				return true
+				// uni.navigateTo({
+				// 	url: '/pages/my/sell/sell'
+				// })
+				// return true
 			// }
 		},
 		onReady() {
@@ -161,8 +171,76 @@
 		onLoad(option) {
 			this.status = option.status
 			this.type = option.type
+			this.order_id = option.order_id
+			
+		},
+		onShow() {
+			this.getOrderDetail()
 		},
 		methods:{
+			getOrderDetail(){
+				this.request({
+					url: 'idle/consign/detail',
+					data: {
+						token: uni.getStorageSync('userInfo').token,
+						id: this.order_id
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.assessInfo = res.data.data.assessInfo
+						this.goodsDetail = res.data.data
+						if(this.assessInfo.state == 1){
+							this.status = 0
+						}else if(this.assessInfo.state == 2){
+							this.status = 1
+						}else if(this.assessInfo.state == 3){
+							this.status = 2
+						}else if(this.assessInfo.state == 4){
+							this.status = 3
+						}
+					}
+				})
+			},
+			// 取消寄卖
+			cancel(){
+				this.request({
+					url: 'idle/consign/cancel',
+					data: {
+						token: uni.getStorageSync('userInfo').token,
+						id: this.assessInfo.id
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.$refs.uToast.show({
+							title: '取消成功',
+							type: 'success',
+							callback: ()=>{
+								uni.navigateBack({
+									delta: 1
+								})
+							}
+						})
+						
+					}
+					
+				})
+			},
+			// 确认寄卖
+			sure(){
+				this.request({
+					url: 'idle/consign/consign',
+					data: {
+						token: uni.getStorageSync('userInfo').token,
+						id: this.goodsDetail.id,
+						address_id: this.assessInfo.address_id
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.go('/pages/leave/leaveShop/confirmOrder/pay?type=consign&order_id=' + res.data.data.pay_info.order_id + '&total_amount=' + res.data.data.pay_info.total_amount )
+					}
+					
+				})
+			},
 			back(){
 				uni.navigateTo({
 					url: '../buy'
@@ -342,8 +420,10 @@
 				padding: 37rpx 0;
 				border-bottom: solid 1px #F1F4F9;
 				image{
-					width: 164rpx;
-					height: 164rpx;
+					width: 180rpx;
+					height: 180rpx;
+					min-width: 180rpx;
+					border-radius: 10rpx;
 					margin-right: 22rpx;
 				}
 				.info{
@@ -356,6 +436,11 @@
 						font-family: PingFang SC;
 						font-weight: bold;
 						color: #000000;
+						overflow: hidden;
+						-webkit-line-clamp: 2;
+						text-overflow: ellipsis;
+						display: -webkit-box;
+						-webkit-box-orient: vertical;
 					}
 					>:nth-child(2){
 						font-size: 22rpx;
@@ -396,14 +481,14 @@
 						font-weight: bold;
 					}
 				}
-				>:nth-child(3){
+				>:nth-child(2){
 					>:nth-child(1){
 						padding-right: 45rpx;
-						background: url(../../../static/leave/qmark.png) no-repeat right center;
+						background: url(@/static/leave/qmark.png) no-repeat right center;
 						background-size: 50rpx;
 					}
 				}
-				>:nth-child(4){
+				>:nth-child(3){
 					>:nth-child(2){
 						color: #FF4243;
 					}
@@ -559,7 +644,7 @@
 				.bot{
 					width: 100%;
 					height: 115rpx;
-					background: url(../../../static/leave/servicebg.png) no-repeat;
+					background: url(@/static/leave/servicebg.png) no-repeat;
 					background-size: 100%;
 					display: flex;
 					justify-content: space-between;

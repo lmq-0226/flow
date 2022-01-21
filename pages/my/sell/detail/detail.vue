@@ -13,57 +13,57 @@
 			<u-steps :list="numList" :current="current" mode="number" active-color="#fff" un-active-color="#fff" icon="/static/my/true2.png"></u-steps>
 		</view>
 		<!-- 待收货状态 -->
-		<view v-if="status == 2" :class="['flow', status == 2 ? 'marginTop' : '']" @click="go('../logistics/logistics')">
+		<view class="flow marginTop" @click="go('../logistics/logistics')">
 			<view class="">
 				<image src="/static/my/car.png" mode=""></image>
-				<text>派送中</text>
+				<text>{{logistics.status}}</text>
 			</view>
-			<text>高铁新城某某正在派件(95720为中通快递员外呼专属号码，请...</text>
-			<text class="time">2021-10-15 15:25:24</text>
+			<text>{{logistics.context}}</text>
+			<text class="time">{{logistics.time}}</text>
 		</view>
-		<view v-if="status == 3" :class="['flow', status == 3 ? 'marginTop' : '']" @click="go('../logistics/logistics')">
+		<!-- <view v-if="status == 3" :class="['flow', status == 3 ? 'marginTop' : '']" @click="go('../logistics/logistics')">
 			<view class="">
 				<image src="/static/my/car.png" mode=""></image>
 				<text>买家已签收</text>
 			</view>
 			<text style="color: #26B3FF;">高铁新城某某正在派件(95720为中通快递员外呼专属号码，请...</text>
 			<text class="time">2021-10-15 15:25:24</text>
-		</view>
+		</view> -->
 		<!-- 待发货状态 -->
 		<view :class="['address', status == 1 ? 'marginTop' : '']">
 			<view class="">
 				<image src="/static/my/location.png" mode=""></image>
-				<text>王小明  166****1554</text>
+				<text>{{address.name}}  {{address.mobile}}</text>
 			</view>
-			<text>江苏省苏州市相城区南天城路77号高铁新城高融大厦快递快递柜</text>
+			<text>{{address.address + address.address_name}}</text>
 		</view>
 		<view class="detail">
-			<view class="title">
-				<image src="/static/avatar3.png" mode=""></image>
-				<text>EVISU官方旗舰店</text>
-			</view>
+			<!-- <view class="title">
+				<image :src="ImgUrl + goods.image" mode=""></image>
+				<text>{{goods.title}}</text>
+			</view> -->
 			<view class="goods">
-				<image src="/static/pub/bql.png" mode=""></image>
+				<image :src="ImgUrl + goods.image" mode=""></image>
 				<view class="info">
-					<text>EVISU 老虎达摩拼图印花T恤 男款</text>
-					<text>白色 XXL 数量x1</text>
-					<text>¥899</text>
+					<text>{{goods.title}}</text>
+					<text>{{goods.brand_name}}</text>
+					<text>¥{{goods.price}}</text>
 					
 				</view>
 			</view>
 			<view class="money">
 				<view class="">
 					<text>商品总价</text>
-					<text>¥10.00</text>
+					<text>¥{{goods.price}}</text>
 				</view>
 				<view class="">
 					<text>运费</text>
-					<text>-¥25.00</text>
+					<text>-¥{{pay.freight_price}}</text>
 				</view>
 				<view class="">
 					<text v-if="status == 3 || status == 4">实收款(已到达您的支付宝/账户余额 <p style="display: inline-block;color: #26B3FF;margin-left:10rpx;">查看</p>)</text>
 					<text v-else>实收款</text>
-					<text>¥899.00</text>
+					<text>¥{{pay.total_amount}}</text>
 				</view>
 			</view>
 		</view>
@@ -72,33 +72,33 @@
 			<view class="item">
 				<text>订单编号</text>
 				<view class="">
-					<text>145585852112881399</text>
-					<text @click="copy('145585852112881399')">复制</text>
+					<text>{{pay.order_no}}</text>
+					<text @click="copy(pay.order_no)">复制</text>
 				</view>
 			</view>
 			<view class="item">
 				<text>创建时间</text>
-				<text>2021-08-20 10:35:25</text>
+				<text>{{pay.createtime_text}}</text>
 			</view>
 			<view class="item">
 				<text>交易编号</text>
-				<text>2120549565926232</text>
+				<text>{{pay.pay_no}}</text>
 			</view>
 		</view>
 		<view class="bottom">
 			<image src="/static/my/tpoint.png" mode=""></image>
-			<view class="" v-if="status == 1">
+			<view class="" v-if="goodsDetail.state == 2">
 				<text @click="go('/pages/HM-chat/HM-chat')">联系买家</text>
-				<text>关闭订单</text>
-				<text class="active">去发货</text>
+				<!-- <text>关闭订单</text> -->
+				<text class="active" @click="go('/pages/my/sell/deliver/deliver?order_id=' + goodsDetail.id)">去发货</text>
 			</view>
-			<view class="" v-else-if="status == 2 || status == 3 || status == 4">
+			<!-- <view class="" v-else-if="status == 2 || status == 3 || status == 4">
 				<text @click="go('/pages/HM-chat/HM-chat')">联系买家</text>
 				<text @click="go('/pages/my/buy/logistics/logistics')">查看物流</text>
 				<text class="active" v-if="status == 2">提醒收货</text>
 				<text class="active" v-else-if="status == 3">提醒评价</text>
 				<text class="active" v-else-if="status == 4">查看评价</text>
-			</view>
+			</view> -->
 		</view>
 	</view>
 </template>
@@ -109,18 +109,24 @@
 		data() {
 			return {
 				status: 1,
-				current: null,
+				current: 0,
 				numList: [{
-					name: '已拍下'
-				}, {
 					name: '已付款'
 				}, {
-					name: '已发货'
+					name: '待发货'
+				}, {
+					name: '待收货'
 				}, {
 					name: '交易成功'
 				}, {
 					name: '已评价'
-				}]
+				}],
+				order_id: '',
+				address: {},
+				goods: {},
+				logistics: {},
+				pay: {},
+				goodsDetail: {}
 			};
 		},
 		onReady() {
@@ -135,6 +141,8 @@
 		},
 		onLoad(option) {
 			this.status = option.status
+			this.order_id = option.order_id
+			this.getOrderDetail()
 			if(option.status == 1){
 				this.current = 1
 			}else if(option.status == 2){
@@ -144,6 +152,26 @@
 			}
 		},
 		methods:{
+			getOrderDetail(){
+				this.request({
+					url: 'idle/order/detail',
+					data: {
+						token: uni.getStorageSync('userInfo').token,
+						id: this.order_id
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.address = res.data.data.address
+						this.goods = res.data.data.goods
+						this.logistics = res.data.data.logistics
+						this.pay = res.data.data.pay
+						this.goodsDetail = res.data.data
+						if(this.goodsDetail.state == 2){
+							this.current = 1
+						}
+					}
+				})
+			},
 			back(){
 				uni.navigateBack({
 					delta: 1

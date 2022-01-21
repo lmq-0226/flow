@@ -2,8 +2,15 @@
 	<view class="content">
 		<view class="form">
 			<text class="title">请绑定本人银行卡</text>
+			<u-field @click="show = true" v-model="bankName" 
+			:disabled="true" label="开户行" placeholder="请选择开户行"
+			right-icon="arrow-down-fill"
+			required
+			:field-style="{fontWeight: 'bold'}"
+			>
+			</u-field>
 			<u-field
-				v-model="name"
+				v-model="username"
 				label="持卡人"
 				placeholder="请输入持卡人姓名"
 				:field-style="{fontWeight: 'bold'}"
@@ -15,20 +22,29 @@
 				label="身份证号"
 				placeholder="请输入身份证号"
 				:field-style="{fontWeight: 'bold'}"
+				maxlength="18"
 				required
 			>
 			</u-field>
 			<u-field
-				v-model="bankCard"
+				v-model="cardCode"
 				label="卡号"
 				placeholder="请输入银行卡号"
 				:field-style="{fontWeight: 'bold'}"
+				maxlength="16"
+				type="number"
 				required
 			></u-field>
 		</view>
-		<view class="next" @click="go('./verifyBank')">
-			下一步
-		</view>
+		 <!--  -->
+		 <!-- <view class="next" @click="go('./verifyBank')">
+		 	下一步
+		 </view> -->
+		 <view class="del">
+		 	<u-button :loading="loading" class="text" @click="addBankCard">添加银行卡</u-button>
+		 </view>
+		<u-picker mode="selector" v-model="show" :range="list" range-key="bankName" @confirm="sure"></u-picker>
+		<!-- <u-action-sheet :list="list" v-model="show"></u-action-sheet> -->
 	</view>
 </template>
 
@@ -36,9 +52,32 @@
 	export default {
 		data() {
 			return {
-				name: '',
-				idCard: '',
-				bankCard: ''
+				loading: false,
+				idCard: '', // 身份证号
+				bankCode: '', // 开户行
+				bankName: '', // 银行名称
+				cardCode: '',// 银行卡号
+				mobile: '',// 手机号
+				username: '', // 姓名
+				show: false,
+				list: [
+					{bankCode: 'ALIPAY', bankName: '支付宝账户'},
+					{bankCode: 'WECHAT', bankName: '微信账户'},
+					{bankCode: 'ICBC', bankName: '工商银行'},
+					{bankCode: 'ABC', bankName: '农业银行'},
+					{bankCode: 'PSBC', bankName: '邮储银行'},
+					{bankCode: 'CCB', bankName: '建设银行'},
+					{bankCode: 'CMB', bankName: '招商银行'},
+					{bankCode: 'BOC', bankName: '中国银行'},
+					{bankCode: 'COMM', bankName: '交通银行'},
+					{bankCode: 'SPDB', bankName: '浦发银行'},
+					{bankCode: 'GDB', bankName: '广发银行'},
+					{bankCode: 'CMBC', bankName: '民生银行'},
+					{bankCode: 'PAB', bankName: '平安银行'},
+					{bankCode: 'CEB', bankName: '光大银行'},
+					{bankCode: 'CIB', bankName: '兴业银行'},
+					{bankCode: 'CITIC', bankName: '中信银行'}
+				],
 			};
 		},
 		methods:{
@@ -46,6 +85,68 @@
 				uni.navigateTo({
 					url: e
 				})
+			},
+			// 添加银行卡
+			addBankCard(){
+				if(this.bankName == ''){
+					uni.showToast({
+						title: '请选择开户行',
+						icon: 'none'
+					})
+					return
+				}
+				if(this.username == ''){
+					uni.showToast({
+						title: '请输入持卡人',
+						icon: 'none'
+					})
+					return
+				}
+				if(this.idCard.length < 18){
+					uni.showToast({
+						title: '身份证号不足18位',
+						icon: 'none'
+					})
+					return
+				}
+				if(this.cardCode.length < 16){
+					uni.showToast({
+						title: '银行卡号不足16位',
+						icon: 'none'
+					})
+					return
+				}
+				
+				
+				this.loading = true
+				this.request({
+					url: 'wanlshop/pay/addPayAccount',
+					data: {
+						token: uni.getStorageSync('userInfo').token,
+						bankCode: this.bankCode,
+						bankName: this.bankName,
+						cardCode: this.cardCode,
+						mobile: this.mobile,
+						username: this.username
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						uni.showToast({
+							title: '添加成功',
+							icon: 'none'
+						})
+						let timer = setTimeout(()=>{
+							uni.navigateBack({
+								delta: 1
+							})
+							this.loading = false
+						},1000)
+					}
+				})
+			},
+			sure(e){
+				this.bankCode = this.list[e].bankCode
+				this.bankName = this.list[e].bankName
 			}
 		}
 	}
@@ -74,18 +175,36 @@
 				font-size: 28rpx;
 			}
 		}
-		.next{
+		// .next{
+		// 	width: 100%;
+		// 	height: 74rpx;
+		// 	display: flex;
+		// 	justify-content: center;
+		// 	align-items: center;
+		// 	background: #F35455;
+		// 	border-radius: 6rpx;
+		// 	font-size: 28rpx;
+		// 	font-family: PingFang SC;
+		// 	font-weight: bold;
+		// 	color: #FFFFFF;
+		// }
+		.del{
 			width: 100%;
-			height: 74rpx;
-			display: flex;
-			justify-content: center;
-			align-items: center;
-			background: #F35455;
-			border-radius: 6rpx;
-			font-size: 28rpx;
-			font-family: PingFang SC;
-			font-weight: bold;
-			color: #FFFFFF;
+			padding: 0 30rpx;
+			margin-bottom: 30rpx;
+			.text{
+				
+				width: 100%;
+				height: 80rpx;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				background: #F35455;
+				color: #fff;
+				font-size: 28rpx;
+				font-weight: bold;
+				border-radius: 10rpx;
+			}
 		}
 	}
 </style>

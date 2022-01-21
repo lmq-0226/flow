@@ -165,6 +165,9 @@
 .content .demo-warter .bot .avatar image.data-v-2c27ccda {
   width: 34rpx;
   height: 34rpx;
+  border-radius: 50%;
+  background: #ccc;
+  margin-right: 14rpx;
 }
 .content .demo-warter .bot .avatar text.data-v-2c27ccda {
   font-size: 20rpx;

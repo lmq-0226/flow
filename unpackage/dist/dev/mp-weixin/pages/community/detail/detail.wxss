@@ -81,7 +81,7 @@
   width: 44rpx;
   height: 44rpx;
 }
-.content .nav .right.data-v-df4b8d80 > :nth-child(1) {
+.content .nav .right .atten.data-v-df4b8d80, .content .nav .right .attened.data-v-df4b8d80 {
   display: inline-block;
   width: 102rpx;
   height: 48rpx;
@@ -94,6 +94,10 @@
   font-family: PingFang SC;
   font-weight: 500;
   color: #FC493D;
+}
+.content .nav .right .attened.data-v-df4b8d80 {
+  color: #686879;
+  border: 1px solid #686879;
 }
 .content .nav .right.data-v-df4b8d80 > :nth-child(2) {
   margin: 0 19rpx 0 24rpx;

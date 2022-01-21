@@ -3,34 +3,35 @@
 		<view class="top">
 			<text 
 				v-for="(item,index) in topList" :key="index" 
-				:class="topCut == index ? 'active' : ''" 
-				@click="topCut = index"
-			>{{item}}</text>
+				:class="tag == item.tag ? 'active' : ''" 
+				@click="selectCut(item)"
+			>{{item.lettle + '(' + item.num + ')'}}</text>
 		</view>
 		<view class="list">
-			<view class="item" v-for="item in comList" :key="item.id">
+			<view class="item" v-for="item in comList.data" :key="item.id">
 				<view class="user">
 					<view class="avatar">
-						<image src="/static/avatar3.png" mode=""></image>
+						<image :src="ImgUrl + item.user.avatar" mode=""></image>
 						<view class="nick">
-							<text>{{item.nickname}}</text>
-							<u-rate :current="item.rate" :disabled="true" size="18"></u-rate>
+							<text>{{item.user.nickname}}</text>
+							<u-rate :current="item.score" :disabled="true" size="18"></u-rate>
 						</view>
 					</view>
-					<text>{{item.time}}</text>
+					<text>{{date('YmdHis',item.createtime*1000)}}</text>
 				</view>
-				<text class="desc">{{item.desc}}</text>
+				<text class="desc">{{item.content}}</text>
 				<view class="imgs">
-					<view class="" v-for="(elem,index) in item.imgs" :key="index" @click="pvew(item.imgs,index)">
-						<u-lazy-load threshold="-450" border-radius="10" :image="elem" img-mode="widthFix" :index="index"></u-lazy-load>
+					<view class="" v-for="(elem,index) in item.images" :key="index" @click="pvew(item.images,index)">
+						<u-lazy-load threshold="-450" border-radius="10" :image="ImgUrl + elem" img-mode="widthFix" :index="index"></u-lazy-load>
 					</view>
 				</view>
-				<view class="reply" v-if="item.reply != ''">
+				<!-- <view class="reply" v-if="item.reply != ''">
 					<text>商家回复</text>
 					<text>{{item.reply}}</text>
-				</view>
+				</view> -->
 			</view>
 		</view>
+		<u-empty v-if="comList.data.length <= 0" text="暂无评论" mode="list" margin-top="400"></u-empty>
 	</view>
 </template>
 
@@ -38,59 +39,61 @@
 	export default {
 		data() {
 			return {
+				id: '',
 				topList: [
-					'全部','最新','好评','有图/视频'
+					{tag: '',lettle: '全部',num: 0},
+					{tag: 'good',lettle: '好评',num: 0},
+					{tag: 'pertinent',lettle: '中评',num: 0},
+					{tag: 'poor',lettle: '差评',num: 0},
+					{tag: 'figure',lettle: '有图',num: 0}
 				],
+				tag: '',
 				topCut: 0,
-				comList: [
-					{
-						id: 1,
-						nickname: '北**海',
-						rate: 5,
-						time: '2020/11/21',
-						desc: '买了很多件 蓝色 白色 黑色 红色 黄色都好看 我最喜欢p5 出门大印花很吸睛',
-						imgs: [
-							require('@/static/pub/bbt.png'),
-							require('@/static/pub/ttq.png'),
-							require('@/static/pub/ch.png'),
-							require('@/static/pub/bql.png')
-						],
-						reply: '亲爱的顾客，感谢您选择本平台，谢谢您的认可，我们会继续努力，为您提供更好的服务。祝您生活愉快！'
-					},
-					{
-						id: 2,
-						nickname: '北**海',
-						rate: 4.2,
-						time: '刚刚',
-						desc: '好看好看 很合身 趁着活动买了两件 有韩韩的感觉 黑白颜色都可入',
-						imgs: [
-							require('@/static/pub/bbt.png'),
-						],
-						reply: ''
-					},
-					{
-						id: 3,
-						nickname: '北**海',
-						rate: 4.7,
-						time: '刚刚',
-						desc: '好看好看 很合身 趁着活动买了两件 有韩韩的感觉 黑白颜色都可入',
-						imgs: [
-							require('@/static/pub/bbt.png'),
-							require('@/static/pub/ttq.png')
-						],
-						reply: ''
-					}
-				]
+				comList: [],
+				
 			};
 		},
-		onLoad() {
-			
+		onLoad(option) {
+			this.id = option.id
+			this.getData()
 		},
 		methods:{
+			getData(){
+				this.request({
+					url: 'wanlshop/product/comment',
+					method: 'GET',
+					header: {
+						token: uni.getStorageSync('userInfo').token
+					},
+					data: {	
+						id: this.id,
+						page: 1,
+						tag: this.tag
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.comList = res.data.data.comment
+						this.topList[0].num = res.data.data.statistics.total
+						this.topList[1].num = res.data.data.statistics.good
+						this.topList[2].num = res.data.data.statistics.pertinent
+						this.topList[3].num = res.data.data.statistics.poor
+						this.topList[4].num = res.data.data.statistics.figure
+					}
+				})
+			},
+			selectCut(e){
+				if(this.tag == e.tag) return;
+				this.tag = e.tag
+				this.getData()
+			},
 			pvew(e, n){
+				let arr = []
+				e.forEach(elem=>{
+					arr.push(this.ImgUrl + elem)
+				})
 				uni.previewImage({
 					current: n,
-					urls: e
+					urls: arr
 				})
 			}
 		}
@@ -100,7 +103,7 @@
 <style lang="scss" scoped>
 	.content{
 		.top{
-			padding: 20rpx ;
+			padding: 0 20rpx 20rpx;
 			border-top: solid 10rpx #F6F5FA;
 			border-bottom: solid 10rpx #F6F5FA;
 			position: sticky;
@@ -112,7 +115,7 @@
 			background: #fff;
 			text{
 				display: inline-block;
-				margin-left: 20rpx;
+				margin: 20rpx 0 0 20rpx;
 				padding: 10rpx 20rpx;
 				font-size: 24rpx;
 				font-family: PingFang SC;

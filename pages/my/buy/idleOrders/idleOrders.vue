@@ -1,4 +1,5 @@
 <template>
+	<!-- 闲置订单详情 -->
 	<view class="content">
 		<view class="status_bar"></view>
 		<view class="nav">
@@ -10,9 +11,9 @@
 			</view>
 		</view>
 		<view class="top">
-			<u-steps :list="numList" :current="2" mode="number" active-color="#fff" un-active-color="#fff" icon="/static/my/true2.png"></u-steps>
+			<u-steps :list="numList" :current="current" mode="number" active-color="#fff" un-active-color="#fff" icon="/static/my/true2.png"></u-steps>
 		</view>
-		<view v-if="status == 4" :class="['flow', status == 4 ? 'marginTop' : '']"  @click="go('../logistics/logistics')">
+		<!-- <view v-if="status == 4" :class="['flow', status == 4 ? 'marginTop' : '']"  @click="go('../logistics/logistics')">
 			<view class="">
 				<image src="/static/my/car.png" mode=""></image>
 				<text>派送中</text>
@@ -26,6 +27,13 @@
 				<text>王小明  166****1554</text>
 			</view>
 			<text>江苏省苏州市相城区南天城路77号高铁新城高融大厦快递快递柜</text>
+		</view> -->
+		<view class="address marginTop">
+			<view class="">
+				<image src="/static/my/location.png" mode=""></image>
+				<text>{{address.name}}  {{address.mobile}}</text>
+			</view>
+			<text>{{address.address}}</text>
 		</view>
 		<view class="detail">
 			<view class="title">
@@ -33,26 +41,27 @@
 				<text>EVISU官方旗舰店</text>
 			</view>
 			<view class="goods">
-				<image src="/static/pub/bql.png" mode=""></image>
+				<image :src="ImgUrl + goods.image" mode=""></image>
 				<view class="info">
-					<text>EVISU 老虎达摩拼图印花T恤 男款</text>
-					<text>白色 XXL 数量x1</text>
-					<text>¥899</text>
+					<text>{{goods.title}}</text>
+					<!-- <text>白色 XXL 数量x1</text> -->
+					<text>品牌: {{goods.brand_name}}</text>
+					<text>¥{{goods.price}}</text>
 					
 				</view>
 			</view>
 			<view class="money">
 				<view class="">
 					<text>运费</text>
-					<text>¥10.00</text>
+					<text>¥{{pay.freight_price}}</text>
 				</view>
 				<view class="">
 					<text>优惠劵</text>
-					<text>-¥25.00</text>
+					<text>-¥0</text>
 				</view>
 				<view class="">
 					<text>合计支付</text>
-					<text>¥899.00</text>
+					<text>¥{{pay.actual_payment}}</text>
 				</view>
 			</view>
 		</view>
@@ -61,17 +70,17 @@
 			<view class="item">
 				<text>订单编号</text>
 				<view class="">
-					<text>145585852112881399</text>
-					<text @click="copy('145585852112881399')">复制</text>
+					<text>{{pay.order_no}}</text>
+					<text @click="copy(pay.order_no)">复制</text>
 				</view>
 			</view>
 			<view class="item">
 				<text>创建时间</text>
-				<text>2021-08-20 10:35:25</text>
+				<text>{{pay.createtime_text}}</text>
 			</view>
 			<view class="item">
 				<text>交易编号</text>
-				<text>2120549565926232</text>
+				<text>{{pay.pay_no}}</text>
 			</view>
 		</view>
 		<view class="bottom">
@@ -94,7 +103,7 @@
 			return {
 				status: 1,
 				numList: [{
-					name: '已拍下'
+					name: '待付款'
 				}, {
 					name: '已付款'
 				}, {
@@ -103,7 +112,14 @@
 					name: '交易成功'
 				}, {
 					name: '已评价'
-				}]
+				}],
+				order_id: '',
+				address: {},
+				goods: {},
+				logistics: {},
+				pay: {},
+				orderDetail: {},
+				current: 0
 			};
 		},
 		onReady() {
@@ -118,9 +134,31 @@
 		},
 		onLoad(option) {
 			this.status = option.status
+			this.order_id = option.order_id
 			console.log(option)
+			this.getOrderDetail()
 		},
 		methods:{
+			getOrderDetail(){
+				this.request({
+					url: 'idle/order/detail',
+					data: {
+						token: uni.getStorageSync('userInfo').token,
+						id: this.order_id
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.orderDetail = res.data.data
+						this.address = res.data.data.address
+						this.goods = res.data.data.goods
+						this.logistics = res.data.data.logistics
+						this.pay = res.data.data.pay
+						if(this.orderDetail.state == 1){
+							this.current = 0  // 待支付
+						}
+					}
+				})
+			},
 			back(){
 				uni.navigateTo({
 					url: '../buy'
@@ -278,8 +316,10 @@
 				padding: 37rpx 0;
 				border-bottom: solid 1px #F1F4F9;
 				image{
-					width: 164rpx;
-					height: 164rpx;
+					width: 180rpx;
+					height: 180rpx;
+					min-width: 180rpx;
+					border-radius: 10rpx;
 					margin-right: 22rpx;
 				}
 				.info{
@@ -292,6 +332,11 @@
 						font-family: PingFang SC;
 						font-weight: bold;
 						color: #000000;
+						overflow: hidden;
+						-webkit-line-clamp: 2;
+						text-overflow: ellipsis;
+						display: -webkit-box;
+						-webkit-box-orient: vertical;
 					}
 					>:nth-child(2){
 						font-size: 22rpx;

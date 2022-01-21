@@ -1,0 +1,20 @@
+{
+  "navigationBarTitleText": "",
+  "enablePullDownRefresh": false,
+  "titleNView": {
+    "tags": [
+      {
+        "tag": "font",
+        "text": "编辑资料",
+        "textStyles": {
+          "weight": "bold"
+        }
+      }
+    ]
+  },
+  "usingComponents": {
+    "u-input": "/node-modules/uview-ui/components/u-input/u-input",
+    "u-popup": "/node-modules/uview-ui/components/u-popup/u-popup",
+    "u-picker": "/node-modules/uview-ui/components/u-picker/u-picker"
+  }
+}

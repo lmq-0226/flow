@@ -562,15 +562,16 @@
 			"style": {
 				"navigationBarTitleText": "",
 				"enablePullDownRefresh": false,
-				"titleNView": {
-					"tags": [{
-						"tag": "font",
-						"text": "我鉴定的",
-						"textStyles": {
-							"weight": "bold"
-						}
-					}]
-				}
+				"navigationStyle": "custom"
+				// "titleNView": {
+				// 	"tags": [{
+				// 		"tag": "font",
+				// 		"text": "我鉴定的",
+				// 		"textStyles": {
+				// 			"weight": "bold"
+				// 		}
+				// 	}]
+				// }
 			}
 
 		}, {
@@ -594,15 +595,16 @@
 			"style": {
 				"navigationBarTitleText": "",
 				"enablePullDownRefresh": false,
-				"titleNView": {
-					"tags": [{
-						"tag": "font",
-						"text": "我买到的",
-						"textStyles": {
-							"weight": "bold"
-						}
-					}]
-				}
+				"navigationStyle": "custom"
+				// "titleNView": {
+				// 	"tags": [{
+				// 		"tag": "font",
+				// 		"text": "我买到的",
+				// 		"textStyles": {
+				// 			"weight": "bold"
+				// 		}
+				// 	}]
+				// }
 			}
 
 		}, {
@@ -664,15 +666,16 @@
 			"style": {
 				"navigationBarTitleText": "",
 				"enablePullDownRefresh": false,
-				"titleNView": {
-					"tags": [{
-						"tag": "font",
-						"text": "我发布的",
-						"textStyles": {
-							"weight": "bold"
-						}
-					}]
-				}
+				"navigationStyle": "custom"
+				// "titleNView": {
+				// 	"tags": [{
+				// 		"tag": "font",
+				// 		"text": "我发布的",
+				// 		"textStyles": {
+				// 			"weight": "bold"
+				// 		}
+				// 	}]
+				// }
 			}
 
 		}, {
@@ -891,7 +894,17 @@
 			"style": {
 				"navigationBarTitleText": "",
 				"enablePullDownRefresh": false,
-				"navigationStyle": "custom"
+				"titleNView": {
+					"tags": [{
+						"tag": "font",
+						"text": "文章详情",
+						"textStyles": {
+							"weight": "bold"
+						}
+					}]
+				}
+				// ,
+				// "navigationStyle": "custom"
 			}
 
 		}, {
@@ -1379,13 +1392,29 @@
 		{
 		    "path" : "pages/HM-chat/HM-chat",
 		    "style" : {
-				"navigationBarTitleText":"流象APP客服平台",
+				"navigationBarTitleText":"",
 		    	"navigationBarBackgroundColor":"#fff",
 		    	"backgroundColorTop":"#e5e5e5",
 		    	"backgroundColorBottom":"#e5e5e5",
 		    	"app-plus":{
 		    		"softinputNavBar":"none",
-		    		"bounce":"none"
+		    		"bounce":"none",
+					"titleNView": {
+						"tags": [{
+							"tag": "font",
+							"text": "客服中心",
+							"textStyles": {
+								"weight": "bold"
+							}
+						}],
+						"buttons": [ //原生标题栏按钮配置,
+							{
+								"text": "\ue61f",
+								"fontSrc": "/static/iconfont/iconfont.ttf",
+								"fontSize": "24"
+							}
+						]
+					}
 		    	}
 		    }
 		}
@@ -1539,7 +1568,10 @@
             {
                 "navigationBarTitleText": "",
 				"navigationStyle": "custom",
-                "enablePullDownRefresh": false
+                "enablePullDownRefresh": false,
+				"app-plus": {
+				    "softinputMode": "adjustResize"
+				}
             }
             
         }
@@ -1624,13 +1656,162 @@
             
         }
         ,{
-            "path" : "pages/community/detail/video",
+            "path" : "pages/community/detail/videoList",
             "style" :                                                                                    
             {
                 "navigationBarTitleText": "",
                 "enablePullDownRefresh": false,
-				"navigationBarBackgroundColor": "#000",
-				"navigationBarTextStyle": "white"
+				"navigationBarTextStyle": "white",
+				"navigationBarBackgroundColor": "#000000",
+				"app-plus": {
+					"subNVues":[{  
+						"id": "comment", // 唯一标识  
+						"path": "pages/community/detail/commentSubNvue/commentSubNvue", // 页面路径  
+						"type": "popup",
+						"style": {  
+							"position":"absolute",
+							"mask": "rgba(0,0,0,0)",
+							"background": "transparent"
+						}
+					}]
+				}
+            }
+            
+        }
+        ,{
+            "path" : "pages/community/publish/topic/house",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false,
+				"navigationStyle": "custom"
+            }
+            
+        }
+        ,{
+            "path" : "pages/community/publish/circle/house",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false,
+				"navigationStyle": "custom"
+            }
+            
+        }
+        ,{
+            "path" : "pages/my/wallet/bankCard/bankCardDetail",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false
+            }
+            
+        }
+        ,{
+            "path" : "pages/leave/leaveShop/confirmOrder/confirmOrder",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false
+            }
+            
+        }
+        ,{
+            "path" : "pages/leave/leaveShop/confirmOrder/pay",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false
+            }
+            
+        }
+        ,{
+            "path" : "pages/my/sell/deliver/deliver",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false
+            }
+            
+        }
+        ,{
+            "path" : "pages/leave/goodsList/goodsList",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false
+            }
+            
+        }
+        ,{
+            "path" : "pages/serve/authen/publish/publish",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false
+            }
+            
+        }
+        ,{
+            "path" : "pages/serve/authen/publish/pay",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false
+            }
+            
+        }
+        ,{
+            "path" : "components/authen/line",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false
+            }
+            
+        }
+        ,{
+            "path" : "pages/public/richtext",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false
+            }
+            
+        }
+        ,{
+            "path" : "pages/serve/publish/publish",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false
+            }
+            
+        }
+        ,{
+            "path" : "pages/my/buy/comment/comment",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false
+            }
+            
+        }
+        ,{
+            "path" : "pages/leave/goodsList/brandList/brandList",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false
+            }
+            
+        }
+        ,{
+            "path" : "pages/my/integral/detail/detail",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false
             }
             
         }
@@ -1672,5 +1853,15 @@
 			"selectedIconPath": "static/tabbar/my_on.png",
 			"text": "我的"
 		}]
+	},
+	"condition" : { //模式配置，仅开发期间生效
+		"current": 0, //当前激活的模式(list 的索引项)
+		"list": [
+			{
+				"name": "", //模式名称
+				"path": "", //启动页面，必选
+				"query": "" //启动参数，在页面的onLoad函数里面得到
+			}
+		]
 	}
 }

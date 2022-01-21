@@ -4,9 +4,9 @@
 		<view class="nav">
 			<view class="left" @click="go('/pages/my/homePage/homePage?type=0')">
 				<image src="/static/comm/back.png" mode="" @click.stop="back"></image>
-				<image src="/static/comm/avatar.png" mode=""></image>
+				<image :src="user.url" mode=""></image>
 				<view class="">
-					<text>珂珂</text>
+					<text>{{user.nickname}}</text>
 					<text>9月21日·苏州市</text>
 				</view>
 			</view>
@@ -21,51 +21,50 @@
 			<view class="price">
 				<view class="">
 					<text>￥</text>
-					<text>899</text>
+					<text>{{goodsDetail.price}}</text>
 				</view>
-				<text>包邮</text>
-				<text>全新</text>
+				<text>{{goodsDetail.express_type_text}}</text>
+				<text>{{goodsDetail.state}}</text>
 			</view>
 			<view class="desc">
-				<text>阿迪达斯2021新款运动鞋网面拼接黑色</text>
-				<text>36.5码数 穿过两次 不知道怎么搭配 喜欢的拍 不退不换穿过两次 不知道怎么搭配 喜欢的拍 不退不换~</text>
+				<text>{{goodsDetail.name}}</text>
+				<text>{{goodsDetail.content}}</text>
 			</view>
 			<view class="brief">
 				<view class="">
 					<text>品牌</text>
-					<text>adidas</text>
+					<text>{{idlebrand.name}}</text>
 				</view>
 				<view class="">
 					<text>来源</text>
-					<text>代购</text>
+					<text>{{goodsDetail.source}}</text>
 				</view>
 				<view class="">
 					<text>状态</text>
-					<text>轻微使用痕迹</text>
+					<text>{{goodsDetail.status_text}}</text>
 				</view>
 			</view>
 			<view class="detail">
-				<image src="/static/pub/bbt.png" mode="widthFix"></image>
-				<image src="/static/pub/ttq.png" mode="widthFix"></image>
-				<image src="/static/pub/bql.png" mode="widthFix"></image>
-				<text>5人想要·浏览109</text>
+				<image v-for="(item,index) in goodsDetail.cdn_images" :key="index" :src="item" mode="widthFix" @click="pvew(index,goodsDetail.cdn_images)"></image>
+				<text>{{goodsDetail.like_nums}}人想要·浏览{{goodsDetail.view_nums}}</text>
 			</view>
 		</view>
+		
 		<view class="comment">
-			<text class="title">7条评论</text>
+			<text class="title">{{goodsDetail.comments_nums}}条评论</text>
 			<view class="list">
 				<!-- 评论列表 -->
-				<view class="item" v-for="(elem,cut) in comList" :key="cut">
+				<view class="item" v-for="(elem,cut) in commentList" :key="cut">
 					<!-- 头像 -->
-					<image src="/static/comm/avatar.png" mode=""></image>
+					<image :src="ImgUrl + elem.user.avatar" mode=""></image>
 					<view class="critic">
 						<!-- 评论 -->
 						<view class="first">
 							<view class="left">
 								<view class="name">
 									<view class="">
-										<text>小马斑比</text>
-										<text class="writer" v-if="false">作者</text>
+										<text>{{elem.user.nickname}}</text>
+										<text class="writer" v-if="goodsDetail.user_id == elem.user_id">作者</text>
 									</view>
 									<u-icon name="play-right-fill" size="12" v-if="false"></u-icon>
 									<view class="" v-if="false">
@@ -73,28 +72,28 @@
 										<text class="writer">作者</text>
 									</view>
 								</view>
-								<text>妈耶，这个真的好好看</text>
+								<text>{{elem.content}}</text>
 								<view class="">
-									<text>2021年9月21日</text>
-									<text>回复</text>
+									<text>{{elem.createtime}}</text>
+									<text @click="reply(elem.id)">回复</text>
 								</view>
 							</view>
 							<view class="right">
-								<image v-if="false" src="/static/comm/praise_on.png" mode=""></image>
+								<image v-if="elem.isLike" src="/static/comm/praise_on.png" mode=""></image>
 								<image v-else src="/static/comm/praise.png" mode=""></image>
-								<text>12</text>
+								<text>{{elem.likes}}</text>
 							</view>
 						</view>
 						<!-- 回复列表 -->
-						<view class="item" v-for="(item,index) in list" :key="index">
-							<image src="/static/comm/avatar.png" mode=""></image>
+						<view class="item" v-for="(item,index) in elem.children" :key="index">
+							<image :src="item.user.avatar" mode=""></image>
 							<view class="critic">
 								<view class="first">
 									<view class="left">
 										<view class="name">
 											<view class="">
-												<text>小马斑比</text>
-												<text class="writer" v-if="false">作者</text>
+												<text>{{item.user.nickname}}</text>
+												<text class="writer" v-if="goodsDetail.user_id == item.user_id">作者</text>
 											</view>
 											<u-icon name="play-right-fill" size="12"></u-icon>
 											<view class="">
@@ -102,51 +101,57 @@
 												<text class="writer" v-if="index == 0">作者</text>
 											</view>
 										</view>
-										<text>妈耶，这个真的好好看</text>
+										<text>{{item.content}}</text>
 										<view class="">
-											<text>2021年9月21日</text>
-											<text>回复</text>
+											<text>{{item.createtime}}</text>
+											<text @click="reply(item.id)">回复</text>
 										</view>
 									</view>
 									<view class="right">
-										<image v-if="false" src="/static/comm/praise_on.png" mode=""></image>
+										<image v-if="item.isLike" src="/static/comm/praise_on.png" mode=""></image>
 										<image v-else src="/static/comm/praise.png" mode=""></image>
-										<text>12</text>
+										<text>{{item.likes}}</text>
 									</view>
 								</view>
 							</view>
 						</view>
 						<!-- 加载更多回复 -->
-						<view class="" @click="load">
+						<view class="" @click="load" v-if="elem.comments > elem.children.length">
 							<u-loadmore :status="status" v-if="loadmore"/>
 						</view>
 					</view>
 				</view>
-				<view class="loading" v-if="loading">
+				<view class="">
+					<u-loadmore :status="comStatus" :load-text="loadText"/>
+				</view>
+				<!-- <view class="loading" v-if="loading">
 					<u-loading mode="flower"></u-loading>
 					<text>加载中</text>
 				</view>
-				<view class="null" v-if="comStatus">
+				<view class="null" v-else>
 					<text>暂时没有更多了~</text>
-				</view>
+				</view> -->
 			</view>
 		</view>
 		<view class="bottom">
 			<!-- <u-input placeholder="来说两句..." :custom-style="customStyle" confirm-type="send" @confirm="send"/> -->
 			<view class="right">
-				<view class="" @click="collect = !collect">
-					<image v-if="collect" src="/static/my/collect_on.png" mode=""></image>
+				<view class="" @click="enshrine">
+					<image v-if="goodsDetail.isCollect" src="/static/my/collect_on.png" mode=""></image>
 					<image v-else src="/static/comm/collect.png" mode=""></image>
 					<text>收藏</text>
 				</view>
-				<view class="">
+				<view class="" @click="reply(0)">
 					<image src="/static/my/mes_comment.png" mode=""></image>
-					<text>11</text>
+					<text>评论</text>
 				</view>
 			</view>
-			<view class="btns">
+			<view class="ing" v-if="Ain">
+				<text>{{goodsDetail.status_text}}</text>
+			</view>
+			<view class="btns" v-else>
 				<text>卖同款</text>
-				<text>我想要</text>
+				<text @click="go('/pages/leave/leaveShop/confirmOrder/confirmOrder?type=2&goods_id=' + goodsDetail.id)">我想要</text>
 			</view>
 		</view>
 		<u-popup v-model="sharePopup" mode="bottom" border-radius="20" @touchmove.native.stop.prevent>
@@ -206,6 +211,12 @@
 				</view>
 			</view>
 		</u-popup>
+		<u-popup v-model="commentPopup" mode="bottom" border-radius="20" @close="commentClose" @touchmove.native.stop.prevent>
+			<view class="commentPopup">
+				<u-input v-model="comment.content" type="text" :focus="replyFocus" />
+				<text @click="send()">发送</text>
+			</view>
+		</u-popup>
 		<u-back-top :scrollTop="scrollTop" top="800"></u-back-top>
 	</view>
 </template>
@@ -214,14 +225,21 @@
 	export default {
 		data() {
 			return {
+				id: '',
 				scrollTop: 0,
 				status: 'loadmore',
+				comStatus: 'custom', // 是否显示暂时没有更多
+				loadText: {
+					loadmore: '轻轻上拉',
+					loading: '努力加载中',
+					nomore: '实在没有了',
+					custom: ''
+				},
 				iconType: 'flower',
 				list: 2, // 回复循环数据
 				page: 0, // 分页
 				loadmore: true, // 回复列表如果加载完毕，这隐藏加载更多标签
 				comList: 1, // 评论数据
-				comStatus: false, // 是否显示暂时没有更多
 				loading: true ,// 评论列表加载中
 				customStyle: {
 					background: '#F6F5FA',
@@ -231,17 +249,37 @@
 				},
 				sharePopup: false,
 				sharePhoto: false,
+				commentPopup: false,
+				commentText: '',
+				replyFocus: false,
 				ctx: '',
 				atten: false, // 关注状态
 				praise: false ,// 点赞状态
-				collect: false // 收藏状态
+				collect: false ,// 收藏状态
+				goodsDetail: {} ,// 商品详情
+				user: {}, // 用户
+				idlebrand: {},// 品牌,
+				commentList: [] ,// 评论列表
+				authen_text: '',
+				comment: {
+					token: uni.getStorageSync('userInfo').token,
+					pid: '',
+					goods_id: '',
+					content: ''
+				},
+				Ain: false // 当前商品是否为自己发布
 			};
 		},
 		onReady() {
 			
 		},
-		onLoad() {
-			
+		onLoad(option) {
+			this.id = option.id
+			this.getData(option.id)
+			this.getCommentList(option.id)
+		},
+		onShow() {
+			console.log(uni.getStorageSync('userInfo').id)
 		},
 		onPageScroll(e) {
 			this.scrollTop = e.scrollTop
@@ -249,28 +287,76 @@
 		onReachBottom(){
 			if(this.comList <= 0){
 				this.loading = false
-				this.comStatus = true
 				return
 			}
 			if(this.comList >= 5) return
 			this.loading = true
 			// 模拟数据加载
-			setTimeout(() => {
+			let timer = setTimeout(() => {
 				this.comList += 2;
 				if(this.comList >= 5) {
 					this.loading = false
-					this.comStatus = true
 				}else{
-					this.comStatus = false
-				} 
+					this.loading = true	
+				}
 			}, 2000)
 		},
 		methods:{
+			// 闲置详情
+			getData(e){
+				this.request({
+					url: 'idle/goods/detail',
+					data: {
+						token: uni.getStorageSync('userInfo').token,
+						id: this.id
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.goodsDetail = res.data.data
+						this.user = res.data.data.user
+						this.idlebrand = res.data.data.idlebrand
+						this.comment.goods_id = res.data.data.id
+						if(this.user.id == uni.getStorageSync('userInfo').id){
+							this.Ain = true
+						}else {
+							this.Ain = false
+						}
+					}
+				})
+			},
+			// 获取评论列表
+			getCommentList(e){
+				this.request({
+					url: 'idle/comment/comment_list',
+					data: {
+						token: uni.getStorageSync('userInfo').token,
+						id: 0,
+						goods_id: this.id
+					}
+				}).then(res=>{
+					console.log(res, '111')
+					if(res.data.code == 1){
+						this.commentList = res.data.data.list
+					}else{
+						this.loadText.custom = res.data.msg
+						this.comStatus = 'custom'
+					}
+				})
+			},
+			// 预览图片
+			pvew(e,n){
+				uni.previewImage({
+					current: e,
+					urls: n
+				})
+			},
+			// 返回上一个页面
 			back(){
 				uni.navigateBack({
 					delta: 1
 				})
 			},
+			// 加载更多回复
 			load(){
 				if(this.page >= 3) return ;
 				this.status = 'loading';
@@ -285,14 +371,57 @@
 					} 
 				}, 2000)
 			},
-			// 点击键盘右下角发送按钮
-			send(e){
-				console.log(e, '11111')
+			// 收藏
+			enshrine(){
+				this.request({
+					url: 'idle/goods/collect',
+					data: {
+						token: uni.getStorageSync('userInfo').token,
+						goods_id: this.id,
+						type: 'collect'
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.getData(this.id)
+						uni.showToast({
+							title: res.data.msg,
+							icon: "none"
+						})
+					}
+				})
+			},
+			// 评论
+			send(){
+				this.request({
+					url: 'idle/comment/add',
+					data: this.comment
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.getCommentList(this.id)
+						this.commentPopup = false
+						this.replyFocus = false
+						this.comment.content = ''
+						uni.showToast({
+							title: res.data.msg,
+							icon: "none"
+						})
+						this.getData()
+					}
+				})
 			},
 			go(e){
 				uni.navigateTo({
 					url: e
 				})
+			},
+			// 评论
+			reply(e){
+				this.comment.pid = e
+				this.commentPopup = true
+				this.replyFocus = true
+			},
+			commentClose(){
+				this.replyFocus = false
 			},
 			// 下载图片至相册
 			downLoad(){
@@ -442,6 +571,8 @@
 				>:nth-child(2){
 					width: 58rpx;
 					height: 58rpx;
+					background: #F6F5FA;
+					border-radius: 50%;
 					margin: 0 11rpx 0 18rpx;
 				}
 				view{
@@ -495,6 +626,7 @@
 			}
 		}
 		
+		
 		.middle{
 			padding: 20rpx;
 			.price{
@@ -513,8 +645,9 @@
 				}
 				>:nth-child(2),>:nth-child(3){
 					margin-left: 14rpx;
-					width: 50rpx;
-					height: 28rpx;
+					// width: 50rpx;
+					// height: 28rpx;
+					padding: 2rpx 6rpx;
 					display: inline-flex;
 					justify-content: center;
 					align-items: center;
@@ -607,6 +740,7 @@
 					>image{
 						width: 54rpx;
 						height: 54rpx;
+						border-radius: 50%;
 						margin-right: 23rpx;
 					}
 					.critic{
@@ -627,7 +761,7 @@
 									justify-content: flex-start;
 									align-items: center;
 									
-									>view:not(:first-child){
+									view{
 										margin-left: 10rpx;
 										.writer{
 											margin-left: 5rpx;
@@ -653,13 +787,20 @@
 									color: #000000;
 								}
 								view{
-									font-size: 22rpx;
+									font-size: 24rpx;
 									font-family: PingFang SC;
 									font-weight: 500;
 									color: #9392A0;
 									display: flex;
 									justify-content: flex-start;
 									align-items: center;
+									>:nth-child(2){
+										margin-left: 20rpx;
+										font-size: 26rpx;
+										font-family: PingFang SC;
+										font-weight: boldbold;
+										color: #000000;
+									}
 								}
 							}
 							.right{
@@ -728,6 +869,19 @@
 						color: #000000;
 					}
 				}
+			}
+			.ing{
+				width: 450rpx;
+				height: 74rpx;
+				background: #8D8D98;
+				border-radius: 6rpx;
+				font-size: 28rpx;
+				font-family: PingFang SC;
+				font-weight: bold;
+				color: #FFFFFF;
+				display: flex;
+				justify-content: center;
+				align-items: center;
 			}
 			.btns{
 				display: flex;
@@ -816,6 +970,26 @@
 			}
 			.close{
 				background: #fff;
+			}
+		}
+	
+		.commentPopup{
+			padding: 10rpx 20rpx;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			text{
+				width: 100rpx;
+				height: 60rpx;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				background: rgb(245,85,85);
+				border-radius: 10rpx;
+				margin-left: 19rpx;
+				font-size: 26rpx;
+				font-weight: bold;
+				color: #fff;
 			}
 		}
 	}

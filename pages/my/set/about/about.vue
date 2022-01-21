@@ -1,7 +1,7 @@
 <template>
 	<view class="content">
 		<view class="logo">
-			<image src="/static/avatar2.png" mode=""></image>
+			<image :src="ImgUrl + about.logo" mode=""></image>
 		</view>
 		<view class="list">
 			<view class="" v-for="(item,index) in list" :key="index">
@@ -16,6 +16,7 @@
 	export default {
 		data() {
 			return {
+				about: {},
 				list: [
 					{ text: '给我们打分', url: '' },
 					{ text: '公司信息', url: '' },
@@ -24,6 +25,21 @@
 					{ text: '检查更新', url: '' }
 				]
 			};
+		},
+		onLoad() {
+			this.getData()
+		},
+		methods:{
+			getData(){
+				this.request({
+					url: 'wanlshop/common/about',
+					method: "GET"
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.about = res.data.data
+					}
+				})
+			}
 		}
 	}
 </script>

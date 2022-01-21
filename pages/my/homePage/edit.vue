@@ -34,6 +34,9 @@
 				<image style="border-radius: 10rpx;" :src="topbg" mode="heightFix" @click.stop="pvew(topbg)"></image>
 			</view>
 		</view>
+		<view class="save">
+			<text>保存</text>
+		</view>
 		<u-popup v-model="genderPopup" mode="center" border-radius="20">
 			<view class="gender">
 				<view class="radio">
@@ -85,11 +88,22 @@
 		created() {
 			// 监听从裁剪页发布的事件，获得裁剪结果
 			uni.$on('uAvatarCropper', res => {
-				if(this.imgType == 1){
-					this.avatar = res
-				}else{
-					this.topbg = res
-				}
+				uni.uploadFile({
+					url: 'http://app.51liuxiang.com/api/common/upload', //仅为示例，非真实的接口地址
+					filePath: res,
+					name: 'file',
+					formData: {
+						'token': uni.getStorageSync('userInfo').token
+					},
+					success: res => {
+						if(this.imgType == 1){
+							console.log(res)
+							// this.avatar = res
+						}else{
+							this.topbg = res
+						}
+					}
+				})
 			})
 		},
 		onBackPress() {
@@ -104,6 +118,15 @@
 			this.sex = this.gender
 		},
 		methods:{
+			// 修改个人信息
+			uploadData(e){
+				this.request({
+					url: '',
+					data: e
+				}).then(res=>{
+					console.log(res)
+				})
+			},
 			// 选择生日
 			selBir(e){
 				if(this.birthday == e.year + '-' + e.month + '-' + e.day){
@@ -148,7 +171,7 @@
 				let height = ''
 				if(e == 1){
 					width = 270
-					height =270
+					height = 270
 				}else{
 					width = 300
 					height = 240
@@ -185,6 +208,7 @@
 
 <style lang="scss" scoped>
 	.content{
+		
 		.items{
 			padding: 20rpx 30rpx;
 			.item{
@@ -209,6 +233,23 @@
 				}
 			}
 		}
+		
+		.save{
+			margin-top: 30rpx;
+			width: 80%;
+			height: 74rpx;
+			margin: 100rpx auto;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			background: #F35455;
+			border-radius: 6rpx;
+			font-size: 28rpx;
+			font-family: PingFang SC;
+			font-weight: bold;
+			color: #FFFFFF;
+		}
+		
 		.gender{
 			width: 300rpx;
 			height: 280rpx;

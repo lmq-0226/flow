@@ -68,7 +68,7 @@
 				timer: 60,
 				status: true,
 				// 隐私、协议状态
-				radio: false,
+				radio: true,
 				loginStatus: true ,// 登录方式
 				custom: {
 					"fontSize": "28rpx",
@@ -171,8 +171,7 @@
 			getCode(){
 				if(/^1[3|4|5|6|7|8|9][0-9]{9}$/.test(this.form1.tell)){
 					this.request({
-						url: '/api/wanlshop/sms/send',
-						method: 'POST',
+						url: 'wanlshop/sms/send',
 						data: {
 							mobile: this.form1.tell,
 							event: 'mobilelogin'
@@ -208,18 +207,18 @@
 					return
 				}
 				if(this.loginStatus){
+					// 手机号码登录
 					this.$refs.uForm1.validate(valid => {
 						if (valid) {
 							this.request({
-								url: '/api/wanlshop/user/mobilelogin',
-								method: 'POST',
+								url: 'wanlshop/user/mobilelogin',
 								data: {
 									mobile: this.form1.tell,
 									captcha: this.form1.code
 								}
 							}).then(res=>{
 								if(res.data.code == 1){
-									this.store.commit('setUserInfo', res.data.data.userinfo)
+									this.$store.commit('setUserInfo', res.data.data.userinfo)
 									uni.setStorageSync('userInfo', res.data.data.userinfo)
 									uni.switchTab({
 										url: '../shop/shop'
@@ -229,18 +228,22 @@
 						}
 					})
 				}else{
+					// 密码登录
 					this.$refs.uForm2.validate(valid => {
 						if (valid) {
 							this.request({
-								url: '/api/wanlshop/user/mobilelogin',
-								method: 'POST',
+								url: 'wanlshop/user/login',
 								data: {
-									mobile: this.form2.tell,
-									password: this.form2.pass
+									account: this.form2.tell,
+									password: this.form2.pass,
+									client_id: uni.getStorageSync("wanlshop:chat_client_id")?uni.getStorageSync("wanlshop:chat_client_id") : ''
 								}
 							}).then(res=>{
 								if(res.data.code == 1){
-									this.store.commit('setUserInfo', res.data.data.userinfo)
+									this.$store.dispatch('user/login', res.data.data);
+									this.$store.dispatch('cart/login');
+									this.$store.dispatch('chat/get');
+									// this.$store.commit('setUserInfo', res.data.data.userinfo)
 									uni.setStorageSync('userInfo', res.data.data.userinfo)
 									uni.switchTab({
 										url: '../shop/shop'

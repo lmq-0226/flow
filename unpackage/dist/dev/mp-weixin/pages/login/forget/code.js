@@ -96,7 +96,7 @@ var components
 try {
   components = {
     uMessageInput: function() {
-      return __webpack_require__.e(/*! import() | node-modules/uview-ui/components/u-message-input/u-message-input */ "node-modules/uview-ui/components/u-message-input/u-message-input").then(__webpack_require__.bind(null, /*! uview-ui/components/u-message-input/u-message-input.vue */ 862))
+      return __webpack_require__.e(/*! import() | node-modules/uview-ui/components/u-message-input/u-message-input */ "node-modules/uview-ui/components/u-message-input/u-message-input").then(__webpack_require__.bind(null, /*! uview-ui/components/u-message-input/u-message-input.vue */ 1048))
     }
   }
 } catch (e) {

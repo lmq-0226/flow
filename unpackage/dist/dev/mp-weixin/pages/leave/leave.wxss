@@ -270,12 +270,12 @@
 }
 .content .demo-warter .num.data-v-2ea275f6 {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
   margin-top: 20rpx;
 }
 .content .demo-warter .num.data-v-2ea275f6 > :nth-child(1) {
-  font-size: 24rpx;
+  font-size: 26rpx;
   font-family: PingFang SC;
   font-weight: bold;
   color: #FF4243;
@@ -285,6 +285,28 @@
   font-family: PingFang SC;
   font-weight: 500;
   color: #9094A6;
+}
+.content .demo-warter .grade.data-v-2ea275f6 {
+  position: absolute;
+  top: 10rpx;
+  left: 10rpx;
+  width: 107rpx;
+  height: 34rpx;
+  background: #3F3E4A;
+  border-radius: 8rpx;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.content .demo-warter .grade.data-v-2ea275f6 > :nth-child(1) {
+  font-size: 24rpx;
+  font-family: PingFang SC;
+  font-weight: bold;
+  color: #FFE1BD;
+}
+.content .demo-warter .grade.data-v-2ea275f6 > :nth-child(2) {
+  font-size: 20rpx;
+  color: #FEFEFE;
 }
 .content .goods.data-v-2ea275f6 {
   background-color: #F6F5FA;

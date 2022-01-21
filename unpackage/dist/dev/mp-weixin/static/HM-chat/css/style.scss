@@ -165,14 +165,14 @@ page{
 		}
 		.voice-mode{
 			width: calc(100% - 2rpx);
-			height: 68rpx;
-			border-radius: 70rpx;
+			height: 58rpx;
+			border-radius: 60rpx;
 			border:solid 1rpx #cdcdcd;
 			display: flex;
 			justify-content: center;
 			align-items: center;
 			font-size: 28rpx;
-			background-color: #fff;
+			background-color: #F6F5FA;
 			color: #555;
 			&.recording{
 				background-color: #e5e5e5;
@@ -180,19 +180,15 @@ page{
 		}
 		.text-mode{
 			width: 100%;
-			min-height: 70rpx;
+			min-height: 60rpx;
 			display: flex;
-			background-color: #fff;
+			background-color: #F6F5FA;
 			border-radius: 40rpx;
 			.box{
 				width: 100%;
-				padding-left: 30rpx;
-				min-height: 70rpx;
+				min-height: 60rpx;
 				display: flex;
 				align-items: center;
-				textarea{
-					width: 100%;
-				}
 			}
 			.em{
 				flex-shrink: 0;

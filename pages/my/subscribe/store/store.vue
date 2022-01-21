@@ -6,20 +6,21 @@
 				<view class="nav-bar" :style="{backgroundColor: 'rgba(255,66,67,' + opacity + ')'}">
 					<image src="/static/my/back.png" mode="" @click="back"></image>
 					<view class="">
-						<image src="/static/my/search.png" mode=""></image>
+						<image src="/static/my/service2.png" mode="" @click="go('/pages/HM-chat/HM-chat?shop_id=' + storeDetail.id)"></image>
 						<image src="/static/my/wShare.png" mode=""></image>
 					</view>
 				</view>
 				<view class="stopHeader">
 					<view class="avatar">
-						<image src="/static/avatar3.png" mode=""></image>
+						<image :src="ImgUrl + storeDetail.avatar" mode=""></image>
 						<view class="">
-							<text>EVISU</text>
-							<text>12563人订阅·1524款商品</text>
+							<text>{{storeDetail.shopname}}</text>
+							<text>{{storeDetail.find_user.fans}}人订阅</text>
+							<!-- ·1524款商品 -->
 						</view>
 					</view>
-					<view class="status">
-						<text v-if="true">已订阅</text>
+					<view class="status" @click="sub()">
+						<text v-if="storeDetail.isFollow == 1">已订阅</text>
 						<text v-else>+订阅</text>
 					</view>
 				</view>
@@ -34,31 +35,32 @@
 				<image :src="item.url" mode=""></image>
 			</view>
 		</view>
+		<u-empty v-if="flowList.length <= 0" text="暂无商品" mode="data" margin-top="200"></u-empty>
 		<view class="goodsList">
 			<!-- 瀑布流 -->
 			<u-waterfall v-model="flowList" ref="uWaterfall">
 				<template v-slot:left="{leftList}">
-					<view class="demo-warter" v-for="(item, index) in leftList" :key="index">
+					<view class="demo-warter" v-for="(item, index) in leftList" :key="index" @click="go('/pages/shop/goodsDetail/goodsDetail?id=' + item.id)">
 						<!-- 警告：微信小程序中需要hx2.8.11版本才支持在template中结合其他组件，比如下方的lazy-load组件 -->
-						<u-lazy-load threshold="-450" border-radius="10" :image="item.image" img-mode="widthFix" :index="index"></u-lazy-load>
+						<u-lazy-load threshold="-450" border-radius="10" :image="ImgUrl + item.image" img-mode="widthFix" :index="index"></u-lazy-load>
 						<view class="demo-title">
 							{{item.title}}
 						</view>
 						<view class="num">
-							<text>¥899</text>
-							<text>156人付款</text>
+							<text>¥{{item.price}}</text>
+							<text>{{item.payment}}人付款</text>
 						</view>
 					</view>
 				</template>
 				<template v-slot:right="{rightList}">
-					<view class="demo-warter" v-for="(item, index) in rightList" :key="index">
-						<u-lazy-load threshold="-450" border-radius="10" :image="item.image" img-mode="widthFix" :index="index"></u-lazy-load>
+					<view class="demo-warter" v-for="(item, index) in rightList" :key="index" @click="go('/pages/shop/goodsDetail/goodsDetail?id=' + item.id)">
+						<u-lazy-load threshold="-450" border-radius="10" :image="ImgUrl + item.image" img-mode="widthFix" :index="index"></u-lazy-load>
 						<view class="demo-title">
 							{{item.title}}
 						</view>
 						<view class="num">
-							<text>¥899</text>
-							<text>156人付款</text>
+							<text>¥{{item.price}}</text>
+							<text>{{item.payment}}人付款</text>
 						</view>
 					</view>
 				</template>
@@ -107,6 +109,8 @@
 	export default {
 		data() {
 			return {
+				id: '',
+				shop_category_id: '',
 				current: 0,
 				tabList: [
 					{
@@ -135,76 +139,11 @@
 					{text: '筛选', url: require('@/static/filter.png')}
 				],
 				sortIndex: 0,
+				sort: 'weigh',	
+				order: 'asc',
 				loadStatus: 'loadmore', // 加载更多状态
 				flowList: [],
-				list: [
-					{
-						price: 35,
-						title: '北国风光，千里冰封，万里雪飘',
-						shop: '李白杜甫白居易旗舰店',
-						image: 'http://pic.sc.chinaz.com/Files/pic/pic9/202002/zzpic23327_s.jpg',
-					},
-					{
-						price: 75,
-						title: '望长城内外，惟余莽莽',
-						shop: '李白杜甫白居易旗舰店',
-						image: 'http://pic.sc.chinaz.com/Files/pic/pic9/202002/zzpic23325_s.jpg',
-					},
-					{
-						price: 385,
-						title: '大河上下，顿失滔滔',
-						shop: '李白杜甫白居易旗舰店',
-						image: 'http://pic2.sc.chinaz.com/Files/pic/pic9/202002/hpic2119_s.jpg',
-					},
-					{
-						price: 784,
-						title: '欲与天公试比高',
-						shop: '李白杜甫白居易旗舰店',
-						image: 'http://pic2.sc.chinaz.com/Files/pic/pic9/202002/zzpic23369_s.jpg',
-					},
-					{
-						price: 7891,
-						title: '须晴日，看红装素裹，分外妖娆',
-						shop: '李白杜甫白居易旗舰店',
-						image: 'http://pic2.sc.chinaz.com/Files/pic/pic9/202002/hpic2130_s.jpg',
-					},
-					{
-						price: 2341,
-						shop: '李白杜甫白居易旗舰店',
-						title: '江山如此多娇，引无数英雄竞折腰',
-						image: 'http://pic1.sc.chinaz.com/Files/pic/pic9/202002/zzpic23346_s.jpg',
-					},
-					{
-						price: 661,
-						shop: '李白杜甫白居易旗舰店',
-						title: '惜秦皇汉武，略输文采',
-						image: 'http://pic1.sc.chinaz.com/Files/pic/pic9/202002/zzpic23344_s.jpg',
-					},
-					{
-						price: 1654,
-						title: '唐宗宋祖，稍逊风骚',
-						shop: '李白杜甫白居易旗舰店',
-						image: 'http://pic1.sc.chinaz.com/Files/pic/pic9/202002/zzpic23343_s.jpg',
-					},
-					{
-						price: 1678,
-						title: '一代天骄，成吉思汗',
-						shop: '李白杜甫白居易旗舰店',
-						image: 'http://pic1.sc.chinaz.com/Files/pic/pic9/202002/zzpic23343_s.jpg',
-					},
-					{
-						price: 924,
-						title: '只识弯弓射大雕',
-						shop: '李白杜甫白居易旗舰店',
-						image: 'http://pic1.sc.chinaz.com/Files/pic/pic9/202002/zzpic23343_s.jpg',
-					},
-					{
-						price: 8243,
-						title: '俱往矣，数风流人物，还看今朝',
-						shop: '李白杜甫白居易旗舰店',
-						image: 'http://pic1.sc.chinaz.com/Files/pic/pic9/202002/zzpic23343_s.jpg',
-					},
-				],
+				list: [],
 				show: false, // 弹窗
 				opacity: 0 ,// 导航栏背景透明度
 				lowP: '',
@@ -270,6 +209,7 @@
 						]
 					}
 				],
+				storeDetail: {}
 			};
 		},
 		// 导航栏背景及字体颜色初始化
@@ -281,23 +221,93 @@
 		},
 		// 触底加载更多，切换加载更多loading
 		onReachBottom() {
-			this.loadStatus = 'loading';
-			// 模拟数据加载
-			setTimeout(() => {
-				this.addRandomData();
-				this.loadStatus = 'loadmore';
-			}, 1000)
+			// this.loadStatus = 'loading';
+			// // 模拟数据加载
+			// setTimeout(() => {
+			// 	this.addRandomData();
+			// 	this.loadStatus = 'loadmore';
+			// }, 1000)
 		},
-		onLoad() {
-			this.addRandomData()
+		onLoad(option) {
+			this.id = option.id
+			this.getData()
+			this.getDataList()
 		},
 		// 监听页面滚动，动态设置导航栏背景
 		onPageScroll(e) {
-			if(e.scrollTop > 80){
-				this.opacity = (e.scrollTop - 80) / 125
-			}
+			this.opacity = (e.scrollTop - 80) / 125
 		},
 		methods:{
+			// 店铺详情
+			getData(){
+				this.request({
+					url: 'wanlshop/shop/getShopInfo',
+					method: 'GET',
+					header: {
+						'token': uni.getStorageSync('userInfo').token
+					},
+					data: {
+						id: this.id
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.storeDetail = res.data.data
+						this.tabList = res.data.data.category
+						this.shop_category_id = res.data.data.categoryStyle
+					}
+				})
+			},
+			// 店铺商品列表
+			getDataList(){
+				this.$refs.uWaterfall.clear()
+				this.request({
+					url: 'wanlshop/product/lists',
+					method: 'GET',
+					header: {
+						'token': uni.getStorageSync('userInfo').token,
+						'Content-Type': 'application/json;charset=UTF-8'
+					},
+					data: {
+						search: '',
+						sort: this.sort,
+						order: this.order,
+						page: 1,
+						filter: {
+							"shop_id": this.id,
+							"shop_category_id": this.shop_category_id
+						},
+						op: {
+							"shop_category_id": "FIND_IN_SET"
+						},
+						type: 'goods'
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.flowList = res.data.data.data
+					}
+				})
+			},
+			// 订阅&取消订阅
+			sub(e){
+				this.request({
+					url: 'wanlshop/find/user/setFindUser',
+					data: {
+						id: this.storeDetail.find_user.user_no,
+						token: uni.getStorageSync('userInfo').token,
+						type: 'follow'
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.storeDetail.isFollow = res.data.data.data
+						if(res.data.data.data == 1){
+							this.storeDetail.find_user.fans += 1
+						}else{
+							this.storeDetail.find_user.fans -= 1
+						}
+						// this.getData()
+					}
+				})
+			},
 			back(){
 				uni.navigateBack({
 					delta: 1
@@ -306,27 +316,44 @@
 			// 分类
 			change(e){
 				this.current = e
+				this.sortIndex = 0
+				this.shop_category_id = this.tabList[e].id
+				this.getDataList()
 			},
 			// 排序
 			changeSort(e){
 				this.sortIndex = e
-				if(e == 4){
+				if(e == 0){
+					this.sort = 'weigh'
+				}else if(e == 1){
+					this.sort = 'sales'
+				}else if(e == 2){
+					this.sort = 'price'
+					this.priceStatus = !this.priceStatus
+					if(this.priceStatus){
+						this.order = 'asc'
+						this.sortList[2].url = require('@/static/pub/up.png')
+					}else{
+						this.order = 'desc'
+						this.sortList[2].url = require('@/static/pub/down.png')
+					}
+				}else if(e == 3){
+					this.sort = 'createtime'
+				}else if(e == 4){
+					this.sort = 'createtime'
 					this.show = true
 					uni.setNavigationBarColor({
-					    frontColor: '#000000',
+						frontColor: '#000000',
 						backgroundColor: 'rgba(255,255,255,1.0)'
 					})
 				}
-				if(e == 2){
-					this.priceStatus = !this.priceStatus
-					if(this.priceStatus){
-						this.sortList[2].url = require('@/static/pub/up.png')
-					}else{
-						this.sortList[2].url = require('@/static/pub/down.png')
-					}
-				}else{
+				if(e != 2){
+					this.order = 'asc'
 					this.priceStatus = false
 					this.sortList[2].url = require('@/static/pub/updown.png')
+				}
+				if(e != 4){
+					this.getDataList()
 				}
 			},
 			// 模拟数据请求
@@ -349,11 +376,20 @@
 			},
 			popuTouch(e){
 				
+			},
+			go(e){
+				uni.navigateTo({
+					url: e
+				})
 			}
 		}
 	}
 </script>
-
+<style>
+	page{
+		background: #F6F5FA;
+	}
+</style>
 <style lang="scss" scoped>
 	.content{
 		// 适配自定义导航栏
@@ -463,6 +499,7 @@
 			align-items: center;
 			padding: 20rpx 30rpx;
 			margin-top: 10rpx;
+			background: #fff;
 			view{
 				display: flex;
 				justify-content: flex-start;

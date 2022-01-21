@@ -2050,6 +2050,1792 @@ uni$1;exports.default = _default;
 
 /***/ }),
 
+/***/ 1035:
+/*!*************************************************************!*\
+  !*** E:/HX/flow/node_modules/uview-ui/libs/util/emitter.js ***!
+  \*************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });exports.default = void 0; /**
+                                                                                                      * 递归使用 call 方式this指向
+                                                                                                      * @param componentName // 需要找的组件的名称
+                                                                                                      * @param eventName // 事件名称
+                                                                                                      * @param params // 需要传递的参数
+                                                                                                      */
+function _broadcast(componentName, eventName, params) {
+  // 循环子节点找到名称一样的子节点 否则 递归 当前子节点
+  this.$children.map(function (child) {
+    if (componentName === child.$options.name) {
+      child.$emit.apply(child, [eventName].concat(params));
+    } else {
+      _broadcast.apply(child, [componentName, eventName].concat(params));
+    }
+  });
+}var _default =
+{
+  methods: {
+    /**
+              * 派发 (向上查找) (一个)
+              * @param componentName // 需要找的组件的名称
+              * @param eventName // 事件名称
+              * @param params // 需要传递的参数
+              */
+    dispatch: function dispatch(componentName, eventName, params) {
+      var parent = this.$parent || this.$root; //$parent 找到最近的父节点 $root 根节点
+      var name = parent.$options.name; // 获取当前组件实例的name
+      // 如果当前有节点 && 当前没名称 且 当前名称等于需要传进来的名称的时候就去查找当前的节点
+      // 循环出当前名称的一样的组件实例
+      while (parent && (!name || name !== componentName)) {
+        parent = parent.$parent;
+        if (parent) {
+          name = parent.$options.name;
+        }
+      }
+      // 有节点表示当前找到了name一样的实例
+      if (parent) {
+        parent.$emit.apply(parent, [eventName].concat(params));
+      }
+    },
+    /**
+        * 广播 (向下查找) (广播多个)
+        * @param componentName // 需要找的组件的名称
+        * @param eventName // 事件名称
+        * @param params // 需要传递的参数
+        */
+    broadcast: function broadcast(componentName, eventName, params) {
+      _broadcast.call(this, componentName, eventName, params);
+    } } };exports.default = _default;
+
+/***/ }),
+
+/***/ 1036:
+/*!*********************************************************************!*\
+  !*** E:/HX/flow/node_modules/uview-ui/libs/util/async-validator.js ***!
+  \*********************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function(process) {Object.defineProperty(exports, "__esModule", { value: true });exports.default = void 0;function _extends() {
+  _extends = Object.assign || function (target) {
+    for (var i = 1; i < arguments.length; i++) {
+      var source = arguments[i];
+
+      for (var key in source) {
+        if (Object.prototype.hasOwnProperty.call(source, key)) {
+          target[key] = source[key];
+        }
+      }
+    }
+
+    return target;
+  };
+
+  return _extends.apply(this, arguments);
+}
+
+/* eslint no-console:0 */
+var formatRegExp = /%[sdj%]/g;
+var warning = function warning() {}; // don't print warning message when in production env or node runtime
+
+if (typeof process !== 'undefined' && Object({"NODE_ENV":"development","VUE_APP_NAME":"流象","VUE_APP_PLATFORM":"mp-weixin","BASE_URL":"/"}) && "development" !== 'production' && typeof window !==
+'undefined' && typeof document !== 'undefined') {
+  warning = function warning(type, errors) {
+    if (typeof console !== 'undefined' && console.warn) {
+      if (errors.every(function (e) {
+        return typeof e === 'string';
+      })) {
+        console.warn(type, errors);
+      }
+    }
+  };
+}
+
+function convertFieldsError(errors) {
+  if (!errors || !errors.length) return null;
+  var fields = {};
+  errors.forEach(function (error) {
+    var field = error.field;
+    fields[field] = fields[field] || [];
+    fields[field].push(error);
+  });
+  return fields;
+}
+
+function format() {
+  for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+    args[_key] = arguments[_key];
+  }
+
+  var i = 1;
+  var f = args[0];
+  var len = args.length;
+
+  if (typeof f === 'function') {
+    return f.apply(null, args.slice(1));
+  }
+
+  if (typeof f === 'string') {
+    var str = String(f).replace(formatRegExp, function (x) {
+      if (x === '%%') {
+        return '%';
+      }
+
+      if (i >= len) {
+        return x;
+      }
+
+      switch (x) {
+        case '%s':
+          return String(args[i++]);
+
+        case '%d':
+          return Number(args[i++]);
+
+        case '%j':
+          try {
+            return JSON.stringify(args[i++]);
+          } catch (_) {
+            return '[Circular]';
+          }
+
+          break;
+
+        default:
+          return x;}
+
+    });
+
+    for (var arg = args[i]; i < len; arg = args[++i]) {
+      str += " " + arg;
+    }
+
+    return str;
+  }
+
+  return f;
+}
+
+function isNativeStringType(type) {
+  return type === 'string' || type === 'url' || type === 'hex' || type === 'email' || type === 'pattern';
+}
+
+function isEmptyValue(value, type) {
+  if (value === undefined || value === null) {
+    return true;
+  }
+
+  if (type === 'array' && Array.isArray(value) && !value.length) {
+    return true;
+  }
+
+  if (isNativeStringType(type) && typeof value === 'string' && !value) {
+    return true;
+  }
+
+  return false;
+}
+
+function asyncParallelArray(arr, func, callback) {
+  var results = [];
+  var total = 0;
+  var arrLength = arr.length;
+
+  function count(errors) {
+    results.push.apply(results, errors);
+    total++;
+
+    if (total === arrLength) {
+      callback(results);
+    }
+  }
+
+  arr.forEach(function (a) {
+    func(a, count);
+  });
+}
+
+function asyncSerialArray(arr, func, callback) {
+  var index = 0;
+  var arrLength = arr.length;
+
+  function next(errors) {
+    if (errors && errors.length) {
+      callback(errors);
+      return;
+    }
+
+    var original = index;
+    index = index + 1;
+
+    if (original < arrLength) {
+      func(arr[original], next);
+    } else {
+      callback([]);
+    }
+  }
+
+  next([]);
+}
+
+function flattenObjArr(objArr) {
+  var ret = [];
+  Object.keys(objArr).forEach(function (k) {
+    ret.push.apply(ret, objArr[k]);
+  });
+  return ret;
+}
+
+function asyncMap(objArr, option, func, callback) {
+  if (option.first) {
+    var _pending = new Promise(function (resolve, reject) {
+      var next = function next(errors) {
+        callback(errors);
+        return errors.length ? reject({
+          errors: errors,
+          fields: convertFieldsError(errors) }) :
+        resolve();
+      };
+
+      var flattenArr = flattenObjArr(objArr);
+      asyncSerialArray(flattenArr, func, next);
+    });
+
+    _pending["catch"](function (e) {
+      return e;
+    });
+
+    return _pending;
+  }
+
+  var firstFields = option.firstFields || [];
+
+  if (firstFields === true) {
+    firstFields = Object.keys(objArr);
+  }
+
+  var objArrKeys = Object.keys(objArr);
+  var objArrLength = objArrKeys.length;
+  var total = 0;
+  var results = [];
+  var pending = new Promise(function (resolve, reject) {
+    var next = function next(errors) {
+      results.push.apply(results, errors);
+      total++;
+
+      if (total === objArrLength) {
+        callback(results);
+        return results.length ? reject({
+          errors: results,
+          fields: convertFieldsError(results) }) :
+        resolve();
+      }
+    };
+
+    if (!objArrKeys.length) {
+      callback(results);
+      resolve();
+    }
+
+    objArrKeys.forEach(function (key) {
+      var arr = objArr[key];
+
+      if (firstFields.indexOf(key) !== -1) {
+        asyncSerialArray(arr, func, next);
+      } else {
+        asyncParallelArray(arr, func, next);
+      }
+    });
+  });
+  pending["catch"](function (e) {
+    return e;
+  });
+  return pending;
+}
+
+function complementError(rule) {
+  return function (oe) {
+    if (oe && oe.message) {
+      oe.field = oe.field || rule.fullField;
+      return oe;
+    }
+
+    return {
+      message: typeof oe === 'function' ? oe() : oe,
+      field: oe.field || rule.fullField };
+
+  };
+}
+
+function deepMerge(target, source) {
+  if (source) {
+    for (var s in source) {
+      if (source.hasOwnProperty(s)) {
+        var value = source[s];
+
+        if (typeof value === 'object' && typeof target[s] === 'object') {
+          target[s] = _extends({}, target[s], {}, value);
+        } else {
+          target[s] = value;
+        }
+      }
+    }
+  }
+
+  return target;
+}
+
+/**
+   *  Rule for validating required fields.
+   *
+   *  @param rule The validation rule.
+   *  @param value The value of the field on the source object.
+   *  @param source The source object being validated.
+   *  @param errors An array of errors that this rule may add
+   *  validation errors to.
+   *  @param options The validation options.
+   *  @param options.messages The validation messages.
+   */
+
+function required(rule, value, source, errors, options, type) {
+  if (rule.required && (!source.hasOwnProperty(rule.field) || isEmptyValue(value, type || rule.type))) {
+    errors.push(format(options.messages.required, rule.fullField));
+  }
+}
+
+/**
+   *  Rule for validating whitespace.
+   *
+   *  @param rule The validation rule.
+   *  @param value The value of the field on the source object.
+   *  @param source The source object being validated.
+   *  @param errors An array of errors that this rule may add
+   *  validation errors to.
+   *  @param options The validation options.
+   *  @param options.messages The validation messages.
+   */
+
+function whitespace(rule, value, source, errors, options) {
+  if (/^\s+$/.test(value) || value === '') {
+    errors.push(format(options.messages.whitespace, rule.fullField));
+  }
+}
+
+/* eslint max-len:0 */
+
+var pattern = {
+  // http://emailregex.com/
+  email: /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
+  url: new RegExp(
+  "^(?!mailto:)(?:(?:http|https|ftp)://|//)(?:\\S+(?::\\S*)?@)?(?:(?:(?:[1-9]\\d?|1\\d\\d|2[01]\\d|22[0-3])(?:\\.(?:1?\\d{1,2}|2[0-4]\\d|25[0-5])){2}(?:\\.(?:[0-9]\\d?|1\\d\\d|2[0-4]\\d|25[0-4]))|(?:(?:[a-z\\u00a1-\\uffff0-9]+-*)*[a-z\\u00a1-\\uffff0-9]+)(?:\\.(?:[a-z\\u00a1-\\uffff0-9]+-*)*[a-z\\u00a1-\\uffff0-9]+)*(?:\\.(?:[a-z\\u00a1-\\uffff]{2,})))|localhost)(?::\\d{2,5})?(?:(/|\\?|#)[^\\s]*)?$",
+  'i'),
+  hex: /^#?([a-f0-9]{6}|[a-f0-9]{3})$/i };
+
+var types = {
+  integer: function integer(value) {
+    return types.number(value) && parseInt(value, 10) === value;
+  },
+  "float": function float(value) {
+    return types.number(value) && !types.integer(value);
+  },
+  array: function array(value) {
+    return Array.isArray(value);
+  },
+  regexp: function regexp(value) {
+    if (value instanceof RegExp) {
+      return true;
+    }
+
+    try {
+      return !!new RegExp(value);
+    } catch (e) {
+      return false;
+    }
+  },
+  date: function date(value) {
+    return typeof value.getTime === 'function' && typeof value.getMonth === 'function' && typeof value.getYear ===
+    'function';
+  },
+  number: function number(value) {
+    if (isNaN(value)) {
+      return false;
+    }
+
+    // 修改源码，将字符串数值先转为数值
+    return typeof +value === 'number';
+  },
+  object: function object(value) {
+    return typeof value === 'object' && !types.array(value);
+  },
+  method: function method(value) {
+    return typeof value === 'function';
+  },
+  email: function email(value) {
+    return typeof value === 'string' && !!value.match(pattern.email) && value.length < 255;
+  },
+  url: function url(value) {
+    return typeof value === 'string' && !!value.match(pattern.url);
+  },
+  hex: function hex(value) {
+    return typeof value === 'string' && !!value.match(pattern.hex);
+  } };
+
+/**
+        *  Rule for validating the type of a value.
+        *
+        *  @param rule The validation rule.
+        *  @param value The value of the field on the source object.
+        *  @param source The source object being validated.
+        *  @param errors An array of errors that this rule may add
+        *  validation errors to.
+        *  @param options The validation options.
+        *  @param options.messages The validation messages.
+        */
+
+function type(rule, value, source, errors, options) {
+  if (rule.required && value === undefined) {
+    required(rule, value, source, errors, options);
+    return;
+  }
+
+  var custom = ['integer', 'float', 'array', 'regexp', 'object', 'method', 'email', 'number', 'date', 'url', 'hex'];
+  var ruleType = rule.type;
+
+  if (custom.indexOf(ruleType) > -1) {
+    if (!types[ruleType](value)) {
+      errors.push(format(options.messages.types[ruleType], rule.fullField, rule.type));
+    } // straight typeof check
+
+  } else if (ruleType && typeof value !== rule.type) {
+    errors.push(format(options.messages.types[ruleType], rule.fullField, rule.type));
+  }
+}
+
+/**
+   *  Rule for validating minimum and maximum allowed values.
+   *
+   *  @param rule The validation rule.
+   *  @param value The value of the field on the source object.
+   *  @param source The source object being validated.
+   *  @param errors An array of errors that this rule may add
+   *  validation errors to.
+   *  @param options The validation options.
+   *  @param options.messages The validation messages.
+   */
+
+function range(rule, value, source, errors, options) {
+  var len = typeof rule.len === 'number';
+  var min = typeof rule.min === 'number';
+  var max = typeof rule.max === 'number'; // 正则匹配码点范围从U+010000一直到U+10FFFF的文字（补充平面Supplementary Plane）
+
+  var spRegexp = /[\uD800-\uDBFF][\uDC00-\uDFFF]/g;
+  var val = value;
+  var key = null;
+  var num = typeof value === 'number';
+  var str = typeof value === 'string';
+  var arr = Array.isArray(value);
+
+  if (num) {
+    key = 'number';
+  } else if (str) {
+    key = 'string';
+  } else if (arr) {
+    key = 'array';
+  } // if the value is not of a supported type for range validation
+  // the validation rule rule should use the
+  // type property to also test for a particular type
+
+
+  if (!key) {
+    return false;
+  }
+
+  if (arr) {
+    val = value.length;
+  }
+
+  if (str) {
+    // 处理码点大于U+010000的文字length属性不准确的bug，如"𠮷𠮷𠮷".lenght !== 3
+    val = value.replace(spRegexp, '_').length;
+  }
+
+  if (len) {
+    if (val !== rule.len) {
+      errors.push(format(options.messages[key].len, rule.fullField, rule.len));
+    }
+  } else if (min && !max && val < rule.min) {
+    errors.push(format(options.messages[key].min, rule.fullField, rule.min));
+  } else if (max && !min && val > rule.max) {
+    errors.push(format(options.messages[key].max, rule.fullField, rule.max));
+  } else if (min && max && (val < rule.min || val > rule.max)) {
+    errors.push(format(options.messages[key].range, rule.fullField, rule.min, rule.max));
+  }
+}
+
+var ENUM = 'enum';
+/**
+                    *  Rule for validating a value exists in an enumerable list.
+                    *
+                    *  @param rule The validation rule.
+                    *  @param value The value of the field on the source object.
+                    *  @param source The source object being validated.
+                    *  @param errors An array of errors that this rule may add
+                    *  validation errors to.
+                    *  @param options The validation options.
+                    *  @param options.messages The validation messages.
+                    */
+
+function enumerable(rule, value, source, errors, options) {
+  rule[ENUM] = Array.isArray(rule[ENUM]) ? rule[ENUM] : [];
+
+  if (rule[ENUM].indexOf(value) === -1) {
+    errors.push(format(options.messages[ENUM], rule.fullField, rule[ENUM].join(', ')));
+  }
+}
+
+/**
+   *  Rule for validating a regular expression pattern.
+   *
+   *  @param rule The validation rule.
+   *  @param value The value of the field on the source object.
+   *  @param source The source object being validated.
+   *  @param errors An array of errors that this rule may add
+   *  validation errors to.
+   *  @param options The validation options.
+   *  @param options.messages The validation messages.
+   */
+
+function pattern$1(rule, value, source, errors, options) {
+  if (rule.pattern) {
+    if (rule.pattern instanceof RegExp) {
+      // if a RegExp instance is passed, reset `lastIndex` in case its `global`
+      // flag is accidentally set to `true`, which in a validation scenario
+      // is not necessary and the result might be misleading
+      rule.pattern.lastIndex = 0;
+
+      if (!rule.pattern.test(value)) {
+        errors.push(format(options.messages.pattern.mismatch, rule.fullField, value, rule.pattern));
+      }
+    } else if (typeof rule.pattern === 'string') {
+      var _pattern = new RegExp(rule.pattern);
+
+      if (!_pattern.test(value)) {
+        errors.push(format(options.messages.pattern.mismatch, rule.fullField, value, rule.pattern));
+      }
+    }
+  }
+}
+
+var rules = {
+  required: required,
+  whitespace: whitespace,
+  type: type,
+  range: range,
+  "enum": enumerable,
+  pattern: pattern$1 };
+
+
+/**
+                         *  Performs validation for string types.
+                         *
+                         *  @param rule The validation rule.
+                         *  @param value The value of the field on the source object.
+                         *  @param callback The callback function.
+                         *  @param source The source object being validated.
+                         *  @param options The validation options.
+                         *  @param options.messages The validation messages.
+                         */
+
+function string(rule, value, callback, source, options) {
+  var errors = [];
+  var validate = rule.required || !rule.required && source.hasOwnProperty(rule.field);
+
+  if (validate) {
+    if (isEmptyValue(value, 'string') && !rule.required) {
+      return callback();
+    }
+
+    rules.required(rule, value, source, errors, options, 'string');
+
+    if (!isEmptyValue(value, 'string')) {
+      rules.type(rule, value, source, errors, options);
+      rules.range(rule, value, source, errors, options);
+      rules.pattern(rule, value, source, errors, options);
+
+      if (rule.whitespace === true) {
+        rules.whitespace(rule, value, source, errors, options);
+      }
+    }
+  }
+
+  callback(errors);
+}
+
+/**
+   *  Validates a function.
+   *
+   *  @param rule The validation rule.
+   *  @param value The value of the field on the source object.
+   *  @param callback The callback function.
+   *  @param source The source object being validated.
+   *  @param options The validation options.
+   *  @param options.messages The validation messages.
+   */
+
+function method(rule, value, callback, source, options) {
+  var errors = [];
+  var validate = rule.required || !rule.required && source.hasOwnProperty(rule.field);
+
+  if (validate) {
+    if (isEmptyValue(value) && !rule.required) {
+      return callback();
+    }
+
+    rules.required(rule, value, source, errors, options);
+
+    if (value !== undefined) {
+      rules.type(rule, value, source, errors, options);
+    }
+  }
+
+  callback(errors);
+}
+
+/**
+   *  Validates a number.
+   *
+   *  @param rule The validation rule.
+   *  @param value The value of the field on the source object.
+   *  @param callback The callback function.
+   *  @param source The source object being validated.
+   *  @param options The validation options.
+   *  @param options.messages The validation messages.
+   */
+
+function number(rule, value, callback, source, options) {
+  var errors = [];
+  var validate = rule.required || !rule.required && source.hasOwnProperty(rule.field);
+
+  if (validate) {
+    if (value === '') {
+      value = undefined;
+    }
+
+    if (isEmptyValue(value) && !rule.required) {
+      return callback();
+    }
+
+    rules.required(rule, value, source, errors, options);
+
+    if (value !== undefined) {
+      rules.type(rule, value, source, errors, options);
+      rules.range(rule, value, source, errors, options);
+    }
+  }
+
+  callback(errors);
+}
+
+/**
+   *  Validates a boolean.
+   *
+   *  @param rule The validation rule.
+   *  @param value The value of the field on the source object.
+   *  @param callback The callback function.
+   *  @param source The source object being validated.
+   *  @param options The validation options.
+   *  @param options.messages The validation messages.
+   */
+
+function _boolean(rule, value, callback, source, options) {
+  var errors = [];
+  var validate = rule.required || !rule.required && source.hasOwnProperty(rule.field);
+
+  if (validate) {
+    if (isEmptyValue(value) && !rule.required) {
+      return callback();
+    }
+
+    rules.required(rule, value, source, errors, options);
+
+    if (value !== undefined) {
+      rules.type(rule, value, source, errors, options);
+    }
+  }
+
+  callback(errors);
+}
+
+/**
+   *  Validates the regular expression type.
+   *
+   *  @param rule The validation rule.
+   *  @param value The value of the field on the source object.
+   *  @param callback The callback function.
+   *  @param source The source object being validated.
+   *  @param options The validation options.
+   *  @param options.messages The validation messages.
+   */
+
+function regexp(rule, value, callback, source, options) {
+  var errors = [];
+  var validate = rule.required || !rule.required && source.hasOwnProperty(rule.field);
+
+  if (validate) {
+    if (isEmptyValue(value) && !rule.required) {
+      return callback();
+    }
+
+    rules.required(rule, value, source, errors, options);
+
+    if (!isEmptyValue(value)) {
+      rules.type(rule, value, source, errors, options);
+    }
+  }
+
+  callback(errors);
+}
+
+/**
+   *  Validates a number is an integer.
+   *
+   *  @param rule The validation rule.
+   *  @param value The value of the field on the source object.
+   *  @param callback The callback function.
+   *  @param source The source object being validated.
+   *  @param options The validation options.
+   *  @param options.messages The validation messages.
+   */
+
+function integer(rule, value, callback, source, options) {
+  var errors = [];
+  var validate = rule.required || !rule.required && source.hasOwnProperty(rule.field);
+
+  if (validate) {
+    if (isEmptyValue(value) && !rule.required) {
+      return callback();
+    }
+
+    rules.required(rule, value, source, errors, options);
+
+    if (value !== undefined) {
+      rules.type(rule, value, source, errors, options);
+      rules.range(rule, value, source, errors, options);
+    }
+  }
+
+  callback(errors);
+}
+
+/**
+   *  Validates a number is a floating point number.
+   *
+   *  @param rule The validation rule.
+   *  @param value The value of the field on the source object.
+   *  @param callback The callback function.
+   *  @param source The source object being validated.
+   *  @param options The validation options.
+   *  @param options.messages The validation messages.
+   */
+
+function floatFn(rule, value, callback, source, options) {
+  var errors = [];
+  var validate = rule.required || !rule.required && source.hasOwnProperty(rule.field);
+
+  if (validate) {
+    if (isEmptyValue(value) && !rule.required) {
+      return callback();
+    }
+
+    rules.required(rule, value, source, errors, options);
+
+    if (value !== undefined) {
+      rules.type(rule, value, source, errors, options);
+      rules.range(rule, value, source, errors, options);
+    }
+  }
+
+  callback(errors);
+}
+
+/**
+   *  Validates an array.
+   *
+   *  @param rule The validation rule.
+   *  @param value The value of the field on the source object.
+   *  @param callback The callback function.
+   *  @param source The source object being validated.
+   *  @param options The validation options.
+   *  @param options.messages The validation messages.
+   */
+
+function array(rule, value, callback, source, options) {
+  var errors = [];
+  var validate = rule.required || !rule.required && source.hasOwnProperty(rule.field);
+
+  if (validate) {
+    if (isEmptyValue(value, 'array') && !rule.required) {
+      return callback();
+    }
+
+    rules.required(rule, value, source, errors, options, 'array');
+
+    if (!isEmptyValue(value, 'array')) {
+      rules.type(rule, value, source, errors, options);
+      rules.range(rule, value, source, errors, options);
+    }
+  }
+
+  callback(errors);
+}
+
+/**
+   *  Validates an object.
+   *
+   *  @param rule The validation rule.
+   *  @param value The value of the field on the source object.
+   *  @param callback The callback function.
+   *  @param source The source object being validated.
+   *  @param options The validation options.
+   *  @param options.messages The validation messages.
+   */
+
+function object(rule, value, callback, source, options) {
+  var errors = [];
+  var validate = rule.required || !rule.required && source.hasOwnProperty(rule.field);
+
+  if (validate) {
+    if (isEmptyValue(value) && !rule.required) {
+      return callback();
+    }
+
+    rules.required(rule, value, source, errors, options);
+
+    if (value !== undefined) {
+      rules.type(rule, value, source, errors, options);
+    }
+  }
+
+  callback(errors);
+}
+
+var ENUM$1 = 'enum';
+/**
+                      *  Validates an enumerable list.
+                      *
+                      *  @param rule The validation rule.
+                      *  @param value The value of the field on the source object.
+                      *  @param callback The callback function.
+                      *  @param source The source object being validated.
+                      *  @param options The validation options.
+                      *  @param options.messages The validation messages.
+                      */
+
+function enumerable$1(rule, value, callback, source, options) {
+  var errors = [];
+  var validate = rule.required || !rule.required && source.hasOwnProperty(rule.field);
+
+  if (validate) {
+    if (isEmptyValue(value) && !rule.required) {
+      return callback();
+    }
+
+    rules.required(rule, value, source, errors, options);
+
+    if (value !== undefined) {
+      rules[ENUM$1](rule, value, source, errors, options);
+    }
+  }
+
+  callback(errors);
+}
+
+/**
+   *  Validates a regular expression pattern.
+   *
+   *  Performs validation when a rule only contains
+   *  a pattern property but is not declared as a string type.
+   *
+   *  @param rule The validation rule.
+   *  @param value The value of the field on the source object.
+   *  @param callback The callback function.
+   *  @param source The source object being validated.
+   *  @param options The validation options.
+   *  @param options.messages The validation messages.
+   */
+
+function pattern$2(rule, value, callback, source, options) {
+  var errors = [];
+  var validate = rule.required || !rule.required && source.hasOwnProperty(rule.field);
+
+  if (validate) {
+    if (isEmptyValue(value, 'string') && !rule.required) {
+      return callback();
+    }
+
+    rules.required(rule, value, source, errors, options);
+
+    if (!isEmptyValue(value, 'string')) {
+      rules.pattern(rule, value, source, errors, options);
+    }
+  }
+
+  callback(errors);
+}
+
+function date(rule, value, callback, source, options) {
+  var errors = [];
+  var validate = rule.required || !rule.required && source.hasOwnProperty(rule.field);
+
+  if (validate) {
+    if (isEmptyValue(value) && !rule.required) {
+      return callback();
+    }
+
+    rules.required(rule, value, source, errors, options);
+
+    if (!isEmptyValue(value)) {
+      var dateObject;
+
+      if (typeof value === 'number') {
+        dateObject = new Date(value);
+      } else {
+        dateObject = value;
+      }
+
+      rules.type(rule, dateObject, source, errors, options);
+
+      if (dateObject) {
+        rules.range(rule, dateObject.getTime(), source, errors, options);
+      }
+    }
+  }
+
+  callback(errors);
+}
+
+function required$1(rule, value, callback, source, options) {
+  var errors = [];
+  var type = Array.isArray(value) ? 'array' : typeof value;
+  rules.required(rule, value, source, errors, options, type);
+  callback(errors);
+}
+
+function type$1(rule, value, callback, source, options) {
+  var ruleType = rule.type;
+  var errors = [];
+  var validate = rule.required || !rule.required && source.hasOwnProperty(rule.field);
+
+  if (validate) {
+    if (isEmptyValue(value, ruleType) && !rule.required) {
+      return callback();
+    }
+
+    rules.required(rule, value, source, errors, options, ruleType);
+
+    if (!isEmptyValue(value, ruleType)) {
+      rules.type(rule, value, source, errors, options);
+    }
+  }
+
+  callback(errors);
+}
+
+/**
+   *  Performs validation for any type.
+   *
+   *  @param rule The validation rule.
+   *  @param value The value of the field on the source object.
+   *  @param callback The callback function.
+   *  @param source The source object being validated.
+   *  @param options The validation options.
+   *  @param options.messages The validation messages.
+   */
+
+function any(rule, value, callback, source, options) {
+  var errors = [];
+  var validate = rule.required || !rule.required && source.hasOwnProperty(rule.field);
+
+  if (validate) {
+    if (isEmptyValue(value) && !rule.required) {
+      return callback();
+    }
+
+    rules.required(rule, value, source, errors, options);
+  }
+
+  callback(errors);
+}
+
+var validators = {
+  string: string,
+  method: method,
+  number: number,
+  "boolean": _boolean,
+  regexp: regexp,
+  integer: integer,
+  "float": floatFn,
+  array: array,
+  object: object,
+  "enum": enumerable$1,
+  pattern: pattern$2,
+  date: date,
+  url: type$1,
+  hex: type$1,
+  email: type$1,
+  required: required$1,
+  any: any };
+
+
+function newMessages() {
+  return {
+    "default": 'Validation error on field %s',
+    required: '%s is required',
+    "enum": '%s must be one of %s',
+    whitespace: '%s cannot be empty',
+    date: {
+      format: '%s date %s is invalid for format %s',
+      parse: '%s date could not be parsed, %s is invalid ',
+      invalid: '%s date %s is invalid' },
+
+    types: {
+      string: '%s is not a %s',
+      method: '%s is not a %s (function)',
+      array: '%s is not an %s',
+      object: '%s is not an %s',
+      number: '%s is not a %s',
+      date: '%s is not a %s',
+      "boolean": '%s is not a %s',
+      integer: '%s is not an %s',
+      "float": '%s is not a %s',
+      regexp: '%s is not a valid %s',
+      email: '%s is not a valid %s',
+      url: '%s is not a valid %s',
+      hex: '%s is not a valid %s' },
+
+    string: {
+      len: '%s must be exactly %s characters',
+      min: '%s must be at least %s characters',
+      max: '%s cannot be longer than %s characters',
+      range: '%s must be between %s and %s characters' },
+
+    number: {
+      len: '%s must equal %s',
+      min: '%s cannot be less than %s',
+      max: '%s cannot be greater than %s',
+      range: '%s must be between %s and %s' },
+
+    array: {
+      len: '%s must be exactly %s in length',
+      min: '%s cannot be less than %s in length',
+      max: '%s cannot be greater than %s in length',
+      range: '%s must be between %s and %s in length' },
+
+    pattern: {
+      mismatch: '%s value %s does not match pattern %s' },
+
+    clone: function clone() {
+      var cloned = JSON.parse(JSON.stringify(this));
+      cloned.clone = this.clone;
+      return cloned;
+    } };
+
+}
+var messages = newMessages();
+
+/**
+                               *  Encapsulates a validation schema.
+                               *
+                               *  @param descriptor An object declaring validation rules
+                               *  for this schema.
+                               */
+
+function Schema(descriptor) {
+  this.rules = null;
+  this._messages = messages;
+  this.define(descriptor);
+}
+
+Schema.prototype = {
+  messages: function messages(_messages) {
+    if (_messages) {
+      this._messages = deepMerge(newMessages(), _messages);
+    }
+
+    return this._messages;
+  },
+  define: function define(rules) {
+    if (!rules) {
+      throw new Error('Cannot configure a schema with no rules');
+    }
+
+    if (typeof rules !== 'object' || Array.isArray(rules)) {
+      throw new Error('Rules must be an object');
+    }
+
+    this.rules = {};
+    var z;
+    var item;
+
+    for (z in rules) {
+      if (rules.hasOwnProperty(z)) {
+        item = rules[z];
+        this.rules[z] = Array.isArray(item) ? item : [item];
+      }
+    }
+  },
+  validate: function validate(source_, o, oc) {
+    var _this = this;
+
+    if (o === void 0) {
+      o = {};
+    }
+
+    if (oc === void 0) {
+      oc = function oc() {};
+    }
+
+    var source = source_;
+    var options = o;
+    var callback = oc;
+
+    if (typeof options === 'function') {
+      callback = options;
+      options = {};
+    }
+
+    if (!this.rules || Object.keys(this.rules).length === 0) {
+      if (callback) {
+        callback();
+      }
+
+      return Promise.resolve();
+    }
+
+    function complete(results) {
+      var i;
+      var errors = [];
+      var fields = {};
+
+      function add(e) {
+        if (Array.isArray(e)) {
+          var _errors;
+
+          errors = (_errors = errors).concat.apply(_errors, e);
+        } else {
+          errors.push(e);
+        }
+      }
+
+      for (i = 0; i < results.length; i++) {
+        add(results[i]);
+      }
+
+      if (!errors.length) {
+        errors = null;
+        fields = null;
+      } else {
+        fields = convertFieldsError(errors);
+      }
+
+      callback(errors, fields);
+    }
+
+    if (options.messages) {
+      var messages$1 = this.messages();
+
+      if (messages$1 === messages) {
+        messages$1 = newMessages();
+      }
+
+      deepMerge(messages$1, options.messages);
+      options.messages = messages$1;
+    } else {
+      options.messages = this.messages();
+    }
+
+    var arr;
+    var value;
+    var series = {};
+    var keys = options.keys || Object.keys(this.rules);
+    keys.forEach(function (z) {
+      arr = _this.rules[z];
+      value = source[z];
+      arr.forEach(function (r) {
+        var rule = r;
+
+        if (typeof rule.transform === 'function') {
+          if (source === source_) {
+            source = _extends({}, source);
+          }
+
+          value = source[z] = rule.transform(value);
+        }
+
+        if (typeof rule === 'function') {
+          rule = {
+            validator: rule };
+
+        } else {
+          rule = _extends({}, rule);
+        }
+
+        rule.validator = _this.getValidationMethod(rule);
+        rule.field = z;
+        rule.fullField = rule.fullField || z;
+        rule.type = _this.getType(rule);
+
+        if (!rule.validator) {
+          return;
+        }
+
+        series[z] = series[z] || [];
+        series[z].push({
+          rule: rule,
+          value: value,
+          source: source,
+          field: z });
+
+      });
+    });
+    var errorFields = {};
+    return asyncMap(series, options, function (data, doIt) {
+      var rule = data.rule;
+      var deep = (rule.type === 'object' || rule.type === 'array') && (typeof rule.fields === 'object' || typeof rule.defaultField ===
+      'object');
+      deep = deep && (rule.required || !rule.required && data.value);
+      rule.field = data.field;
+
+      function addFullfield(key, schema) {
+        return _extends({}, schema, {
+          fullField: rule.fullField + "." + key });
+
+      }
+
+      function cb(e) {
+        if (e === void 0) {
+          e = [];
+        }
+
+        var errors = e;
+
+        if (!Array.isArray(errors)) {
+          errors = [errors];
+        }
+
+        if (!options.suppressWarning && errors.length) {
+          Schema.warning('async-validator:', errors);
+        }
+
+        if (errors.length && rule.message) {
+          errors = [].concat(rule.message);
+        }
+
+        errors = errors.map(complementError(rule));
+
+        if (options.first && errors.length) {
+          errorFields[rule.field] = 1;
+          return doIt(errors);
+        }
+
+        if (!deep) {
+          doIt(errors);
+        } else {
+          // if rule is required but the target object
+          // does not exist fail at the rule level and don't
+          // go deeper
+          if (rule.required && !data.value) {
+            if (rule.message) {
+              errors = [].concat(rule.message).map(complementError(rule));
+            } else if (options.error) {
+              errors = [options.error(rule, format(options.messages.required, rule.field))];
+            } else {
+              errors = [];
+            }
+
+            return doIt(errors);
+          }
+
+          var fieldsSchema = {};
+
+          if (rule.defaultField) {
+            for (var k in data.value) {
+              if (data.value.hasOwnProperty(k)) {
+                fieldsSchema[k] = rule.defaultField;
+              }
+            }
+          }
+
+          fieldsSchema = _extends({}, fieldsSchema, {}, data.rule.fields);
+
+          for (var f in fieldsSchema) {
+            if (fieldsSchema.hasOwnProperty(f)) {
+              var fieldSchema = Array.isArray(fieldsSchema[f]) ? fieldsSchema[f] : [fieldsSchema[f]];
+              fieldsSchema[f] = fieldSchema.map(addFullfield.bind(null, f));
+            }
+          }
+
+          var schema = new Schema(fieldsSchema);
+          schema.messages(options.messages);
+
+          if (data.rule.options) {
+            data.rule.options.messages = options.messages;
+            data.rule.options.error = options.error;
+          }
+
+          schema.validate(data.value, data.rule.options || options, function (errs) {
+            var finalErrors = [];
+
+            if (errors && errors.length) {
+              finalErrors.push.apply(finalErrors, errors);
+            }
+
+            if (errs && errs.length) {
+              finalErrors.push.apply(finalErrors, errs);
+            }
+
+            doIt(finalErrors.length ? finalErrors : null);
+          });
+        }
+      }
+
+      var res;
+
+      if (rule.asyncValidator) {
+        res = rule.asyncValidator(rule, data.value, cb, data.source, options);
+      } else if (rule.validator) {
+        res = rule.validator(rule, data.value, cb, data.source, options);
+
+        if (res === true) {
+          cb();
+        } else if (res === false) {
+          cb(rule.message || rule.field + " fails");
+        } else if (res instanceof Array) {
+          cb(res);
+        } else if (res instanceof Error) {
+          cb(res.message);
+        }
+      }
+
+      if (res && res.then) {
+        res.then(function () {
+          return cb();
+        }, function (e) {
+          return cb(e);
+        });
+      }
+    }, function (results) {
+      complete(results);
+    });
+  },
+  getType: function getType(rule) {
+    if (rule.type === undefined && rule.pattern instanceof RegExp) {
+      rule.type = 'pattern';
+    }
+
+    if (typeof rule.validator !== 'function' && rule.type && !validators.hasOwnProperty(rule.type)) {
+      throw new Error(format('Unknown rule type %s', rule.type));
+    }
+
+    return rule.type || 'string';
+  },
+  getValidationMethod: function getValidationMethod(rule) {
+    if (typeof rule.validator === 'function') {
+      return rule.validator;
+    }
+
+    var keys = Object.keys(rule);
+    var messageIndex = keys.indexOf('message');
+
+    if (messageIndex !== -1) {
+      keys.splice(messageIndex, 1);
+    }
+
+    if (keys.length === 1 && keys[0] === 'required') {
+      return validators.required;
+    }
+
+    return validators[this.getType(rule)] || false;
+  } };
+
+
+Schema.register = function register(type, validator) {
+  if (typeof validator !== 'function') {
+    throw new Error('Cannot register a validator by type, validator is not a function');
+  }
+
+  validators[type] = validator;
+};
+
+Schema.warning = warning;
+Schema.messages = messages;var _default =
+
+Schema;exports.default = _default;
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./node_modules/node-libs-browser/mock/process.js */ 1037)))
+
+/***/ }),
+
+/***/ 1037:
+/*!********************************************************!*\
+  !*** ./node_modules/node-libs-browser/mock/process.js ***!
+  \********************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports.nextTick = function nextTick(fn) {
+    var args = Array.prototype.slice.call(arguments);
+    args.shift();
+    setTimeout(function () {
+        fn.apply(null, args);
+    }, 0);
+};
+
+exports.platform = exports.arch = 
+exports.execPath = exports.title = 'browser';
+exports.pid = 1;
+exports.browser = true;
+exports.env = {};
+exports.argv = [];
+
+exports.binding = function (name) {
+	throw new Error('No such module. (Possibly not yet loaded)')
+};
+
+(function () {
+    var cwd = '/';
+    var path;
+    exports.cwd = function () { return cwd };
+    exports.chdir = function (dir) {
+        if (!path) path = __webpack_require__(/*! path */ 1038);
+        cwd = path.resolve(dir, cwd);
+    };
+})();
+
+exports.exit = exports.kill = 
+exports.umask = exports.dlopen = 
+exports.uptime = exports.memoryUsage = 
+exports.uvCounters = function() {};
+exports.features = {};
+
+
+/***/ }),
+
+/***/ 1038:
+/*!***********************************************!*\
+  !*** ./node_modules/path-browserify/index.js ***!
+  \***********************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+/* WEBPACK VAR INJECTION */(function(process) {// .dirname, .basename, and .extname methods are extracted from Node.js v8.11.1,
+// backported and transplited with Babel, with backwards-compat fixes
+
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+// resolves . and .. elements in a path array with directory names there
+// must be no slashes, empty elements, or device names (c:\) in the array
+// (so also no leading and trailing slashes - it does not distinguish
+// relative and absolute paths)
+function normalizeArray(parts, allowAboveRoot) {
+  // if the path tries to go above the root, `up` ends up > 0
+  var up = 0;
+  for (var i = parts.length - 1; i >= 0; i--) {
+    var last = parts[i];
+    if (last === '.') {
+      parts.splice(i, 1);
+    } else if (last === '..') {
+      parts.splice(i, 1);
+      up++;
+    } else if (up) {
+      parts.splice(i, 1);
+      up--;
+    }
+  }
+
+  // if the path is allowed to go above the root, restore leading ..s
+  if (allowAboveRoot) {
+    for (; up--; up) {
+      parts.unshift('..');
+    }
+  }
+
+  return parts;
+}
+
+// path.resolve([from ...], to)
+// posix version
+exports.resolve = function() {
+  var resolvedPath = '',
+      resolvedAbsolute = false;
+
+  for (var i = arguments.length - 1; i >= -1 && !resolvedAbsolute; i--) {
+    var path = (i >= 0) ? arguments[i] : process.cwd();
+
+    // Skip empty and invalid entries
+    if (typeof path !== 'string') {
+      throw new TypeError('Arguments to path.resolve must be strings');
+    } else if (!path) {
+      continue;
+    }
+
+    resolvedPath = path + '/' + resolvedPath;
+    resolvedAbsolute = path.charAt(0) === '/';
+  }
+
+  // At this point the path should be resolved to a full absolute path, but
+  // handle relative paths to be safe (might happen when process.cwd() fails)
+
+  // Normalize the path
+  resolvedPath = normalizeArray(filter(resolvedPath.split('/'), function(p) {
+    return !!p;
+  }), !resolvedAbsolute).join('/');
+
+  return ((resolvedAbsolute ? '/' : '') + resolvedPath) || '.';
+};
+
+// path.normalize(path)
+// posix version
+exports.normalize = function(path) {
+  var isAbsolute = exports.isAbsolute(path),
+      trailingSlash = substr(path, -1) === '/';
+
+  // Normalize the path
+  path = normalizeArray(filter(path.split('/'), function(p) {
+    return !!p;
+  }), !isAbsolute).join('/');
+
+  if (!path && !isAbsolute) {
+    path = '.';
+  }
+  if (path && trailingSlash) {
+    path += '/';
+  }
+
+  return (isAbsolute ? '/' : '') + path;
+};
+
+// posix version
+exports.isAbsolute = function(path) {
+  return path.charAt(0) === '/';
+};
+
+// posix version
+exports.join = function() {
+  var paths = Array.prototype.slice.call(arguments, 0);
+  return exports.normalize(filter(paths, function(p, index) {
+    if (typeof p !== 'string') {
+      throw new TypeError('Arguments to path.join must be strings');
+    }
+    return p;
+  }).join('/'));
+};
+
+
+// path.relative(from, to)
+// posix version
+exports.relative = function(from, to) {
+  from = exports.resolve(from).substr(1);
+  to = exports.resolve(to).substr(1);
+
+  function trim(arr) {
+    var start = 0;
+    for (; start < arr.length; start++) {
+      if (arr[start] !== '') break;
+    }
+
+    var end = arr.length - 1;
+    for (; end >= 0; end--) {
+      if (arr[end] !== '') break;
+    }
+
+    if (start > end) return [];
+    return arr.slice(start, end - start + 1);
+  }
+
+  var fromParts = trim(from.split('/'));
+  var toParts = trim(to.split('/'));
+
+  var length = Math.min(fromParts.length, toParts.length);
+  var samePartsLength = length;
+  for (var i = 0; i < length; i++) {
+    if (fromParts[i] !== toParts[i]) {
+      samePartsLength = i;
+      break;
+    }
+  }
+
+  var outputParts = [];
+  for (var i = samePartsLength; i < fromParts.length; i++) {
+    outputParts.push('..');
+  }
+
+  outputParts = outputParts.concat(toParts.slice(samePartsLength));
+
+  return outputParts.join('/');
+};
+
+exports.sep = '/';
+exports.delimiter = ':';
+
+exports.dirname = function (path) {
+  if (typeof path !== 'string') path = path + '';
+  if (path.length === 0) return '.';
+  var code = path.charCodeAt(0);
+  var hasRoot = code === 47 /*/*/;
+  var end = -1;
+  var matchedSlash = true;
+  for (var i = path.length - 1; i >= 1; --i) {
+    code = path.charCodeAt(i);
+    if (code === 47 /*/*/) {
+        if (!matchedSlash) {
+          end = i;
+          break;
+        }
+      } else {
+      // We saw the first non-path separator
+      matchedSlash = false;
+    }
+  }
+
+  if (end === -1) return hasRoot ? '/' : '.';
+  if (hasRoot && end === 1) {
+    // return '//';
+    // Backwards-compat fix:
+    return '/';
+  }
+  return path.slice(0, end);
+};
+
+function basename(path) {
+  if (typeof path !== 'string') path = path + '';
+
+  var start = 0;
+  var end = -1;
+  var matchedSlash = true;
+  var i;
+
+  for (i = path.length - 1; i >= 0; --i) {
+    if (path.charCodeAt(i) === 47 /*/*/) {
+        // If we reached a path separator that was not part of a set of path
+        // separators at the end of the string, stop now
+        if (!matchedSlash) {
+          start = i + 1;
+          break;
+        }
+      } else if (end === -1) {
+      // We saw the first non-path separator, mark this as the end of our
+      // path component
+      matchedSlash = false;
+      end = i + 1;
+    }
+  }
+
+  if (end === -1) return '';
+  return path.slice(start, end);
+}
+
+// Uses a mixed approach for backwards-compatibility, as ext behavior changed
+// in new Node.js versions, so only basename() above is backported here
+exports.basename = function (path, ext) {
+  var f = basename(path);
+  if (ext && f.substr(-1 * ext.length) === ext) {
+    f = f.substr(0, f.length - ext.length);
+  }
+  return f;
+};
+
+exports.extname = function (path) {
+  if (typeof path !== 'string') path = path + '';
+  var startDot = -1;
+  var startPart = 0;
+  var end = -1;
+  var matchedSlash = true;
+  // Track the state of characters (if any) we see before our first dot and
+  // after any path separator we find
+  var preDotState = 0;
+  for (var i = path.length - 1; i >= 0; --i) {
+    var code = path.charCodeAt(i);
+    if (code === 47 /*/*/) {
+        // If we reached a path separator that was not part of a set of path
+        // separators at the end of the string, stop now
+        if (!matchedSlash) {
+          startPart = i + 1;
+          break;
+        }
+        continue;
+      }
+    if (end === -1) {
+      // We saw the first non-path separator, mark this as the end of our
+      // extension
+      matchedSlash = false;
+      end = i + 1;
+    }
+    if (code === 46 /*.*/) {
+        // If this is our first dot, mark it as the start of our extension
+        if (startDot === -1)
+          startDot = i;
+        else if (preDotState !== 1)
+          preDotState = 1;
+    } else if (startDot !== -1) {
+      // We saw a non-dot and non-path separator before our dot, so we should
+      // have a good chance at having a non-empty extension
+      preDotState = -1;
+    }
+  }
+
+  if (startDot === -1 || end === -1 ||
+      // We saw a non-dot character immediately before the dot
+      preDotState === 0 ||
+      // The (right-most) trimmed path component is exactly '..'
+      preDotState === 1 && startDot === end - 1 && startDot === startPart + 1) {
+    return '';
+  }
+  return path.slice(startDot, end);
+};
+
+function filter (xs, f) {
+    if (xs.filter) return xs.filter(f);
+    var res = [];
+    for (var i = 0; i < xs.length; i++) {
+        if (f(xs[i], i, xs)) res.push(xs[i]);
+    }
+    return res;
+}
+
+// String.prototype.substr - negative index don't work in IE8
+var substr = 'ab'.substr(-1) === 'b'
+    ? function (str, start, len) { return str.substr(start, len) }
+    : function (str, start, len) {
+        if (start < 0) start = str.length + start;
+        return str.substr(start, len);
+    }
+;
+
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../node-libs-browser/mock/process.js */ 1037)))
+
+/***/ }),
+
 /***/ 11:
 /*!**********************************************************************************************************!*\
   !*** ./node_modules/@dcloudio/vue-cli-plugin-uni/packages/vue-loader/lib/runtime/componentNormalizer.js ***!
@@ -2187,6 +3973,42 @@ function normalizeComponent (
 /***/ (function(module, exports) {
 
 module.exports = "data:image/png;base64,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"
+
+/***/ }),
+
+/***/ 1151:
+/*!**************************************************************!*\
+  !*** E:/HX/flow/node_modules/uview-ui/libs/util/province.js ***!
+  \**************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });exports.default = void 0;var provinceData = [{ "label": "北京市", "value": "11" }, { "label": "天津市", "value": "12" }, { "label": "河北省", "value": "13" }, { "label": "山西省", "value": "14" }, { "label": "内蒙古自治区", "value": "15" }, { "label": "辽宁省", "value": "21" }, { "label": "吉林省", "value": "22" }, { "label": "黑龙江省", "value": "23" }, { "label": "上海市", "value": "31" }, { "label": "江苏省", "value": "32" }, { "label": "浙江省", "value": "33" }, { "label": "安徽省", "value": "34" }, { "label": "福建省", "value": "35" }, { "label": "江西省", "value": "36" }, { "label": "山东省", "value": "37" }, { "label": "河南省", "value": "41" }, { "label": "湖北省", "value": "42" }, { "label": "湖南省", "value": "43" }, { "label": "广东省", "value": "44" }, { "label": "广西壮族自治区", "value": "45" }, { "label": "海南省", "value": "46" }, { "label": "重庆市", "value": "50" }, { "label": "四川省", "value": "51" }, { "label": "贵州省", "value": "52" }, { "label": "云南省", "value": "53" }, { "label": "西藏自治区", "value": "54" }, { "label": "陕西省", "value": "61" }, { "label": "甘肃省", "value": "62" }, { "label": "青海省", "value": "63" }, { "label": "宁夏回族自治区", "value": "64" }, { "label": "新疆维吾尔自治区", "value": "65" }, { "label": "台湾", "value": "66" }, { "label": "香港", "value": "67" }, { "label": "澳门", "value": "68" }];var _default = provinceData;exports.default = _default;
+
+/***/ }),
+
+/***/ 1152:
+/*!**********************************************************!*\
+  !*** E:/HX/flow/node_modules/uview-ui/libs/util/city.js ***!
+  \**********************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });exports.default = void 0;var cityData = [[{ "label": "市辖区", "value": "1101" }], [{ "label": "市辖区", "value": "1201" }], [{ "label": "石家庄市", "value": "1301" }, { "label": "唐山市", "value": "1302" }, { "label": "秦皇岛市", "value": "1303" }, { "label": "邯郸市", "value": "1304" }, { "label": "邢台市", "value": "1305" }, { "label": "保定市", "value": "1306" }, { "label": "张家口市", "value": "1307" }, { "label": "承德市", "value": "1308" }, { "label": "沧州市", "value": "1309" }, { "label": "廊坊市", "value": "1310" }, { "label": "衡水市", "value": "1311" }], [{ "label": "太原市", "value": "1401" }, { "label": "大同市", "value": "1402" }, { "label": "阳泉市", "value": "1403" }, { "label": "长治市", "value": "1404" }, { "label": "晋城市", "value": "1405" }, { "label": "朔州市", "value": "1406" }, { "label": "晋中市", "value": "1407" }, { "label": "运城市", "value": "1408" }, { "label": "忻州市", "value": "1409" }, { "label": "临汾市", "value": "1410" }, { "label": "吕梁市", "value": "1411" }], [{ "label": "呼和浩特市", "value": "1501" }, { "label": "包头市", "value": "1502" }, { "label": "乌海市", "value": "1503" }, { "label": "赤峰市", "value": "1504" }, { "label": "通辽市", "value": "1505" }, { "label": "鄂尔多斯市", "value": "1506" }, { "label": "呼伦贝尔市", "value": "1507" }, { "label": "巴彦淖尔市", "value": "1508" }, { "label": "乌兰察布市", "value": "1509" }, { "label": "兴安盟", "value": "1522" }, { "label": "锡林郭勒盟", "value": "1525" }, { "label": "阿拉善盟", "value": "1529" }], [{ "label": "沈阳市", "value": "2101" }, { "label": "大连市", "value": "2102" }, { "label": "鞍山市", "value": "2103" }, { "label": "抚顺市", "value": "2104" }, { "label": "本溪市", "value": "2105" }, { "label": "丹东市", "value": "2106" }, { "label": "锦州市", "value": "2107" }, { "label": "营口市", "value": "2108" }, { "label": "阜新市", "value": "2109" }, { "label": "辽阳市", "value": "2110" }, { "label": "盘锦市", "value": "2111" }, { "label": "铁岭市", "value": "2112" }, { "label": "朝阳市", "value": "2113" }, { "label": "葫芦岛市", "value": "2114" }], [{ "label": "长春市", "value": "2201" }, { "label": "吉林市", "value": "2202" }, { "label": "四平市", "value": "2203" }, { "label": "辽源市", "value": "2204" }, { "label": "通化市", "value": "2205" }, { "label": "白山市", "value": "2206" }, { "label": "松原市", "value": "2207" }, { "label": "白城市", "value": "2208" }, { "label": "延边朝鲜族自治州", "value": "2224" }], [{ "label": "哈尔滨市", "value": "2301" }, { "label": "齐齐哈尔市", "value": "2302" }, { "label": "鸡西市", "value": "2303" }, { "label": "鹤岗市", "value": "2304" }, { "label": "双鸭山市", "value": "2305" }, { "label": "大庆市", "value": "2306" }, { "label": "伊春市", "value": "2307" }, { "label": "佳木斯市", "value": "2308" }, { "label": "七台河市", "value": "2309" }, { "label": "牡丹江市", "value": "2310" }, { "label": "黑河市", "value": "2311" }, { "label": "绥化市", "value": "2312" }, { "label": "大兴安岭地区", "value": "2327" }], [{ "label": "市辖区", "value": "3101" }], [{ "label": "南京市", "value": "3201" }, { "label": "无锡市", "value": "3202" }, { "label": "徐州市", "value": "3203" }, { "label": "常州市", "value": "3204" }, { "label": "苏州市", "value": "3205" }, { "label": "南通市", "value": "3206" }, { "label": "连云港市", "value": "3207" }, { "label": "淮安市", "value": "3208" }, { "label": "盐城市", "value": "3209" }, { "label": "扬州市", "value": "3210" }, { "label": "镇江市", "value": "3211" }, { "label": "泰州市", "value": "3212" }, { "label": "宿迁市", "value": "3213" }], [{ "label": "杭州市", "value": "3301" }, { "label": "宁波市", "value": "3302" }, { "label": "温州市", "value": "3303" }, { "label": "嘉兴市", "value": "3304" }, { "label": "湖州市", "value": "3305" }, { "label": "绍兴市", "value": "3306" }, { "label": "金华市", "value": "3307" }, { "label": "衢州市", "value": "3308" }, { "label": "舟山市", "value": "3309" }, { "label": "台州市", "value": "3310" }, { "label": "丽水市", "value": "3311" }], [{ "label": "合肥市", "value": "3401" }, { "label": "芜湖市", "value": "3402" }, { "label": "蚌埠市", "value": "3403" }, { "label": "淮南市", "value": "3404" }, { "label": "马鞍山市", "value": "3405" }, { "label": "淮北市", "value": "3406" }, { "label": "铜陵市", "value": "3407" }, { "label": "安庆市", "value": "3408" }, { "label": "黄山市", "value": "3410" }, { "label": "滁州市", "value": "3411" }, { "label": "阜阳市", "value": "3412" }, { "label": "宿州市", "value": "3413" }, { "label": "六安市", "value": "3415" }, { "label": "亳州市", "value": "3416" }, { "label": "池州市", "value": "3417" }, { "label": "宣城市", "value": "3418" }], [{ "label": "福州市", "value": "3501" }, { "label": "厦门市", "value": "3502" }, { "label": "莆田市", "value": "3503" }, { "label": "三明市", "value": "3504" }, { "label": "泉州市", "value": "3505" }, { "label": "漳州市", "value": "3506" }, { "label": "南平市", "value": "3507" }, { "label": "龙岩市", "value": "3508" }, { "label": "宁德市", "value": "3509" }], [{ "label": "南昌市", "value": "3601" }, { "label": "景德镇市", "value": "3602" }, { "label": "萍乡市", "value": "3603" }, { "label": "九江市", "value": "3604" }, { "label": "新余市", "value": "3605" }, { "label": "鹰潭市", "value": "3606" }, { "label": "赣州市", "value": "3607" }, { "label": "吉安市", "value": "3608" }, { "label": "宜春市", "value": "3609" }, { "label": "抚州市", "value": "3610" }, { "label": "上饶市", "value": "3611" }], [{ "label": "济南市", "value": "3701" }, { "label": "青岛市", "value": "3702" }, { "label": "淄博市", "value": "3703" }, { "label": "枣庄市", "value": "3704" }, { "label": "东营市", "value": "3705" }, { "label": "烟台市", "value": "3706" }, { "label": "潍坊市", "value": "3707" }, { "label": "济宁市", "value": "3708" }, { "label": "泰安市", "value": "3709" }, { "label": "威海市", "value": "3710" }, { "label": "日照市", "value": "3711" }, { "label": "莱芜市", "value": "3712" }, { "label": "临沂市", "value": "3713" }, { "label": "德州市", "value": "3714" }, { "label": "聊城市", "value": "3715" }, { "label": "滨州市", "value": "3716" }, { "label": "菏泽市", "value": "3717" }], [{ "label": "郑州市", "value": "4101" }, { "label": "开封市", "value": "4102" }, { "label": "洛阳市", "value": "4103" }, { "label": "平顶山市", "value": "4104" }, { "label": "安阳市", "value": "4105" }, { "label": "鹤壁市", "value": "4106" }, { "label": "新乡市", "value": "4107" }, { "label": "焦作市", "value": "4108" }, { "label": "濮阳市", "value": "4109" }, { "label": "许昌市", "value": "4110" }, { "label": "漯河市", "value": "4111" }, { "label": "三门峡市", "value": "4112" }, { "label": "南阳市", "value": "4113" }, { "label": "商丘市", "value": "4114" }, { "label": "信阳市", "value": "4115" }, { "label": "周口市", "value": "4116" }, { "label": "驻马店市", "value": "4117" }, { "label": "省直辖县级行政区划", "value": "4190" }], [{ "label": "武汉市", "value": "4201" }, { "label": "黄石市", "value": "4202" }, { "label": "十堰市", "value": "4203" }, { "label": "宜昌市", "value": "4205" }, { "label": "襄阳市", "value": "4206" }, { "label": "鄂州市", "value": "4207" }, { "label": "荆门市", "value": "4208" }, { "label": "孝感市", "value": "4209" }, { "label": "荆州市", "value": "4210" }, { "label": "黄冈市", "value": "4211" }, { "label": "咸宁市", "value": "4212" }, { "label": "随州市", "value": "4213" }, { "label": "恩施土家族苗族自治州", "value": "4228" }, { "label": "省直辖县级行政区划", "value": "4290" }], [{ "label": "长沙市", "value": "4301" }, { "label": "株洲市", "value": "4302" }, { "label": "湘潭市", "value": "4303" }, { "label": "衡阳市", "value": "4304" }, { "label": "邵阳市", "value": "4305" }, { "label": "岳阳市", "value": "4306" }, { "label": "常德市", "value": "4307" }, { "label": "张家界市", "value": "4308" }, { "label": "益阳市", "value": "4309" }, { "label": "郴州市", "value": "4310" }, { "label": "永州市", "value": "4311" }, { "label": "怀化市", "value": "4312" }, { "label": "娄底市", "value": "4313" }, { "label": "湘西土家族苗族自治州", "value": "4331" }], [{ "label": "广州市", "value": "4401" }, { "label": "韶关市", "value": "4402" }, { "label": "深圳市", "value": "4403" }, { "label": "珠海市", "value": "4404" }, { "label": "汕头市", "value": "4405" }, { "label": "佛山市", "value": "4406" }, { "label": "江门市", "value": "4407" }, { "label": "湛江市", "value": "4408" }, { "label": "茂名市", "value": "4409" }, { "label": "肇庆市", "value": "4412" }, { "label": "惠州市", "value": "4413" }, { "label": "梅州市", "value": "4414" }, { "label": "汕尾市", "value": "4415" }, { "label": "河源市", "value": "4416" }, { "label": "阳江市", "value": "4417" }, { "label": "清远市", "value": "4418" }, { "label": "东莞市", "value": "4419" }, { "label": "中山市", "value": "4420" }, { "label": "潮州市", "value": "4451" }, { "label": "揭阳市", "value": "4452" }, { "label": "云浮市", "value": "4453" }], [{ "label": "南宁市", "value": "4501" }, { "label": "柳州市", "value": "4502" }, { "label": "桂林市", "value": "4503" }, { "label": "梧州市", "value": "4504" }, { "label": "北海市", "value": "4505" }, { "label": "防城港市", "value": "4506" }, { "label": "钦州市", "value": "4507" }, { "label": "贵港市", "value": "4508" }, { "label": "玉林市", "value": "4509" }, { "label": "百色市", "value": "4510" }, { "label": "贺州市", "value": "4511" }, { "label": "河池市", "value": "4512" }, { "label": "来宾市", "value": "4513" }, { "label": "崇左市", "value": "4514" }], [{ "label": "海口市", "value": "4601" }, { "label": "三亚市", "value": "4602" }, { "label": "三沙市", "value": "4603" }, { "label": "儋州市", "value": "4604" }, { "label": "省直辖县级行政区划", "value": "4690" }], [{ "label": "市辖区", "value": "5001" }, { "label": "县", "value": "5002" }], [{ "label": "成都市", "value": "5101" }, { "label": "自贡市", "value": "5103" }, { "label": "攀枝花市", "value": "5104" }, { "label": "泸州市", "value": "5105" }, { "label": "德阳市", "value": "5106" }, { "label": "绵阳市", "value": "5107" }, { "label": "广元市", "value": "5108" }, { "label": "遂宁市", "value": "5109" }, { "label": "内江市", "value": "5110" }, { "label": "乐山市", "value": "5111" }, { "label": "南充市", "value": "5113" }, { "label": "眉山市", "value": "5114" }, { "label": "宜宾市", "value": "5115" }, { "label": "广安市", "value": "5116" }, { "label": "达州市", "value": "5117" }, { "label": "雅安市", "value": "5118" }, { "label": "巴中市", "value": "5119" }, { "label": "资阳市", "value": "5120" }, { "label": "阿坝藏族羌族自治州", "value": "5132" }, { "label": "甘孜藏族自治州", "value": "5133" }, { "label": "凉山彝族自治州", "value": "5134" }], [{ "label": "贵阳市", "value": "5201" }, { "label": "六盘水市", "value": "5202" }, { "label": "遵义市", "value": "5203" }, { "label": "安顺市", "value": "5204" }, { "label": "毕节市", "value": "5205" }, { "label": "铜仁市", "value": "5206" }, { "label": "黔西南布依族苗族自治州", "value": "5223" }, { "label": "黔东南苗族侗族自治州", "value": "5226" }, { "label": "黔南布依族苗族自治州", "value": "5227" }], [{ "label": "昆明市", "value": "5301" }, { "label": "曲靖市", "value": "5303" }, { "label": "玉溪市", "value": "5304" }, { "label": "保山市", "value": "5305" }, { "label": "昭通市", "value": "5306" }, { "label": "丽江市", "value": "5307" }, { "label": "普洱市", "value": "5308" }, { "label": "临沧市", "value": "5309" }, { "label": "楚雄彝族自治州", "value": "5323" }, { "label": "红河哈尼族彝族自治州", "value": "5325" }, { "label": "文山壮族苗族自治州", "value": "5326" }, { "label": "西双版纳傣族自治州", "value": "5328" }, { "label": "大理白族自治州", "value": "5329" }, { "label": "德宏傣族景颇族自治州", "value": "5331" }, { "label": "怒江傈僳族自治州", "value": "5333" }, { "label": "迪庆藏族自治州", "value": "5334" }], [{ "label": "拉萨市", "value": "5401" }, { "label": "日喀则市", "value": "5402" }, { "label": "昌都市", "value": "5403" }, { "label": "林芝市", "value": "5404" }, { "label": "山南市", "value": "5405" }, { "label": "那曲地区", "value": "5424" }, { "label": "阿里地区", "value": "5425" }], [{ "label": "西安市", "value": "6101" }, { "label": "铜川市", "value": "6102" }, { "label": "宝鸡市", "value": "6103" }, { "label": "咸阳市", "value": "6104" }, { "label": "渭南市", "value": "6105" }, { "label": "延安市", "value": "6106" }, { "label": "汉中市", "value": "6107" }, { "label": "榆林市", "value": "6108" }, { "label": "安康市", "value": "6109" }, { "label": "商洛市", "value": "6110" }], [{ "label": "兰州市", "value": "6201" }, { "label": "嘉峪关市", "value": "6202" }, { "label": "金昌市", "value": "6203" }, { "label": "白银市", "value": "6204" }, { "label": "天水市", "value": "6205" }, { "label": "武威市", "value": "6206" }, { "label": "张掖市", "value": "6207" }, { "label": "平凉市", "value": "6208" }, { "label": "酒泉市", "value": "6209" }, { "label": "庆阳市", "value": "6210" }, { "label": "定西市", "value": "6211" }, { "label": "陇南市", "value": "6212" }, { "label": "临夏回族自治州", "value": "6229" }, { "label": "甘南藏族自治州", "value": "6230" }], [{ "label": "西宁市", "value": "6301" }, { "label": "海东市", "value": "6302" }, { "label": "海北藏族自治州", "value": "6322" }, { "label": "黄南藏族自治州", "value": "6323" }, { "label": "海南藏族自治州", "value": "6325" }, { "label": "果洛藏族自治州", "value": "6326" }, { "label": "玉树藏族自治州", "value": "6327" }, { "label": "海西蒙古族藏族自治州", "value": "6328" }], [{ "label": "银川市", "value": "6401" }, { "label": "石嘴山市", "value": "6402" }, { "label": "吴忠市", "value": "6403" }, { "label": "固原市", "value": "6404" }, { "label": "中卫市", "value": "6405" }], [{ "label": "乌鲁木齐市", "value": "6501" }, { "label": "克拉玛依市", "value": "6502" }, { "label": "吐鲁番市", "value": "6504" }, { "label": "哈密市", "value": "6505" }, { "label": "昌吉回族自治州", "value": "6523" }, { "label": "博尔塔拉蒙古自治州", "value": "6527" }, { "label": "巴音郭楞蒙古自治州", "value": "6528" }, { "label": "阿克苏地区", "value": "6529" }, { "label": "克孜勒苏柯尔克孜自治州", "value": "6530" }, { "label": "喀什地区", "value": "6531" }, { "label": "和田地区", "value": "6532" }, { "label": "伊犁哈萨克自治州", "value": "6540" }, { "label": "塔城地区", "value": "6542" }, { "label": "阿勒泰地区", "value": "6543" }, { "label": "自治区直辖县级行政区划", "value": "6590" }], [{ "label": "台北", "value": "6601" }, { "label": "高雄", "value": "6602" }, { "label": "基隆", "value": "6603" }, { "label": "台中", "value": "6604" }, { "label": "台南", "value": "6605" }, { "label": "新竹", "value": "6606" }, { "label": "嘉义", "value": "6607" }, { "label": "宜兰", "value": "6608" }, { "label": "桃园", "value": "6609" }, { "label": "苗栗", "value": "6610" }, { "label": "彰化", "value": "6611" }, { "label": "南投", "value": "6612" }, { "label": "云林", "value": "6613" }, { "label": "屏东", "value": "6614" }, { "label": "台东", "value": "6615" }, { "label": "花莲", "value": "6616" }, { "label": "澎湖", "value": "6617" }], [{ "label": "香港岛", "value": "6701" }, { "label": "九龙", "value": "6702" }, { "label": "新界", "value": "6703" }], [{ "label": "澳门半岛", "value": "6801" }, { "label": "氹仔岛", "value": "6802" }, { "label": "路环岛", "value": "6803" }, { "label": "路氹城", "value": "6804" }]];var _default = cityData;exports.default = _default;
+
+/***/ }),
+
+/***/ 1153:
+/*!**********************************************************!*\
+  !*** E:/HX/flow/node_modules/uview-ui/libs/util/area.js ***!
+  \**********************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });exports.default = void 0;var areaData = [[[{ "label": "东城区", "value": "110101" }, { "label": "西城区", "value": "110102" }, { "label": "朝阳区", "value": "110105" }, { "label": "丰台区", "value": "110106" }, { "label": "石景山区", "value": "110107" }, { "label": "海淀区", "value": "110108" }, { "label": "门头沟区", "value": "110109" }, { "label": "房山区", "value": "110111" }, { "label": "通州区", "value": "110112" }, { "label": "顺义区", "value": "110113" }, { "label": "昌平区", "value": "110114" }, { "label": "大兴区", "value": "110115" }, { "label": "怀柔区", "value": "110116" }, { "label": "平谷区", "value": "110117" }, { "label": "密云区", "value": "110118" }, { "label": "延庆区", "value": "110119" }]], [[{ "label": "和平区", "value": "120101" }, { "label": "河东区", "value": "120102" }, { "label": "河西区", "value": "120103" }, { "label": "南开区", "value": "120104" }, { "label": "河北区", "value": "120105" }, { "label": "红桥区", "value": "120106" }, { "label": "东丽区", "value": "120110" }, { "label": "西青区", "value": "120111" }, { "label": "津南区", "value": "120112" }, { "label": "北辰区", "value": "120113" }, { "label": "武清区", "value": "120114" }, { "label": "宝坻区", "value": "120115" }, { "label": "滨海新区", "value": "120116" }, { "label": "宁河区", "value": "120117" }, { "label": "静海区", "value": "120118" }, { "label": "蓟州区", "value": "120119" }]], [[{ "label": "长安区", "value": "130102" }, { "label": "桥西区", "value": "130104" }, { "label": "新华区", "value": "130105" }, { "label": "井陉矿区", "value": "130107" }, { "label": "裕华区", "value": "130108" }, { "label": "藁城区", "value": "130109" }, { "label": "鹿泉区", "value": "130110" }, { "label": "栾城区", "value": "130111" }, { "label": "井陉县", "value": "130121" }, { "label": "正定县", "value": "130123" }, { "label": "行唐县", "value": "130125" }, { "label": "灵寿县", "value": "130126" }, { "label": "高邑县", "value": "130127" }, { "label": "深泽县", "value": "130128" }, { "label": "赞皇县", "value": "130129" }, { "label": "无极县", "value": "130130" }, { "label": "平山县", "value": "130131" }, { "label": "元氏县", "value": "130132" }, { "label": "赵县", "value": "130133" }, { "label": "石家庄高新技术产业开发区", "value": "130171" }, { "label": "石家庄循环化工园区", "value": "130172" }, { "label": "辛集市", "value": "130181" }, { "label": "晋州市", "value": "130183" }, { "label": "新乐市", "value": "130184" }], [{ "label": "路南区", "value": "130202" }, { "label": "路北区", "value": "130203" }, { "label": "古冶区", "value": "130204" }, { "label": "开平区", "value": "130205" }, { "label": "丰南区", "value": "130207" }, { "label": "丰润区", "value": "130208" }, { "label": "曹妃甸区", "value": "130209" }, { "label": "滦县", "value": "130223" }, { "label": "滦南县", "value": "130224" }, { "label": "乐亭县", "value": "130225" }, { "label": "迁西县", "value": "130227" }, { "label": "玉田县", "value": "130229" }, { "label": "唐山市芦台经济技术开发区", "value": "130271" }, { "label": "唐山市汉沽管理区", "value": "130272" }, { "label": "唐山高新技术产业开发区", "value": "130273" }, { "label": "河北唐山海港经济开发区", "value": "130274" }, { "label": "遵化市", "value": "130281" }, { "label": "迁安市", "value": "130283" }], [{ "label": "海港区", "value": "130302" }, { "label": "山海关区", "value": "130303" }, { "label": "北戴河区", "value": "130304" }, { "label": "抚宁区", "value": "130306" }, { "label": "青龙满族自治县", "value": "130321" }, { "label": "昌黎县", "value": "130322" }, { "label": "卢龙县", "value": "130324" }, { "label": "秦皇岛市经济技术开发区", "value": "130371" }, { "label": "北戴河新区", "value": "130372" }], [{ "label": "邯山区", "value": "130402" }, { "label": "丛台区", "value": "130403" }, { "label": "复兴区", "value": "130404" }, { "label": "峰峰矿区", "value": "130406" }, { "label": "肥乡区", "value": "130407" }, { "label": "永年区", "value": "130408" }, { "label": "临漳县", "value": "130423" }, { "label": "成安县", "value": "130424" }, { "label": "大名县", "value": "130425" }, { "label": "涉县", "value": "130426" }, { "label": "磁县", "value": "130427" }, { "label": "邱县", "value": "130430" }, { "label": "鸡泽县", "value": "130431" }, { "label": "广平县", "value": "130432" }, { "label": "馆陶县", "value": "130433" }, { "label": "魏县", "value": "130434" }, { "label": "曲周县", "value": "130435" }, { "label": "邯郸经济技术开发区", "value": "130471" }, { "label": "邯郸冀南新区", "value": "130473" }, { "label": "武安市", "value": "130481" }], [{ "label": "桥东区", "value": "130502" }, { "label": "桥西区", "value": "130503" }, { "label": "邢台县", "value": "130521" }, { "label": "临城县", "value": "130522" }, { "label": "内丘县", "value": "130523" }, { "label": "柏乡县", "value": "130524" }, { "label": "隆尧县", "value": "130525" }, { "label": "任县", "value": "130526" }, { "label": "南和县", "value": "130527" }, { "label": "宁晋县", "value": "130528" }, { "label": "巨鹿县", "value": "130529" }, { "label": "新河县", "value": "130530" }, { "label": "广宗县", "value": "130531" }, { "label": "平乡县", "value": "130532" }, { "label": "威县", "value": "130533" }, { "label": "清河县", "value": "130534" }, { "label": "临西县", "value": "130535" }, { "label": "河北邢台经济开发区", "value": "130571" }, { "label": "南宫市", "value": "130581" }, { "label": "沙河市", "value": "130582" }], [{ "label": "竞秀区", "value": "130602" }, { "label": "莲池区", "value": "130606" }, { "label": "满城区", "value": "130607" }, { "label": "清苑区", "value": "130608" }, { "label": "徐水区", "value": "130609" }, { "label": "涞水县", "value": "130623" }, { "label": "阜平县", "value": "130624" }, { "label": "定兴县", "value": "130626" }, { "label": "唐县", "value": "130627" }, { "label": "高阳县", "value": "130628" }, { "label": "容城县", "value": "130629" }, { "label": "涞源县", "value": "130630" }, { "label": "望都县", "value": "130631" }, { "label": "安新县", "value": "130632" }, { "label": "易县", "value": "130633" }, { "label": "曲阳县", "value": "130634" }, { "label": "蠡县", "value": "130635" }, { "label": "顺平县", "value": "130636" }, { "label": "博野县", "value": "130637" }, { "label": "雄县", "value": "130638" }, { "label": "保定高新技术产业开发区", "value": "130671" }, { "label": "保定白沟新城", "value": "130672" }, { "label": "涿州市", "value": "130681" }, { "label": "定州市", "value": "130682" }, { "label": "安国市", "value": "130683" }, { "label": "高碑店市", "value": "130684" }], [{ "label": "桥东区", "value": "130702" }, { "label": "桥西区", "value": "130703" }, { "label": "宣化区", "value": "130705" }, { "label": "下花园区", "value": "130706" }, { "label": "万全区", "value": "130708" }, { "label": "崇礼区", "value": "130709" }, { "label": "张北县", "value": "130722" }, { "label": "康保县", "value": "130723" }, { "label": "沽源县", "value": "130724" }, { "label": "尚义县", "value": "130725" }, { "label": "蔚县", "value": "130726" }, { "label": "阳原县", "value": "130727" }, { "label": "怀安县", "value": "130728" }, { "label": "怀来县", "value": "130730" }, { "label": "涿鹿县", "value": "130731" }, { "label": "赤城县", "value": "130732" }, { "label": "张家口市高新技术产业开发区", "value": "130771" }, { "label": "张家口市察北管理区", "value": "130772" }, { "label": "张家口市塞北管理区", "value": "130773" }], [{ "label": "双桥区", "value": "130802" }, { "label": "双滦区", "value": "130803" }, { "label": "鹰手营子矿区", "value": "130804" }, { "label": "承德县", "value": "130821" }, { "label": "兴隆县", "value": "130822" }, { "label": "滦平县", "value": "130824" }, { "label": "隆化县", "value": "130825" }, { "label": "丰宁满族自治县", "value": "130826" }, { "label": "宽城满族自治县", "value": "130827" }, { "label": "围场满族蒙古族自治县", "value": "130828" }, { "label": "承德高新技术产业开发区", "value": "130871" }, { "label": "平泉市", "value": "130881" }], [{ "label": "新华区", "value": "130902" }, { "label": "运河区", "value": "130903" }, { "label": "沧县", "value": "130921" }, { "label": "青县", "value": "130922" }, { "label": "东光县", "value": "130923" }, { "label": "海兴县", "value": "130924" }, { "label": "盐山县", "value": "130925" }, { "label": "肃宁县", "value": "130926" }, { "label": "南皮县", "value": "130927" }, { "label": "吴桥县", "value": "130928" }, { "label": "献县", "value": "130929" }, { "label": "孟村回族自治县", "value": "130930" }, { "label": "河北沧州经济开发区", "value": "130971" }, { "label": "沧州高新技术产业开发区", "value": "130972" }, { "label": "沧州渤海新区", "value": "130973" }, { "label": "泊头市", "value": "130981" }, { "label": "任丘市", "value": "130982" }, { "label": "黄骅市", "value": "130983" }, { "label": "河间市", "value": "130984" }], [{ "label": "安次区", "value": "131002" }, { "label": "广阳区", "value": "131003" }, { "label": "固安县", "value": "131022" }, { "label": "永清县", "value": "131023" }, { "label": "香河县", "value": "131024" }, { "label": "大城县", "value": "131025" }, { "label": "文安县", "value": "131026" }, { "label": "大厂回族自治县", "value": "131028" }, { "label": "廊坊经济技术开发区", "value": "131071" }, { "label": "霸州市", "value": "131081" }, { "label": "三河市", "value": "131082" }], [{ "label": "桃城区", "value": "131102" }, { "label": "冀州区", "value": "131103" }, { "label": "枣强县", "value": "131121" }, { "label": "武邑县", "value": "131122" }, { "label": "武强县", "value": "131123" }, { "label": "饶阳县", "value": "131124" }, { "label": "安平县", "value": "131125" }, { "label": "故城县", "value": "131126" }, { "label": "景县", "value": "131127" }, { "label": "阜城县", "value": "131128" }, { "label": "河北衡水经济开发区", "value": "131171" }, { "label": "衡水滨湖新区", "value": "131172" }, { "label": "深州市", "value": "131182" }]], [[{ "label": "小店区", "value": "140105" }, { "label": "迎泽区", "value": "140106" }, { "label": "杏花岭区", "value": "140107" }, { "label": "尖草坪区", "value": "140108" }, { "label": "万柏林区", "value": "140109" }, { "label": "晋源区", "value": "140110" }, { "label": "清徐县", "value": "140121" }, { "label": "阳曲县", "value": "140122" }, { "label": "娄烦县", "value": "140123" }, { "label": "山西转型综合改革示范区", "value": "140171" }, { "label": "古交市", "value": "140181" }], [{ "label": "城区", "value": "140202" }, { "label": "矿区", "value": "140203" }, { "label": "南郊区", "value": "140211" }, { "label": "新荣区", "value": "140212" }, { "label": "阳高县", "value": "140221" }, { "label": "天镇县", "value": "140222" }, { "label": "广灵县", "value": "140223" }, { "label": "灵丘县", "value": "140224" }, { "label": "浑源县", "value": "140225" }, { "label": "左云县", "value": "140226" }, { "label": "大同县", "value": "140227" }, { "label": "山西大同经济开发区", "value": "140271" }], [{ "label": "城区", "value": "140302" }, { "label": "矿区", "value": "140303" }, { "label": "郊区", "value": "140311" }, { "label": "平定县", "value": "140321" }, { "label": "盂县", "value": "140322" }, { "label": "山西阳泉经济开发区", "value": "140371" }], [{ "label": "城区", "value": "140402" }, { "label": "郊区", "value": "140411" }, { "label": "长治县", "value": "140421" }, { "label": "襄垣县", "value": "140423" }, { "label": "屯留县", "value": "140424" }, { "label": "平顺县", "value": "140425" }, { "label": "黎城县", "value": "140426" }, { "label": "壶关县", "value": "140427" }, { "label": "长子县", "value": "140428" }, { "label": "武乡县", "value": "140429" }, { "label": "沁县", "value": "140430" }, { "label": "沁源县", "value": "140431" }, { "label": "山西长治高新技术产业园区", "value": "140471" }, { "label": "潞城市", "value": "140481" }], [{ "label": "城区", "value": "140502" }, { "label": "沁水县", "value": "140521" }, { "label": "阳城县", "value": "140522" }, { "label": "陵川县", "value": "140524" }, { "label": "泽州县", "value": "140525" }, { "label": "高平市", "value": "140581" }], [{ "label": "朔城区", "value": "140602" }, { "label": "平鲁区", "value": "140603" }, { "label": "山阴县", "value": "140621" }, { "label": "应县", "value": "140622" }, { "label": "右玉县", "value": "140623" }, { "label": "怀仁县", "value": "140624" }, { "label": "山西朔州经济开发区", "value": "140671" }], [{ "label": "榆次区", "value": "140702" }, { "label": "榆社县", "value": "140721" }, { "label": "左权县", "value": "140722" }, { "label": "和顺县", "value": "140723" }, { "label": "昔阳县", "value": "140724" }, { "label": "寿阳县", "value": "140725" }, { "label": "太谷县", "value": "140726" }, { "label": "祁县", "value": "140727" }, { "label": "平遥县", "value": "140728" }, { "label": "灵石县", "value": "140729" }, { "label": "介休市", "value": "140781" }], [{ "label": "盐湖区", "value": "140802" }, { "label": "临猗县", "value": "140821" }, { "label": "万荣县", "value": "140822" }, { "label": "闻喜县", "value": "140823" }, { "label": "稷山县", "value": "140824" }, { "label": "新绛县", "value": "140825" }, { "label": "绛县", "value": "140826" }, { "label": "垣曲县", "value": "140827" }, { "label": "夏县", "value": "140828" }, { "label": "平陆县", "value": "140829" }, { "label": "芮城县", "value": "140830" }, { "label": "永济市", "value": "140881" }, { "label": "河津市", "value": "140882" }], [{ "label": "忻府区", "value": "140902" }, { "label": "定襄县", "value": "140921" }, { "label": "五台县", "value": "140922" }, { "label": "代县", "value": "140923" }, { "label": "繁峙县", "value": "140924" }, { "label": "宁武县", "value": "140925" }, { "label": "静乐县", "value": "140926" }, { "label": "神池县", "value": "140927" }, { "label": "五寨县", "value": "140928" }, { "label": "岢岚县", "value": "140929" }, { "label": "河曲县", "value": "140930" }, { "label": "保德县", "value": "140931" }, { "label": "偏关县", "value": "140932" }, { "label": "五台山风景名胜区", "value": "140971" }, { "label": "原平市", "value": "140981" }], [{ "label": "尧都区", "value": "141002" }, { "label": "曲沃县", "value": "141021" }, { "label": "翼城县", "value": "141022" }, { "label": "襄汾县", "value": "141023" }, { "label": "洪洞县", "value": "141024" }, { "label": "古县", "value": "141025" }, { "label": "安泽县", "value": "141026" }, { "label": "浮山县", "value": "141027" }, { "label": "吉县", "value": "141028" }, { "label": "乡宁县", "value": "141029" }, { "label": "大宁县", "value": "141030" }, { "label": "隰县", "value": "141031" }, { "label": "永和县", "value": "141032" }, { "label": "蒲县", "value": "141033" }, { "label": "汾西县", "value": "141034" }, { "label": "侯马市", "value": "141081" }, { "label": "霍州市", "value": "141082" }], [{ "label": "离石区", "value": "141102" }, { "label": "文水县", "value": "141121" }, { "label": "交城县", "value": "141122" }, { "label": "兴县", "value": "141123" }, { "label": "临县", "value": "141124" }, { "label": "柳林县", "value": "141125" }, { "label": "石楼县", "value": "141126" }, { "label": "岚县", "value": "141127" }, { "label": "方山县", "value": "141128" }, { "label": "中阳县", "value": "141129" }, { "label": "交口县", "value": "141130" }, { "label": "孝义市", "value": "141181" }, { "label": "汾阳市", "value": "141182" }]], [[{ "label": "新城区", "value": "150102" }, { "label": "回民区", "value": "150103" }, { "label": "玉泉区", "value": "150104" }, { "label": "赛罕区", "value": "150105" }, { "label": "土默特左旗", "value": "150121" }, { "label": "托克托县", "value": "150122" }, { "label": "和林格尔县", "value": "150123" }, { "label": "清水河县", "value": "150124" }, { "label": "武川县", "value": "150125" }, { "label": "呼和浩特金海工业园区", "value": "150171" }, { "label": "呼和浩特经济技术开发区", "value": "150172" }], [{ "label": "东河区", "value": "150202" }, { "label": "昆都仑区", "value": "150203" }, { "label": "青山区", "value": "150204" }, { "label": "石拐区", "value": "150205" }, { "label": "白云鄂博矿区", "value": "150206" }, { "label": "九原区", "value": "150207" }, { "label": "土默特右旗", "value": "150221" }, { "label": "固阳县", "value": "150222" }, { "label": "达尔罕茂明安联合旗", "value": "150223" }, { "label": "包头稀土高新技术产业开发区", "value": "150271" }], [{ "label": "海勃湾区", "value": "150302" }, { "label": "海南区", "value": "150303" }, { "label": "乌达区", "value": "150304" }], [{ "label": "红山区", "value": "150402" }, { "label": "元宝山区", "value": "150403" }, { "label": "松山区", "value": "150404" }, { "label": "阿鲁科尔沁旗", "value": "150421" }, { "label": "巴林左旗", "value": "150422" }, { "label": "巴林右旗", "value": "150423" }, { "label": "林西县", "value": "150424" }, { "label": "克什克腾旗", "value": "150425" }, { "label": "翁牛特旗", "value": "150426" }, { "label": "喀喇沁旗", "value": "150428" }, { "label": "宁城县", "value": "150429" }, { "label": "敖汉旗", "value": "150430" }], [{ "label": "科尔沁区", "value": "150502" }, { "label": "科尔沁左翼中旗", "value": "150521" }, { "label": "科尔沁左翼后旗", "value": "150522" }, { "label": "开鲁县", "value": "150523" }, { "label": "库伦旗", "value": "150524" }, { "label": "奈曼旗", "value": "150525" }, { "label": "扎鲁特旗", "value": "150526" }, { "label": "通辽经济技术开发区", "value": "150571" }, { "label": "霍林郭勒市", "value": "150581" }], [{ "label": "东胜区", "value": "150602" }, { "label": "康巴什区", "value": "150603" }, { "label": "达拉特旗", "value": "150621" }, { "label": "准格尔旗", "value": "150622" }, { "label": "鄂托克前旗", "value": "150623" }, { "label": "鄂托克旗", "value": "150624" }, { "label": "杭锦旗", "value": "150625" }, { "label": "乌审旗", "value": "150626" }, { "label": "伊金霍洛旗", "value": "150627" }], [{ "label": "海拉尔区", "value": "150702" }, { "label": "扎赉诺尔区", "value": "150703" }, { "label": "阿荣旗", "value": "150721" }, { "label": "莫力达瓦达斡尔族自治旗", "value": "150722" }, { "label": "鄂伦春自治旗", "value": "150723" }, { "label": "鄂温克族自治旗", "value": "150724" }, { "label": "陈巴尔虎旗", "value": "150725" }, { "label": "新巴尔虎左旗", "value": "150726" }, { "label": "新巴尔虎右旗", "value": "150727" }, { "label": "满洲里市", "value": "150781" }, { "label": "牙克石市", "value": "150782" }, { "label": "扎兰屯市", "value": "150783" }, { "label": "额尔古纳市", "value": "150784" }, { "label": "根河市", "value": "150785" }], [{ "label": "临河区", "value": "150802" }, { "label": "五原县", "value": "150821" }, { "label": "磴口县", "value": "150822" }, { "label": "乌拉特前旗", "value": "150823" }, { "label": "乌拉特中旗", "value": "150824" }, { "label": "乌拉特后旗", "value": "150825" }, { "label": "杭锦后旗", "value": "150826" }], [{ "label": "集宁区", "value": "150902" }, { "label": "卓资县", "value": "150921" }, { "label": "化德县", "value": "150922" }, { "label": "商都县", "value": "150923" }, { "label": "兴和县", "value": "150924" }, { "label": "凉城县", "value": "150925" }, { "label": "察哈尔右翼前旗", "value": "150926" }, { "label": "察哈尔右翼中旗", "value": "150927" }, { "label": "察哈尔右翼后旗", "value": "150928" }, { "label": "四子王旗", "value": "150929" }, { "label": "丰镇市", "value": "150981" }], [{ "label": "乌兰浩特市", "value": "152201" }, { "label": "阿尔山市", "value": "152202" }, { "label": "科尔沁右翼前旗", "value": "152221" }, { "label": "科尔沁右翼中旗", "value": "152222" }, { "label": "扎赉特旗", "value": "152223" }, { "label": "突泉县", "value": "152224" }], [{ "label": "二连浩特市", "value": "152501" }, { "label": "锡林浩特市", "value": "152502" }, { "label": "阿巴嘎旗", "value": "152522" }, { "label": "苏尼特左旗", "value": "152523" }, { "label": "苏尼特右旗", "value": "152524" }, { "label": "东乌珠穆沁旗", "value": "152525" }, { "label": "西乌珠穆沁旗", "value": "152526" }, { "label": "太仆寺旗", "value": "152527" }, { "label": "镶黄旗", "value": "152528" }, { "label": "正镶白旗", "value": "152529" }, { "label": "正蓝旗", "value": "152530" }, { "label": "多伦县", "value": "152531" }, { "label": "乌拉盖管委会", "value": "152571" }], [{ "label": "阿拉善左旗", "value": "152921" }, { "label": "阿拉善右旗", "value": "152922" }, { "label": "额济纳旗", "value": "152923" }, { "label": "内蒙古阿拉善经济开发区", "value": "152971" }]], [[{ "label": "和平区", "value": "210102" }, { "label": "沈河区", "value": "210103" }, { "label": "大东区", "value": "210104" }, { "label": "皇姑区", "value": "210105" }, { "label": "铁西区", "value": "210106" }, { "label": "苏家屯区", "value": "210111" }, { "label": "浑南区", "value": "210112" }, { "label": "沈北新区", "value": "210113" }, { "label": "于洪区", "value": "210114" }, { "label": "辽中区", "value": "210115" }, { "label": "康平县", "value": "210123" }, { "label": "法库县", "value": "210124" }, { "label": "新民市", "value": "210181" }], [{ "label": "中山区", "value": "210202" }, { "label": "西岗区", "value": "210203" }, { "label": "沙河口区", "value": "210204" }, { "label": "甘井子区", "value": "210211" }, { "label": "旅顺口区", "value": "210212" }, { "label": "金州区", "value": "210213" }, { "label": "普兰店区", "value": "210214" }, { "label": "长海县", "value": "210224" }, { "label": "瓦房店市", "value": "210281" }, { "label": "庄河市", "value": "210283" }], [{ "label": "铁东区", "value": "210302" }, { "label": "铁西区", "value": "210303" }, { "label": "立山区", "value": "210304" }, { "label": "千山区", "value": "210311" }, { "label": "台安县", "value": "210321" }, { "label": "岫岩满族自治县", "value": "210323" }, { "label": "海城市", "value": "210381" }], [{ "label": "新抚区", "value": "210402" }, { "label": "东洲区", "value": "210403" }, { "label": "望花区", "value": "210404" }, { "label": "顺城区", "value": "210411" }, { "label": "抚顺县", "value": "210421" }, { "label": "新宾满族自治县", "value": "210422" }, { "label": "清原满族自治县", "value": "210423" }], [{ "label": "平山区", "value": "210502" }, { "label": "溪湖区", "value": "210503" }, { "label": "明山区", "value": "210504" }, { "label": "南芬区", "value": "210505" }, { "label": "本溪满族自治县", "value": "210521" }, { "label": "桓仁满族自治县", "value": "210522" }], [{ "label": "元宝区", "value": "210602" }, { "label": "振兴区", "value": "210603" }, { "label": "振安区", "value": "210604" }, { "label": "宽甸满族自治县", "value": "210624" }, { "label": "东港市", "value": "210681" }, { "label": "凤城市", "value": "210682" }], [{ "label": "古塔区", "value": "210702" }, { "label": "凌河区", "value": "210703" }, { "label": "太和区", "value": "210711" }, { "label": "黑山县", "value": "210726" }, { "label": "义县", "value": "210727" }, { "label": "凌海市", "value": "210781" }, { "label": "北镇市", "value": "210782" }], [{ "label": "站前区", "value": "210802" }, { "label": "西市区", "value": "210803" }, { "label": "鲅鱼圈区", "value": "210804" }, { "label": "老边区", "value": "210811" }, { "label": "盖州市", "value": "210881" }, { "label": "大石桥市", "value": "210882" }], [{ "label": "海州区", "value": "210902" }, { "label": "新邱区", "value": "210903" }, { "label": "太平区", "value": "210904" }, { "label": "清河门区", "value": "210905" }, { "label": "细河区", "value": "210911" }, { "label": "阜新蒙古族自治县", "value": "210921" }, { "label": "彰武县", "value": "210922" }], [{ "label": "白塔区", "value": "211002" }, { "label": "文圣区", "value": "211003" }, { "label": "宏伟区", "value": "211004" }, { "label": "弓长岭区", "value": "211005" }, { "label": "太子河区", "value": "211011" }, { "label": "辽阳县", "value": "211021" }, { "label": "灯塔市", "value": "211081" }], [{ "label": "双台子区", "value": "211102" }, { "label": "兴隆台区", "value": "211103" }, { "label": "大洼区", "value": "211104" }, { "label": "盘山县", "value": "211122" }], [{ "label": "银州区", "value": "211202" }, { "label": "清河区", "value": "211204" }, { "label": "铁岭县", "value": "211221" }, { "label": "西丰县", "value": "211223" }, { "label": "昌图县", "value": "211224" }, { "label": "调兵山市", "value": "211281" }, { "label": "开原市", "value": "211282" }], [{ "label": "双塔区", "value": "211302" }, { "label": "龙城区", "value": "211303" }, { "label": "朝阳县", "value": "211321" }, { "label": "建平县", "value": "211322" }, { "label": "喀喇沁左翼蒙古族自治县", "value": "211324" }, { "label": "北票市", "value": "211381" }, { "label": "凌源市", "value": "211382" }], [{ "label": "连山区", "value": "211402" }, { "label": "龙港区", "value": "211403" }, { "label": "南票区", "value": "211404" }, { "label": "绥中县", "value": "211421" }, { "label": "建昌县", "value": "211422" }, { "label": "兴城市", "value": "211481" }]], [[{ "label": "南关区", "value": "220102" }, { "label": "宽城区", "value": "220103" }, { "label": "朝阳区", "value": "220104" }, { "label": "二道区", "value": "220105" }, { "label": "绿园区", "value": "220106" }, { "label": "双阳区", "value": "220112" }, { "label": "九台区", "value": "220113" }, { "label": "农安县", "value": "220122" }, { "label": "长春经济技术开发区", "value": "220171" }, { "label": "长春净月高新技术产业开发区", "value": "220172" }, { "label": "长春高新技术产业开发区", "value": "220173" }, { "label": "长春汽车经济技术开发区", "value": "220174" }, { "label": "榆树市", "value": "220182" }, { "label": "德惠市", "value": "220183" }], [{ "label": "昌邑区", "value": "220202" }, { "label": "龙潭区", "value": "220203" }, { "label": "船营区", "value": "220204" }, { "label": "丰满区", "value": "220211" }, { "label": "永吉县", "value": "220221" }, { "label": "吉林经济开发区", "value": "220271" }, { "label": "吉林高新技术产业开发区", "value": "220272" }, { "label": "吉林中国新加坡食品区", "value": "220273" }, { "label": "蛟河市", "value": "220281" }, { "label": "桦甸市", "value": "220282" }, { "label": "舒兰市", "value": "220283" }, { "label": "磐石市", "value": "220284" }], [{ "label": "铁西区", "value": "220302" }, { "label": "铁东区", "value": "220303" }, { "label": "梨树县", "value": "220322" }, { "label": "伊通满族自治县", "value": "220323" }, { "label": "公主岭市", "value": "220381" }, { "label": "双辽市", "value": "220382" }], [{ "label": "龙山区", "value": "220402" }, { "label": "西安区", "value": "220403" }, { "label": "东丰县", "value": "220421" }, { "label": "东辽县", "value": "220422" }], [{ "label": "东昌区", "value": "220502" }, { "label": "二道江区", "value": "220503" }, { "label": "通化县", "value": "220521" }, { "label": "辉南县", "value": "220523" }, { "label": "柳河县", "value": "220524" }, { "label": "梅河口市", "value": "220581" }, { "label": "集安市", "value": "220582" }], [{ "label": "浑江区", "value": "220602" }, { "label": "江源区", "value": "220605" }, { "label": "抚松县", "value": "220621" }, { "label": "靖宇县", "value": "220622" }, { "label": "长白朝鲜族自治县", "value": "220623" }, { "label": "临江市", "value": "220681" }], [{ "label": "宁江区", "value": "220702" }, { "label": "前郭尔罗斯蒙古族自治县", "value": "220721" }, { "label": "长岭县", "value": "220722" }, { "label": "乾安县", "value": "220723" }, { "label": "吉林松原经济开发区", "value": "220771" }, { "label": "扶余市", "value": "220781" }], [{ "label": "洮北区", "value": "220802" }, { "label": "镇赉县", "value": "220821" }, { "label": "通榆县", "value": "220822" }, { "label": "吉林白城经济开发区", "value": "220871" }, { "label": "洮南市", "value": "220881" }, { "label": "大安市", "value": "220882" }], [{ "label": "延吉市", "value": "222401" }, { "label": "图们市", "value": "222402" }, { "label": "敦化市", "value": "222403" }, { "label": "珲春市", "value": "222404" }, { "label": "龙井市", "value": "222405" }, { "label": "和龙市", "value": "222406" }, { "label": "汪清县", "value": "222424" }, { "label": "安图县", "value": "222426" }]], [[{ "label": "道里区", "value": "230102" }, { "label": "南岗区", "value": "230103" }, { "label": "道外区", "value": "230104" }, { "label": "平房区", "value": "230108" }, { "label": "松北区", "value": "230109" }, { "label": "香坊区", "value": "230110" }, { "label": "呼兰区", "value": "230111" }, { "label": "阿城区", "value": "230112" }, { "label": "双城区", "value": "230113" }, { "label": "依兰县", "value": "230123" }, { "label": "方正县", "value": "230124" }, { "label": "宾县", "value": "230125" }, { "label": "巴彦县", "value": "230126" }, { "label": "木兰县", "value": "230127" }, { "label": "通河县", "value": "230128" }, { "label": "延寿县", "value": "230129" }, { "label": "尚志市", "value": "230183" }, { "label": "五常市", "value": "230184" }], [{ "label": "龙沙区", "value": "230202" }, { "label": "建华区", "value": "230203" }, { "label": "铁锋区", "value": "230204" }, { "label": "昂昂溪区", "value": "230205" }, { "label": "富拉尔基区", "value": "230206" }, { "label": "碾子山区", "value": "230207" }, { "label": "梅里斯达斡尔族区", "value": "230208" }, { "label": "龙江县", "value": "230221" }, { "label": "依安县", "value": "230223" }, { "label": "泰来县", "value": "230224" }, { "label": "甘南县", "value": "230225" }, { "label": "富裕县", "value": "230227" }, { "label": "克山县", "value": "230229" }, { "label": "克东县", "value": "230230" }, { "label": "拜泉县", "value": "230231" }, { "label": "讷河市", "value": "230281" }], [{ "label": "鸡冠区", "value": "230302" }, { "label": "恒山区", "value": "230303" }, { "label": "滴道区", "value": "230304" }, { "label": "梨树区", "value": "230305" }, { "label": "城子河区", "value": "230306" }, { "label": "麻山区", "value": "230307" }, { "label": "鸡东县", "value": "230321" }, { "label": "虎林市", "value": "230381" }, { "label": "密山市", "value": "230382" }], [{ "label": "向阳区", "value": "230402" }, { "label": "工农区", "value": "230403" }, { "label": "南山区", "value": "230404" }, { "label": "兴安区", "value": "230405" }, { "label": "东山区", "value": "230406" }, { "label": "兴山区", "value": "230407" }, { "label": "萝北县", "value": "230421" }, { "label": "绥滨县", "value": "230422" }], [{ "label": "尖山区", "value": "230502" }, { "label": "岭东区", "value": "230503" }, { "label": "四方台区", "value": "230505" }, { "label": "宝山区", "value": "230506" }, { "label": "集贤县", "value": "230521" }, { "label": "友谊县", "value": "230522" }, { "label": "宝清县", "value": "230523" }, { "label": "饶河县", "value": "230524" }], [{ "label": "萨尔图区", "value": "230602" }, { "label": "龙凤区", "value": "230603" }, { "label": "让胡路区", "value": "230604" }, { "label": "红岗区", "value": "230605" }, { "label": "大同区", "value": "230606" }, { "label": "肇州县", "value": "230621" }, { "label": "肇源县", "value": "230622" }, { "label": "林甸县", "value": "230623" }, { "label": "杜尔伯特蒙古族自治县", "value": "230624" }, { "label": "大庆高新技术产业开发区", "value": "230671" }], [{ "label": "伊春区", "value": "230702" }, { "label": "南岔区", "value": "230703" }, { "label": "友好区", "value": "230704" }, { "label": "西林区", "value": "230705" }, { "label": "翠峦区", "value": "230706" }, { "label": "新青区", "value": "230707" }, { "label": "美溪区", "value": "230708" }, { "label": "金山屯区", "value": "230709" }, { "label": "五营区", "value": "230710" }, { "label": "乌马河区", "value": "230711" }, { "label": "汤旺河区", "value": "230712" }, { "label": "带岭区", "value": "230713" }, { "label": "乌伊岭区", "value": "230714" }, { "label": "红星区", "value": "230715" }, { "label": "上甘岭区", "value": "230716" }, { "label": "嘉荫县", "value": "230722" }, { "label": "铁力市", "value": "230781" }], [{ "label": "向阳区", "value": "230803" }, { "label": "前进区", "value": "230804" }, { "label": "东风区", "value": "230805" }, { "label": "郊区", "value": "230811" }, { "label": "桦南县", "value": "230822" }, { "label": "桦川县", "value": "230826" }, { "label": "汤原县", "value": "230828" }, { "label": "同江市", "value": "230881" }, { "label": "富锦市", "value": "230882" }, { "label": "抚远市", "value": "230883" }], [{ "label": "新兴区", "value": "230902" }, { "label": "桃山区", "value": "230903" }, { "label": "茄子河区", "value": "230904" }, { "label": "勃利县", "value": "230921" }], [{ "label": "东安区", "value": "231002" }, { "label": "阳明区", "value": "231003" }, { "label": "爱民区", "value": "231004" }, { "label": "西安区", "value": "231005" }, { "label": "林口县", "value": "231025" }, { "label": "牡丹江经济技术开发区", "value": "231071" }, { "label": "绥芬河市", "value": "231081" }, { "label": "海林市", "value": "231083" }, { "label": "宁安市", "value": "231084" }, { "label": "穆棱市", "value": "231085" }, { "label": "东宁市", "value": "231086" }], [{ "label": "爱辉区", "value": "231102" }, { "label": "嫩江县", "value": "231121" }, { "label": "逊克县", "value": "231123" }, { "label": "孙吴县", "value": "231124" }, { "label": "北安市", "value": "231181" }, { "label": "五大连池市", "value": "231182" }], [{ "label": "北林区", "value": "231202" }, { "label": "望奎县", "value": "231221" }, { "label": "兰西县", "value": "231222" }, { "label": "青冈县", "value": "231223" }, { "label": "庆安县", "value": "231224" }, { "label": "明水县", "value": "231225" }, { "label": "绥棱县", "value": "231226" }, { "label": "安达市", "value": "231281" }, { "label": "肇东市", "value": "231282" }, { "label": "海伦市", "value": "231283" }], [{ "label": "加格达奇区", "value": "232701" }, { "label": "松岭区", "value": "232702" }, { "label": "新林区", "value": "232703" }, { "label": "呼中区", "value": "232704" }, { "label": "呼玛县", "value": "232721" }, { "label": "塔河县", "value": "232722" }, { "label": "漠河县", "value": "232723" }]], [[{ "label": "黄浦区", "value": "310101" }, { "label": "徐汇区", "value": "310104" }, { "label": "长宁区", "value": "310105" }, { "label": "静安区", "value": "310106" }, { "label": "普陀区", "value": "310107" }, { "label": "虹口区", "value": "310109" }, { "label": "杨浦区", "value": "310110" }, { "label": "闵行区", "value": "310112" }, { "label": "宝山区", "value": "310113" }, { "label": "嘉定区", "value": "310114" }, { "label": "浦东新区", "value": "310115" }, { "label": "金山区", "value": "310116" }, { "label": "松江区", "value": "310117" }, { "label": "青浦区", "value": "310118" }, { "label": "奉贤区", "value": "310120" }, { "label": "崇明区", "value": "310151" }]], [[{ "label": "玄武区", "value": "320102" }, { "label": "秦淮区", "value": "320104" }, { "label": "建邺区", "value": "320105" }, { "label": "鼓楼区", "value": "320106" }, { "label": "浦口区", "value": "320111" }, { "label": "栖霞区", "value": "320113" }, { "label": "雨花台区", "value": "320114" }, { "label": "江宁区", "value": "320115" }, { "label": "六合区", "value": "320116" }, { "label": "溧水区", "value": "320117" }, { "label": "高淳区", "value": "320118" }], [{ "label": "锡山区", "value": "320205" }, { "label": "惠山区", "value": "320206" }, { "label": "滨湖区", "value": "320211" }, { "label": "梁溪区", "value": "320213" }, { "label": "新吴区", "value": "320214" }, { "label": "江阴市", "value": "320281" }, { "label": "宜兴市", "value": "320282" }], [{ "label": "鼓楼区", "value": "320302" }, { "label": "云龙区", "value": "320303" }, { "label": "贾汪区", "value": "320305" }, { "label": "泉山区", "value": "320311" }, { "label": "铜山区", "value": "320312" }, { "label": "丰县", "value": "320321" }, { "label": "沛县", "value": "320322" }, { "label": "睢宁县", "value": "320324" }, { "label": "徐州经济技术开发区", "value": "320371" }, { "label": "新沂市", "value": "320381" }, { "label": "邳州市", "value": "320382" }], [{ "label": "天宁区", "value": "320402" }, { "label": "钟楼区", "value": "320404" }, { "label": "新北区", "value": "320411" }, { "label": "武进区", "value": "320412" }, { "label": "金坛区", "value": "320413" }, { "label": "溧阳市", "value": "320481" }], [{ "label": "虎丘区", "value": "320505" }, { "label": "吴中区", "value": "320506" }, { "label": "相城区", "value": "320507" }, { "label": "姑苏区", "value": "320508" }, { "label": "吴江区", "value": "320509" }, { "label": "苏州工业园区", "value": "320571" }, { "label": "常熟市", "value": "320581" }, { "label": "张家港市", "value": "320582" }, { "label": "昆山市", "value": "320583" }, { "label": "太仓市", "value": "320585" }], [{ "label": "崇川区", "value": "320602" }, { "label": "港闸区", "value": "320611" }, { "label": "通州区", "value": "320612" }, { "label": "海安县", "value": "320621" }, { "label": "如东县", "value": "320623" }, { "label": "南通经济技术开发区", "value": "320671" }, { "label": "启东市", "value": "320681" }, { "label": "如皋市", "value": "320682" }, { "label": "海门市", "value": "320684" }], [{ "label": "连云区", "value": "320703" }, { "label": "海州区", "value": "320706" }, { "label": "赣榆区", "value": "320707" }, { "label": "东海县", "value": "320722" }, { "label": "灌云县", "value": "320723" }, { "label": "灌南县", "value": "320724" }, { "label": "连云港经济技术开发区", "value": "320771" }, { "label": "连云港高新技术产业开发区", "value": "320772" }], [{ "label": "淮安区", "value": "320803" }, { "label": "淮阴区", "value": "320804" }, { "label": "清江浦区", "value": "320812" }, { "label": "洪泽区", "value": "320813" }, { "label": "涟水县", "value": "320826" }, { "label": "盱眙县", "value": "320830" }, { "label": "金湖县", "value": "320831" }, { "label": "淮安经济技术开发区", "value": "320871" }], [{ "label": "亭湖区", "value": "320902" }, { "label": "盐都区", "value": "320903" }, { "label": "大丰区", "value": "320904" }, { "label": "响水县", "value": "320921" }, { "label": "滨海县", "value": "320922" }, { "label": "阜宁县", "value": "320923" }, { "label": "射阳县", "value": "320924" }, { "label": "建湖县", "value": "320925" }, { "label": "盐城经济技术开发区", "value": "320971" }, { "label": "东台市", "value": "320981" }], [{ "label": "广陵区", "value": "321002" }, { "label": "邗江区", "value": "321003" }, { "label": "江都区", "value": "321012" }, { "label": "宝应县", "value": "321023" }, { "label": "扬州经济技术开发区", "value": "321071" }, { "label": "仪征市", "value": "321081" }, { "label": "高邮市", "value": "321084" }], [{ "label": "京口区", "value": "321102" }, { "label": "润州区", "value": "321111" }, { "label": "丹徒区", "value": "321112" }, { "label": "镇江新区", "value": "321171" }, { "label": "丹阳市", "value": "321181" }, { "label": "扬中市", "value": "321182" }, { "label": "句容市", "value": "321183" }], [{ "label": "海陵区", "value": "321202" }, { "label": "高港区", "value": "321203" }, { "label": "姜堰区", "value": "321204" }, { "label": "泰州医药高新技术产业开发区", "value": "321271" }, { "label": "兴化市", "value": "321281" }, { "label": "靖江市", "value": "321282" }, { "label": "泰兴市", "value": "321283" }], [{ "label": "宿城区", "value": "321302" }, { "label": "宿豫区", "value": "321311" }, { "label": "沭阳县", "value": "321322" }, { "label": "泗阳县", "value": "321323" }, { "label": "泗洪县", "value": "321324" }, { "label": "宿迁经济技术开发区", "value": "321371" }]], [[{ "label": "上城区", "value": "330102" }, { "label": "下城区", "value": "330103" }, { "label": "江干区", "value": "330104" }, { "label": "拱墅区", "value": "330105" }, { "label": "西湖区", "value": "330106" }, { "label": "滨江区", "value": "330108" }, { "label": "萧山区", "value": "330109" }, { "label": "余杭区", "value": "330110" }, { "label": "富阳区", "value": "330111" }, { "label": "临安区", "value": "330112" }, { "label": "桐庐县", "value": "330122" }, { "label": "淳安县", "value": "330127" }, { "label": "建德市", "value": "330182" }], [{ "label": "海曙区", "value": "330203" }, { "label": "江北区", "value": "330205" }, { "label": "北仑区", "value": "330206" }, { "label": "镇海区", "value": "330211" }, { "label": "鄞州区", "value": "330212" }, { "label": "奉化区", "value": "330213" }, { "label": "象山县", "value": "330225" }, { "label": "宁海县", "value": "330226" }, { "label": "余姚市", "value": "330281" }, { "label": "慈溪市", "value": "330282" }], [{ "label": "鹿城区", "value": "330302" }, { "label": "龙湾区", "value": "330303" }, { "label": "瓯海区", "value": "330304" }, { "label": "洞头区", "value": "330305" }, { "label": "永嘉县", "value": "330324" }, { "label": "平阳县", "value": "330326" }, { "label": "苍南县", "value": "330327" }, { "label": "文成县", "value": "330328" }, { "label": "泰顺县", "value": "330329" }, { "label": "温州经济技术开发区", "value": "330371" }, { "label": "瑞安市", "value": "330381" }, { "label": "乐清市", "value": "330382" }], [{ "label": "南湖区", "value": "330402" }, { "label": "秀洲区", "value": "330411" }, { "label": "嘉善县", "value": "330421" }, { "label": "海盐县", "value": "330424" }, { "label": "海宁市", "value": "330481" }, { "label": "平湖市", "value": "330482" }, { "label": "桐乡市", "value": "330483" }], [{ "label": "吴兴区", "value": "330502" }, { "label": "南浔区", "value": "330503" }, { "label": "德清县", "value": "330521" }, { "label": "长兴县", "value": "330522" }, { "label": "安吉县", "value": "330523" }], [{ "label": "越城区", "value": "330602" }, { "label": "柯桥区", "value": "330603" }, { "label": "上虞区", "value": "330604" }, { "label": "新昌县", "value": "330624" }, { "label": "诸暨市", "value": "330681" }, { "label": "嵊州市", "value": "330683" }], [{ "label": "婺城区", "value": "330702" }, { "label": "金东区", "value": "330703" }, { "label": "武义县", "value": "330723" }, { "label": "浦江县", "value": "330726" }, { "label": "磐安县", "value": "330727" }, { "label": "兰溪市", "value": "330781" }, { "label": "义乌市", "value": "330782" }, { "label": "东阳市", "value": "330783" }, { "label": "永康市", "value": "330784" }], [{ "label": "柯城区", "value": "330802" }, { "label": "衢江区", "value": "330803" }, { "label": "常山县", "value": "330822" }, { "label": "开化县", "value": "330824" }, { "label": "龙游县", "value": "330825" }, { "label": "江山市", "value": "330881" }], [{ "label": "定海区", "value": "330902" }, { "label": "普陀区", "value": "330903" }, { "label": "岱山县", "value": "330921" }, { "label": "嵊泗县", "value": "330922" }], [{ "label": "椒江区", "value": "331002" }, { "label": "黄岩区", "value": "331003" }, { "label": "路桥区", "value": "331004" }, { "label": "三门县", "value": "331022" }, { "label": "天台县", "value": "331023" }, { "label": "仙居县", "value": "331024" }, { "label": "温岭市", "value": "331081" }, { "label": "临海市", "value": "331082" }, { "label": "玉环市", "value": "331083" }], [{ "label": "莲都区", "value": "331102" }, { "label": "青田县", "value": "331121" }, { "label": "缙云县", "value": "331122" }, { "label": "遂昌县", "value": "331123" }, { "label": "松阳县", "value": "331124" }, { "label": "云和县", "value": "331125" }, { "label": "庆元县", "value": "331126" }, { "label": "景宁畲族自治县", "value": "331127" }, { "label": "龙泉市", "value": "331181" }]], [[{ "label": "瑶海区", "value": "340102" }, { "label": "庐阳区", "value": "340103" }, { "label": "蜀山区", "value": "340104" }, { "label": "包河区", "value": "340111" }, { "label": "长丰县", "value": "340121" }, { "label": "肥东县", "value": "340122" }, { "label": "肥西县", "value": "340123" }, { "label": "庐江县", "value": "340124" }, { "label": "合肥高新技术产业开发区", "value": "340171" }, { "label": "合肥经济技术开发区", "value": "340172" }, { "label": "合肥新站高新技术产业开发区", "value": "340173" }, { "label": "巢湖市", "value": "340181" }], [{ "label": "镜湖区", "value": "340202" }, { "label": "弋江区", "value": "340203" }, { "label": "鸠江区", "value": "340207" }, { "label": "三山区", "value": "340208" }, { "label": "芜湖县", "value": "340221" }, { "label": "繁昌县", "value": "340222" }, { "label": "南陵县", "value": "340223" }, { "label": "无为县", "value": "340225" }, { "label": "芜湖经济技术开发区", "value": "340271" }, { "label": "安徽芜湖长江大桥经济开发区", "value": "340272" }], [{ "label": "龙子湖区", "value": "340302" }, { "label": "蚌山区", "value": "340303" }, { "label": "禹会区", "value": "340304" }, { "label": "淮上区", "value": "340311" }, { "label": "怀远县", "value": "340321" }, { "label": "五河县", "value": "340322" }, { "label": "固镇县", "value": "340323" }, { "label": "蚌埠市高新技术开发区", "value": "340371" }, { "label": "蚌埠市经济开发区", "value": "340372" }], [{ "label": "大通区", "value": "340402" }, { "label": "田家庵区", "value": "340403" }, { "label": "谢家集区", "value": "340404" }, { "label": "八公山区", "value": "340405" }, { "label": "潘集区", "value": "340406" }, { "label": "凤台县", "value": "340421" }, { "label": "寿县", "value": "340422" }], [{ "label": "花山区", "value": "340503" }, { "label": "雨山区", "value": "340504" }, { "label": "博望区", "value": "340506" }, { "label": "当涂县", "value": "340521" }, { "label": "含山县", "value": "340522" }, { "label": "和县", "value": "340523" }], [{ "label": "杜集区", "value": "340602" }, { "label": "相山区", "value": "340603" }, { "label": "烈山区", "value": "340604" }, { "label": "濉溪县", "value": "340621" }], [{ "label": "铜官区", "value": "340705" }, { "label": "义安区", "value": "340706" }, { "label": "郊区", "value": "340711" }, { "label": "枞阳县", "value": "340722" }], [{ "label": "迎江区", "value": "340802" }, { "label": "大观区", "value": "340803" }, { "label": "宜秀区", "value": "340811" }, { "label": "怀宁县", "value": "340822" }, { "label": "潜山县", "value": "340824" }, { "label": "太湖县", "value": "340825" }, { "label": "宿松县", "value": "340826" }, { "label": "望江县", "value": "340827" }, { "label": "岳西县", "value": "340828" }, { "label": "安徽安庆经济开发区", "value": "340871" }, { "label": "桐城市", "value": "340881" }], [{ "label": "屯溪区", "value": "341002" }, { "label": "黄山区", "value": "341003" }, { "label": "徽州区", "value": "341004" }, { "label": "歙县", "value": "341021" }, { "label": "休宁县", "value": "341022" }, { "label": "黟县", "value": "341023" }, { "label": "祁门县", "value": "341024" }], [{ "label": "琅琊区", "value": "341102" }, { "label": "南谯区", "value": "341103" }, { "label": "来安县", "value": "341122" }, { "label": "全椒县", "value": "341124" }, { "label": "定远县", "value": "341125" }, { "label": "凤阳县", "value": "341126" }, { "label": "苏滁现代产业园", "value": "341171" }, { "label": "滁州经济技术开发区", "value": "341172" }, { "label": "天长市", "value": "341181" }, { "label": "明光市", "value": "341182" }], [{ "label": "颍州区", "value": "341202" }, { "label": "颍东区", "value": "341203" }, { "label": "颍泉区", "value": "341204" }, { "label": "临泉县", "value": "341221" }, { "label": "太和县", "value": "341222" }, { "label": "阜南县", "value": "341225" }, { "label": "颍上县", "value": "341226" }, { "label": "阜阳合肥现代产业园区", "value": "341271" }, { "label": "阜阳经济技术开发区", "value": "341272" }, { "label": "界首市", "value": "341282" }], [{ "label": "埇桥区", "value": "341302" }, { "label": "砀山县", "value": "341321" }, { "label": "萧县", "value": "341322" }, { "label": "灵璧县", "value": "341323" }, { "label": "泗县", "value": "341324" }, { "label": "宿州马鞍山现代产业园区", "value": "341371" }, { "label": "宿州经济技术开发区", "value": "341372" }], [{ "label": "金安区", "value": "341502" }, { "label": "裕安区", "value": "341503" }, { "label": "叶集区", "value": "341504" }, { "label": "霍邱县", "value": "341522" }, { "label": "舒城县", "value": "341523" }, { "label": "金寨县", "value": "341524" }, { "label": "霍山县", "value": "341525" }], [{ "label": "谯城区", "value": "341602" }, { "label": "涡阳县", "value": "341621" }, { "label": "蒙城县", "value": "341622" }, { "label": "利辛县", "value": "341623" }], [{ "label": "贵池区", "value": "341702" }, { "label": "东至县", "value": "341721" }, { "label": "石台县", "value": "341722" }, { "label": "青阳县", "value": "341723" }], [{ "label": "宣州区", "value": "341802" }, { "label": "郎溪县", "value": "341821" }, { "label": "广德县", "value": "341822" }, { "label": "泾县", "value": "341823" }, { "label": "绩溪县", "value": "341824" }, { "label": "旌德县", "value": "341825" }, { "label": "宣城市经济开发区", "value": "341871" }, { "label": "宁国市", "value": "341881" }]], [[{ "label": "鼓楼区", "value": "350102" }, { "label": "台江区", "value": "350103" }, { "label": "仓山区", "value": "350104" }, { "label": "马尾区", "value": "350105" }, { "label": "晋安区", "value": "350111" }, { "label": "闽侯县", "value": "350121" }, { "label": "连江县", "value": "350122" }, { "label": "罗源县", "value": "350123" }, { "label": "闽清县", "value": "350124" }, { "label": "永泰县", "value": "350125" }, { "label": "平潭县", "value": "350128" }, { "label": "福清市", "value": "350181" }, { "label": "长乐市", "value": "350182" }], [{ "label": "思明区", "value": "350203" }, { "label": "海沧区", "value": "350205" }, { "label": "湖里区", "value": "350206" }, { "label": "集美区", "value": "350211" }, { "label": "同安区", "value": "350212" }, { "label": "翔安区", "value": "350213" }], [{ "label": "城厢区", "value": "350302" }, { "label": "涵江区", "value": "350303" }, { "label": "荔城区", "value": "350304" }, { "label": "秀屿区", "value": "350305" }, { "label": "仙游县", "value": "350322" }], [{ "label": "梅列区", "value": "350402" }, { "label": "三元区", "value": "350403" }, { "label": "明溪县", "value": "350421" }, { "label": "清流县", "value": "350423" }, { "label": "宁化县", "value": "350424" }, { "label": "大田县", "value": "350425" }, { "label": "尤溪县", "value": "350426" }, { "label": "沙县", "value": "350427" }, { "label": "将乐县", "value": "350428" }, { "label": "泰宁县", "value": "350429" }, { "label": "建宁县", "value": "350430" }, { "label": "永安市", "value": "350481" }], [{ "label": "鲤城区", "value": "350502" }, { "label": "丰泽区", "value": "350503" }, { "label": "洛江区", "value": "350504" }, { "label": "泉港区", "value": "350505" }, { "label": "惠安县", "value": "350521" }, { "label": "安溪县", "value": "350524" }, { "label": "永春县", "value": "350525" }, { "label": "德化县", "value": "350526" }, { "label": "金门县", "value": "350527" }, { "label": "石狮市", "value": "350581" }, { "label": "晋江市", "value": "350582" }, { "label": "南安市", "value": "350583" }], [{ "label": "芗城区", "value": "350602" }, { "label": "龙文区", "value": "350603" }, { "label": "云霄县", "value": "350622" }, { "label": "漳浦县", "value": "350623" }, { "label": "诏安县", "value": "350624" }, { "label": "长泰县", "value": "350625" }, { "label": "东山县", "value": "350626" }, { "label": "南靖县", "value": "350627" }, { "label": "平和县", "value": "350628" }, { "label": "华安县", "value": "350629" }, { "label": "龙海市", "value": "350681" }], [{ "label": "延平区", "value": "350702" }, { "label": "建阳区", "value": "350703" }, { "label": "顺昌县", "value": "350721" }, { "label": "浦城县", "value": "350722" }, { "label": "光泽县", "value": "350723" }, { "label": "松溪县", "value": "350724" }, { "label": "政和县", "value": "350725" }, { "label": "邵武市", "value": "350781" }, { "label": "武夷山市", "value": "350782" }, { "label": "建瓯市", "value": "350783" }], [{ "label": "新罗区", "value": "350802" }, { "label": "永定区", "value": "350803" }, { "label": "长汀县", "value": "350821" }, { "label": "上杭县", "value": "350823" }, { "label": "武平县", "value": "350824" }, { "label": "连城县", "value": "350825" }, { "label": "漳平市", "value": "350881" }], [{ "label": "蕉城区", "value": "350902" }, { "label": "霞浦县", "value": "350921" }, { "label": "古田县", "value": "350922" }, { "label": "屏南县", "value": "350923" }, { "label": "寿宁县", "value": "350924" }, { "label": "周宁县", "value": "350925" }, { "label": "柘荣县", "value": "350926" }, { "label": "福安市", "value": "350981" }, { "label": "福鼎市", "value": "350982" }]], [[{ "label": "东湖区", "value": "360102" }, { "label": "西湖区", "value": "360103" }, { "label": "青云谱区", "value": "360104" }, { "label": "湾里区", "value": "360105" }, { "label": "青山湖区", "value": "360111" }, { "label": "新建区", "value": "360112" }, { "label": "南昌县", "value": "360121" }, { "label": "安义县", "value": "360123" }, { "label": "进贤县", "value": "360124" }], [{ "label": "昌江区", "value": "360202" }, { "label": "珠山区", "value": "360203" }, { "label": "浮梁县", "value": "360222" }, { "label": "乐平市", "value": "360281" }], [{ "label": "安源区", "value": "360302" }, { "label": "湘东区", "value": "360313" }, { "label": "莲花县", "value": "360321" }, { "label": "上栗县", "value": "360322" }, { "label": "芦溪县", "value": "360323" }], [{ "label": "濂溪区", "value": "360402" }, { "label": "浔阳区", "value": "360403" }, { "label": "柴桑区", "value": "360404" }, { "label": "武宁县", "value": "360423" }, { "label": "修水县", "value": "360424" }, { "label": "永修县", "value": "360425" }, { "label": "德安县", "value": "360426" }, { "label": "都昌县", "value": "360428" }, { "label": "湖口县", "value": "360429" }, { "label": "彭泽县", "value": "360430" }, { "label": "瑞昌市", "value": "360481" }, { "label": "共青城市", "value": "360482" }, { "label": "庐山市", "value": "360483" }], [{ "label": "渝水区", "value": "360502" }, { "label": "分宜县", "value": "360521" }], [{ "label": "月湖区", "value": "360602" }, { "label": "余江县", "value": "360622" }, { "label": "贵溪市", "value": "360681" }], [{ "label": "章贡区", "value": "360702" }, { "label": "南康区", "value": "360703" }, { "label": "赣县区", "value": "360704" }, { "label": "信丰县", "value": "360722" }, { "label": "大余县", "value": "360723" }, { "label": "上犹县", "value": "360724" }, { "label": "崇义县", "value": "360725" }, { "label": "安远县", "value": "360726" }, { "label": "龙南县", "value": "360727" }, { "label": "定南县", "value": "360728" }, { "label": "全南县", "value": "360729" }, { "label": "宁都县", "value": "360730" }, { "label": "于都县", "value": "360731" }, { "label": "兴国县", "value": "360732" }, { "label": "会昌县", "value": "360733" }, { "label": "寻乌县", "value": "360734" }, { "label": "石城县", "value": "360735" }, { "label": "瑞金市", "value": "360781" }], [{ "label": "吉州区", "value": "360802" }, { "label": "青原区", "value": "360803" }, { "label": "吉安县", "value": "360821" }, { "label": "吉水县", "value": "360822" }, { "label": "峡江县", "value": "360823" }, { "label": "新干县", "value": "360824" }, { "label": "永丰县", "value": "360825" }, { "label": "泰和县", "value": "360826" }, { "label": "遂川县", "value": "360827" }, { "label": "万安县", "value": "360828" }, { "label": "安福县", "value": "360829" }, { "label": "永新县", "value": "360830" }, { "label": "井冈山市", "value": "360881" }], [{ "label": "袁州区", "value": "360902" }, { "label": "奉新县", "value": "360921" }, { "label": "万载县", "value": "360922" }, { "label": "上高县", "value": "360923" }, { "label": "宜丰县", "value": "360924" }, { "label": "靖安县", "value": "360925" }, { "label": "铜鼓县", "value": "360926" }, { "label": "丰城市", "value": "360981" }, { "label": "樟树市", "value": "360982" }, { "label": "高安市", "value": "360983" }], [{ "label": "临川区", "value": "361002" }, { "label": "东乡区", "value": "361003" }, { "label": "南城县", "value": "361021" }, { "label": "黎川县", "value": "361022" }, { "label": "南丰县", "value": "361023" }, { "label": "崇仁县", "value": "361024" }, { "label": "乐安县", "value": "361025" }, { "label": "宜黄县", "value": "361026" }, { "label": "金溪县", "value": "361027" }, { "label": "资溪县", "value": "361028" }, { "label": "广昌县", "value": "361030" }], [{ "label": "信州区", "value": "361102" }, { "label": "广丰区", "value": "361103" }, { "label": "上饶县", "value": "361121" }, { "label": "玉山县", "value": "361123" }, { "label": "铅山县", "value": "361124" }, { "label": "横峰县", "value": "361125" }, { "label": "弋阳县", "value": "361126" }, { "label": "余干县", "value": "361127" }, { "label": "鄱阳县", "value": "361128" }, { "label": "万年县", "value": "361129" }, { "label": "婺源县", "value": "361130" }, { "label": "德兴市", "value": "361181" }]], [[{ "label": "历下区", "value": "370102" }, { "label": "市中区", "value": "370103" }, { "label": "槐荫区", "value": "370104" }, { "label": "天桥区", "value": "370105" }, { "label": "历城区", "value": "370112" }, { "label": "长清区", "value": "370113" }, { "label": "章丘区", "value": "370114" }, { "label": "平阴县", "value": "370124" }, { "label": "济阳县", "value": "370125" }, { "label": "商河县", "value": "370126" }, { "label": "济南高新技术产业开发区", "value": "370171" }], [{ "label": "市南区", "value": "370202" }, { "label": "市北区", "value": "370203" }, { "label": "黄岛区", "value": "370211" }, { "label": "崂山区", "value": "370212" }, { "label": "李沧区", "value": "370213" }, { "label": "城阳区", "value": "370214" }, { "label": "即墨区", "value": "370215" }, { "label": "青岛高新技术产业开发区", "value": "370271" }, { "label": "胶州市", "value": "370281" }, { "label": "平度市", "value": "370283" }, { "label": "莱西市", "value": "370285" }], [{ "label": "淄川区", "value": "370302" }, { "label": "张店区", "value": "370303" }, { "label": "博山区", "value": "370304" }, { "label": "临淄区", "value": "370305" }, { "label": "周村区", "value": "370306" }, { "label": "桓台县", "value": "370321" }, { "label": "高青县", "value": "370322" }, { "label": "沂源县", "value": "370323" }], [{ "label": "市中区", "value": "370402" }, { "label": "薛城区", "value": "370403" }, { "label": "峄城区", "value": "370404" }, { "label": "台儿庄区", "value": "370405" }, { "label": "山亭区", "value": "370406" }, { "label": "滕州市", "value": "370481" }], [{ "label": "东营区", "value": "370502" }, { "label": "河口区", "value": "370503" }, { "label": "垦利区", "value": "370505" }, { "label": "利津县", "value": "370522" }, { "label": "广饶县", "value": "370523" }, { "label": "东营经济技术开发区", "value": "370571" }, { "label": "东营港经济开发区", "value": "370572" }], [{ "label": "芝罘区", "value": "370602" }, { "label": "福山区", "value": "370611" }, { "label": "牟平区", "value": "370612" }, { "label": "莱山区", "value": "370613" }, { "label": "长岛县", "value": "370634" }, { "label": "烟台高新技术产业开发区", "value": "370671" }, { "label": "烟台经济技术开发区", "value": "370672" }, { "label": "龙口市", "value": "370681" }, { "label": "莱阳市", "value": "370682" }, { "label": "莱州市", "value": "370683" }, { "label": "蓬莱市", "value": "370684" }, { "label": "招远市", "value": "370685" }, { "label": "栖霞市", "value": "370686" }, { "label": "海阳市", "value": "370687" }], [{ "label": "潍城区", "value": "370702" }, { "label": "寒亭区", "value": "370703" }, { "label": "坊子区", "value": "370704" }, { "label": "奎文区", "value": "370705" }, { "label": "临朐县", "value": "370724" }, { "label": "昌乐县", "value": "370725" }, { "label": "潍坊滨海经济技术开发区", "value": "370772" }, { "label": "青州市", "value": "370781" }, { "label": "诸城市", "value": "370782" }, { "label": "寿光市", "value": "370783" }, { "label": "安丘市", "value": "370784" }, { "label": "高密市", "value": "370785" }, { "label": "昌邑市", "value": "370786" }], [{ "label": "任城区", "value": "370811" }, { "label": "兖州区", "value": "370812" }, { "label": "微山县", "value": "370826" }, { "label": "鱼台县", "value": "370827" }, { "label": "金乡县", "value": "370828" }, { "label": "嘉祥县", "value": "370829" }, { "label": "汶上县", "value": "370830" }, { "label": "泗水县", "value": "370831" }, { "label": "梁山县", "value": "370832" }, { "label": "济宁高新技术产业开发区", "value": "370871" }, { "label": "曲阜市", "value": "370881" }, { "label": "邹城市", "value": "370883" }], [{ "label": "泰山区", "value": "370902" }, { "label": "岱岳区", "value": "370911" }, { "label": "宁阳县", "value": "370921" }, { "label": "东平县", "value": "370923" }, { "label": "新泰市", "value": "370982" }, { "label": "肥城市", "value": "370983" }], [{ "label": "环翠区", "value": "371002" }, { "label": "文登区", "value": "371003" }, { "label": "威海火炬高技术产业开发区", "value": "371071" }, { "label": "威海经济技术开发区", "value": "371072" }, { "label": "威海临港经济技术开发区", "value": "371073" }, { "label": "荣成市", "value": "371082" }, { "label": "乳山市", "value": "371083" }], [{ "label": "东港区", "value": "371102" }, { "label": "岚山区", "value": "371103" }, { "label": "五莲县", "value": "371121" }, { "label": "莒县", "value": "371122" }, { "label": "日照经济技术开发区", "value": "371171" }, { "label": "日照国际海洋城", "value": "371172" }], [{ "label": "莱城区", "value": "371202" }, { "label": "钢城区", "value": "371203" }], [{ "label": "兰山区", "value": "371302" }, { "label": "罗庄区", "value": "371311" }, { "label": "河东区", "value": "371312" }, { "label": "沂南县", "value": "371321" }, { "label": "郯城县", "value": "371322" }, { "label": "沂水县", "value": "371323" }, { "label": "兰陵县", "value": "371324" }, { "label": "费县", "value": "371325" }, { "label": "平邑县", "value": "371326" }, { "label": "莒南县", "value": "371327" }, { "label": "蒙阴县", "value": "371328" }, { "label": "临沭县", "value": "371329" }, { "label": "临沂高新技术产业开发区", "value": "371371" }, { "label": "临沂经济技术开发区", "value": "371372" }, { "label": "临沂临港经济开发区", "value": "371373" }], [{ "label": "德城区", "value": "371402" }, { "label": "陵城区", "value": "371403" }, { "label": "宁津县", "value": "371422" }, { "label": "庆云县", "value": "371423" }, { "label": "临邑县", "value": "371424" }, { "label": "齐河县", "value": "371425" }, { "label": "平原县", "value": "371426" }, { "label": "夏津县", "value": "371427" }, { "label": "武城县", "value": "371428" }, { "label": "德州经济技术开发区", "value": "371471" }, { "label": "德州运河经济开发区", "value": "371472" }, { "label": "乐陵市", "value": "371481" }, { "label": "禹城市", "value": "371482" }], [{ "label": "东昌府区", "value": "371502" }, { "label": "阳谷县", "value": "371521" }, { "label": "莘县", "value": "371522" }, { "label": "茌平县", "value": "371523" }, { "label": "东阿县", "value": "371524" }, { "label": "冠县", "value": "371525" }, { "label": "高唐县", "value": "371526" }, { "label": "临清市", "value": "371581" }], [{ "label": "滨城区", "value": "371602" }, { "label": "沾化区", "value": "371603" }, { "label": "惠民县", "value": "371621" }, { "label": "阳信县", "value": "371622" }, { "label": "无棣县", "value": "371623" }, { "label": "博兴县", "value": "371625" }, { "label": "邹平县", "value": "371626" }], [{ "label": "牡丹区", "value": "371702" }, { "label": "定陶区", "value": "371703" }, { "label": "曹县", "value": "371721" }, { "label": "单县", "value": "371722" }, { "label": "成武县", "value": "371723" }, { "label": "巨野县", "value": "371724" }, { "label": "郓城县", "value": "371725" }, { "label": "鄄城县", "value": "371726" }, { "label": "东明县", "value": "371728" }, { "label": "菏泽经济技术开发区", "value": "371771" }, { "label": "菏泽高新技术开发区", "value": "371772" }]], [[{ "label": "中原区", "value": "410102" }, { "label": "二七区", "value": "410103" }, { "label": "管城回族区", "value": "410104" }, { "label": "金水区", "value": "410105" }, { "label": "上街区", "value": "410106" }, { "label": "惠济区", "value": "410108" }, { "label": "中牟县", "value": "410122" }, { "label": "郑州经济技术开发区", "value": "410171" }, { "label": "郑州高新技术产业开发区", "value": "410172" }, { "label": "郑州航空港经济综合实验区", "value": "410173" }, { "label": "巩义市", "value": "410181" }, { "label": "荥阳市", "value": "410182" }, { "label": "新密市", "value": "410183" }, { "label": "新郑市", "value": "410184" }, { "label": "登封市", "value": "410185" }], [{ "label": "龙亭区", "value": "410202" }, { "label": "顺河回族区", "value": "410203" }, { "label": "鼓楼区", "value": "410204" }, { "label": "禹王台区", "value": "410205" }, { "label": "祥符区", "value": "410212" }, { "label": "杞县", "value": "410221" }, { "label": "通许县", "value": "410222" }, { "label": "尉氏县", "value": "410223" }, { "label": "兰考县", "value": "410225" }], [{ "label": "老城区", "value": "410302" }, { "label": "西工区", "value": "410303" }, { "label": "瀍河回族区", "value": "410304" }, { "label": "涧西区", "value": "410305" }, { "label": "吉利区", "value": "410306" }, { "label": "洛龙区", "value": "410311" }, { "label": "孟津县", "value": "410322" }, { "label": "新安县", "value": "410323" }, { "label": "栾川县", "value": "410324" }, { "label": "嵩县", "value": "410325" }, { "label": "汝阳县", "value": "410326" }, { "label": "宜阳县", "value": "410327" }, { "label": "洛宁县", "value": "410328" }, { "label": "伊川县", "value": "410329" }, { "label": "洛阳高新技术产业开发区", "value": "410371" }, { "label": "偃师市", "value": "410381" }], [{ "label": "新华区", "value": "410402" }, { "label": "卫东区", "value": "410403" }, { "label": "石龙区", "value": "410404" }, { "label": "湛河区", "value": "410411" }, { "label": "宝丰县", "value": "410421" }, { "label": "叶县", "value": "410422" }, { "label": "鲁山县", "value": "410423" }, { "label": "郏县", "value": "410425" }, { "label": "平顶山高新技术产业开发区", "value": "410471" }, { "label": "平顶山市新城区", "value": "410472" }, { "label": "舞钢市", "value": "410481" }, { "label": "汝州市", "value": "410482" }], [{ "label": "文峰区", "value": "410502" }, { "label": "北关区", "value": "410503" }, { "label": "殷都区", "value": "410505" }, { "label": "龙安区", "value": "410506" }, { "label": "安阳县", "value": "410522" }, { "label": "汤阴县", "value": "410523" }, { "label": "滑县", "value": "410526" }, { "label": "内黄县", "value": "410527" }, { "label": "安阳高新技术产业开发区", "value": "410571" }, { "label": "林州市", "value": "410581" }], [{ "label": "鹤山区", "value": "410602" }, { "label": "山城区", "value": "410603" }, { "label": "淇滨区", "value": "410611" }, { "label": "浚县", "value": "410621" }, { "label": "淇县", "value": "410622" }, { "label": "鹤壁经济技术开发区", "value": "410671" }], [{ "label": "红旗区", "value": "410702" }, { "label": "卫滨区", "value": "410703" }, { "label": "凤泉区", "value": "410704" }, { "label": "牧野区", "value": "410711" }, { "label": "新乡县", "value": "410721" }, { "label": "获嘉县", "value": "410724" }, { "label": "原阳县", "value": "410725" }, { "label": "延津县", "value": "410726" }, { "label": "封丘县", "value": "410727" }, { "label": "长垣县", "value": "410728" }, { "label": "新乡高新技术产业开发区", "value": "410771" }, { "label": "新乡经济技术开发区", "value": "410772" }, { "label": "新乡市平原城乡一体化示范区", "value": "410773" }, { "label": "卫辉市", "value": "410781" }, { "label": "辉县市", "value": "410782" }], [{ "label": "解放区", "value": "410802" }, { "label": "中站区", "value": "410803" }, { "label": "马村区", "value": "410804" }, { "label": "山阳区", "value": "410811" }, { "label": "修武县", "value": "410821" }, { "label": "博爱县", "value": "410822" }, { "label": "武陟县", "value": "410823" }, { "label": "温县", "value": "410825" }, { "label": "焦作城乡一体化示范区", "value": "410871" }, { "label": "沁阳市", "value": "410882" }, { "label": "孟州市", "value": "410883" }], [{ "label": "华龙区", "value": "410902" }, { "label": "清丰县", "value": "410922" }, { "label": "南乐县", "value": "410923" }, { "label": "范县", "value": "410926" }, { "label": "台前县", "value": "410927" }, { "label": "濮阳县", "value": "410928" }, { "label": "河南濮阳工业园区", "value": "410971" }, { "label": "濮阳经济技术开发区", "value": "410972" }], [{ "label": "魏都区", "value": "411002" }, { "label": "建安区", "value": "411003" }, { "label": "鄢陵县", "value": "411024" }, { "label": "襄城县", "value": "411025" }, { "label": "许昌经济技术开发区", "value": "411071" }, { "label": "禹州市", "value": "411081" }, { "label": "长葛市", "value": "411082" }], [{ "label": "源汇区", "value": "411102" }, { "label": "郾城区", "value": "411103" }, { "label": "召陵区", "value": "411104" }, { "label": "舞阳县", "value": "411121" }, { "label": "临颍县", "value": "411122" }, { "label": "漯河经济技术开发区", "value": "411171" }], [{ "label": "湖滨区", "value": "411202" }, { "label": "陕州区", "value": "411203" }, { "label": "渑池县", "value": "411221" }, { "label": "卢氏县", "value": "411224" }, { "label": "河南三门峡经济开发区", "value": "411271" }, { "label": "义马市", "value": "411281" }, { "label": "灵宝市", "value": "411282" }], [{ "label": "宛城区", "value": "411302" }, { "label": "卧龙区", "value": "411303" }, { "label": "南召县", "value": "411321" }, { "label": "方城县", "value": "411322" }, { "label": "西峡县", "value": "411323" }, { "label": "镇平县", "value": "411324" }, { "label": "内乡县", "value": "411325" }, { "label": "淅川县", "value": "411326" }, { "label": "社旗县", "value": "411327" }, { "label": "唐河县", "value": "411328" }, { "label": "新野县", "value": "411329" }, { "label": "桐柏县", "value": "411330" }, { "label": "南阳高新技术产业开发区", "value": "411371" }, { "label": "南阳市城乡一体化示范区", "value": "411372" }, { "label": "邓州市", "value": "411381" }], [{ "label": "梁园区", "value": "411402" }, { "label": "睢阳区", "value": "411403" }, { "label": "民权县", "value": "411421" }, { "label": "睢县", "value": "411422" }, { "label": "宁陵县", "value": "411423" }, { "label": "柘城县", "value": "411424" }, { "label": "虞城县", "value": "411425" }, { "label": "夏邑县", "value": "411426" }, { "label": "豫东综合物流产业聚集区", "value": "411471" }, { "label": "河南商丘经济开发区", "value": "411472" }, { "label": "永城市", "value": "411481" }], [{ "label": "浉河区", "value": "411502" }, { "label": "平桥区", "value": "411503" }, { "label": "罗山县", "value": "411521" }, { "label": "光山县", "value": "411522" }, { "label": "新县", "value": "411523" }, { "label": "商城县", "value": "411524" }, { "label": "固始县", "value": "411525" }, { "label": "潢川县", "value": "411526" }, { "label": "淮滨县", "value": "411527" }, { "label": "息县", "value": "411528" }, { "label": "信阳高新技术产业开发区", "value": "411571" }], [{ "label": "川汇区", "value": "411602" }, { "label": "扶沟县", "value": "411621" }, { "label": "西华县", "value": "411622" }, { "label": "商水县", "value": "411623" }, { "label": "沈丘县", "value": "411624" }, { "label": "郸城县", "value": "411625" }, { "label": "淮阳县", "value": "411626" }, { "label": "太康县", "value": "411627" }, { "label": "鹿邑县", "value": "411628" }, { "label": "河南周口经济开发区", "value": "411671" }, { "label": "项城市", "value": "411681" }], [{ "label": "驿城区", "value": "411702" }, { "label": "西平县", "value": "411721" }, { "label": "上蔡县", "value": "411722" }, { "label": "平舆县", "value": "411723" }, { "label": "正阳县", "value": "411724" }, { "label": "确山县", "value": "411725" }, { "label": "泌阳县", "value": "411726" }, { "label": "汝南县", "value": "411727" }, { "label": "遂平县", "value": "411728" }, { "label": "新蔡县", "value": "411729" }, { "label": "河南驻马店经济开发区", "value": "411771" }], [{ "label": "济源市", "value": "419001" }]], [[{ "label": "江岸区", "value": "420102" }, { "label": "江汉区", "value": "420103" }, { "label": "硚口区", "value": "420104" }, { "label": "汉阳区", "value": "420105" }, { "label": "武昌区", "value": "420106" }, { "label": "青山区", "value": "420107" }, { "label": "洪山区", "value": "420111" }, { "label": "东西湖区", "value": "420112" }, { "label": "汉南区", "value": "420113" }, { "label": "蔡甸区", "value": "420114" }, { "label": "江夏区", "value": "420115" }, { "label": "黄陂区", "value": "420116" }, { "label": "新洲区", "value": "420117" }], [{ "label": "黄石港区", "value": "420202" }, { "label": "西塞山区", "value": "420203" }, { "label": "下陆区", "value": "420204" }, { "label": "铁山区", "value": "420205" }, { "label": "阳新县", "value": "420222" }, { "label": "大冶市", "value": "420281" }], [{ "label": "茅箭区", "value": "420302" }, { "label": "张湾区", "value": "420303" }, { "label": "郧阳区", "value": "420304" }, { "label": "郧西县", "value": "420322" }, { "label": "竹山县", "value": "420323" }, { "label": "竹溪县", "value": "420324" }, { "label": "房县", "value": "420325" }, { "label": "丹江口市", "value": "420381" }], [{ "label": "西陵区", "value": "420502" }, { "label": "伍家岗区", "value": "420503" }, { "label": "点军区", "value": "420504" }, { "label": "猇亭区", "value": "420505" }, { "label": "夷陵区", "value": "420506" }, { "label": "远安县", "value": "420525" }, { "label": "兴山县", "value": "420526" }, { "label": "秭归县", "value": "420527" }, { "label": "长阳土家族自治县", "value": "420528" }, { "label": "五峰土家族自治县", "value": "420529" }, { "label": "宜都市", "value": "420581" }, { "label": "当阳市", "value": "420582" }, { "label": "枝江市", "value": "420583" }], [{ "label": "襄城区", "value": "420602" }, { "label": "樊城区", "value": "420606" }, { "label": "襄州区", "value": "420607" }, { "label": "南漳县", "value": "420624" }, { "label": "谷城县", "value": "420625" }, { "label": "保康县", "value": "420626" }, { "label": "老河口市", "value": "420682" }, { "label": "枣阳市", "value": "420683" }, { "label": "宜城市", "value": "420684" }], [{ "label": "梁子湖区", "value": "420702" }, { "label": "华容区", "value": "420703" }, { "label": "鄂城区", "value": "420704" }], [{ "label": "东宝区", "value": "420802" }, { "label": "掇刀区", "value": "420804" }, { "label": "京山县", "value": "420821" }, { "label": "沙洋县", "value": "420822" }, { "label": "钟祥市", "value": "420881" }], [{ "label": "孝南区", "value": "420902" }, { "label": "孝昌县", "value": "420921" }, { "label": "大悟县", "value": "420922" }, { "label": "云梦县", "value": "420923" }, { "label": "应城市", "value": "420981" }, { "label": "安陆市", "value": "420982" }, { "label": "汉川市", "value": "420984" }], [{ "label": "沙市区", "value": "421002" }, { "label": "荆州区", "value": "421003" }, { "label": "公安县", "value": "421022" }, { "label": "监利县", "value": "421023" }, { "label": "江陵县", "value": "421024" }, { "label": "荆州经济技术开发区", "value": "421071" }, { "label": "石首市", "value": "421081" }, { "label": "洪湖市", "value": "421083" }, { "label": "松滋市", "value": "421087" }], [{ "label": "黄州区", "value": "421102" }, { "label": "团风县", "value": "421121" }, { "label": "红安县", "value": "421122" }, { "label": "罗田县", "value": "421123" }, { "label": "英山县", "value": "421124" }, { "label": "浠水县", "value": "421125" }, { "label": "蕲春县", "value": "421126" }, { "label": "黄梅县", "value": "421127" }, { "label": "龙感湖管理区", "value": "421171" }, { "label": "麻城市", "value": "421181" }, { "label": "武穴市", "value": "421182" }], [{ "label": "咸安区", "value": "421202" }, { "label": "嘉鱼县", "value": "421221" }, { "label": "通城县", "value": "421222" }, { "label": "崇阳县", "value": "421223" }, { "label": "通山县", "value": "421224" }, { "label": "赤壁市", "value": "421281" }], [{ "label": "曾都区", "value": "421303" }, { "label": "随县", "value": "421321" }, { "label": "广水市", "value": "421381" }], [{ "label": "恩施市", "value": "422801" }, { "label": "利川市", "value": "422802" }, { "label": "建始县", "value": "422822" }, { "label": "巴东县", "value": "422823" }, { "label": "宣恩县", "value": "422825" }, { "label": "咸丰县", "value": "422826" }, { "label": "来凤县", "value": "422827" }, { "label": "鹤峰县", "value": "422828" }], [{ "label": "仙桃市", "value": "429004" }, { "label": "潜江市", "value": "429005" }, { "label": "天门市", "value": "429006" }, { "label": "神农架林区", "value": "429021" }]], [[{ "label": "芙蓉区", "value": "430102" }, { "label": "天心区", "value": "430103" }, { "label": "岳麓区", "value": "430104" }, { "label": "开福区", "value": "430105" }, { "label": "雨花区", "value": "430111" }, { "label": "望城区", "value": "430112" }, { "label": "长沙县", "value": "430121" }, { "label": "浏阳市", "value": "430181" }, { "label": "宁乡市", "value": "430182" }], [{ "label": "荷塘区", "value": "430202" }, { "label": "芦淞区", "value": "430203" }, { "label": "石峰区", "value": "430204" }, { "label": "天元区", "value": "430211" }, { "label": "株洲县", "value": "430221" }, { "label": "攸县", "value": "430223" }, { "label": "茶陵县", "value": "430224" }, { "label": "炎陵县", "value": "430225" }, { "label": "云龙示范区", "value": "430271" }, { "label": "醴陵市", "value": "430281" }], [{ "label": "雨湖区", "value": "430302" }, { "label": "岳塘区", "value": "430304" }, { "label": "湘潭县", "value": "430321" }, { "label": "湖南湘潭高新技术产业园区", "value": "430371" }, { "label": "湘潭昭山示范区", "value": "430372" }, { "label": "湘潭九华示范区", "value": "430373" }, { "label": "湘乡市", "value": "430381" }, { "label": "韶山市", "value": "430382" }], [{ "label": "珠晖区", "value": "430405" }, { "label": "雁峰区", "value": "430406" }, { "label": "石鼓区", "value": "430407" }, { "label": "蒸湘区", "value": "430408" }, { "label": "南岳区", "value": "430412" }, { "label": "衡阳县", "value": "430421" }, { "label": "衡南县", "value": "430422" }, { "label": "衡山县", "value": "430423" }, { "label": "衡东县", "value": "430424" }, { "label": "祁东县", "value": "430426" }, { "label": "衡阳综合保税区", "value": "430471" }, { "label": "湖南衡阳高新技术产业园区", "value": "430472" }, { "label": "湖南衡阳松木经济开发区", "value": "430473" }, { "label": "耒阳市", "value": "430481" }, { "label": "常宁市", "value": "430482" }], [{ "label": "双清区", "value": "430502" }, { "label": "大祥区", "value": "430503" }, { "label": "北塔区", "value": "430511" }, { "label": "邵东县", "value": "430521" }, { "label": "新邵县", "value": "430522" }, { "label": "邵阳县", "value": "430523" }, { "label": "隆回县", "value": "430524" }, { "label": "洞口县", "value": "430525" }, { "label": "绥宁县", "value": "430527" }, { "label": "新宁县", "value": "430528" }, { "label": "城步苗族自治县", "value": "430529" }, { "label": "武冈市", "value": "430581" }], [{ "label": "岳阳楼区", "value": "430602" }, { "label": "云溪区", "value": "430603" }, { "label": "君山区", "value": "430611" }, { "label": "岳阳县", "value": "430621" }, { "label": "华容县", "value": "430623" }, { "label": "湘阴县", "value": "430624" }, { "label": "平江县", "value": "430626" }, { "label": "岳阳市屈原管理区", "value": "430671" }, { "label": "汨罗市", "value": "430681" }, { "label": "临湘市", "value": "430682" }], [{ "label": "武陵区", "value": "430702" }, { "label": "鼎城区", "value": "430703" }, { "label": "安乡县", "value": "430721" }, { "label": "汉寿县", "value": "430722" }, { "label": "澧县", "value": "430723" }, { "label": "临澧县", "value": "430724" }, { "label": "桃源县", "value": "430725" }, { "label": "石门县", "value": "430726" }, { "label": "常德市西洞庭管理区", "value": "430771" }, { "label": "津市市", "value": "430781" }], [{ "label": "永定区", "value": "430802" }, { "label": "武陵源区", "value": "430811" }, { "label": "慈利县", "value": "430821" }, { "label": "桑植县", "value": "430822" }], [{ "label": "资阳区", "value": "430902" }, { "label": "赫山区", "value": "430903" }, { "label": "南县", "value": "430921" }, { "label": "桃江县", "value": "430922" }, { "label": "安化县", "value": "430923" }, { "label": "益阳市大通湖管理区", "value": "430971" }, { "label": "湖南益阳高新技术产业园区", "value": "430972" }, { "label": "沅江市", "value": "430981" }], [{ "label": "北湖区", "value": "431002" }, { "label": "苏仙区", "value": "431003" }, { "label": "桂阳县", "value": "431021" }, { "label": "宜章县", "value": "431022" }, { "label": "永兴县", "value": "431023" }, { "label": "嘉禾县", "value": "431024" }, { "label": "临武县", "value": "431025" }, { "label": "汝城县", "value": "431026" }, { "label": "桂东县", "value": "431027" }, { "label": "安仁县", "value": "431028" }, { "label": "资兴市", "value": "431081" }], [{ "label": "零陵区", "value": "431102" }, { "label": "冷水滩区", "value": "431103" }, { "label": "祁阳县", "value": "431121" }, { "label": "东安县", "value": "431122" }, { "label": "双牌县", "value": "431123" }, { "label": "道县", "value": "431124" }, { "label": "江永县", "value": "431125" }, { "label": "宁远县", "value": "431126" }, { "label": "蓝山县", "value": "431127" }, { "label": "新田县", "value": "431128" }, { "label": "江华瑶族自治县", "value": "431129" }, { "label": "永州经济技术开发区", "value": "431171" }, { "label": "永州市金洞管理区", "value": "431172" }, { "label": "永州市回龙圩管理区", "value": "431173" }], [{ "label": "鹤城区", "value": "431202" }, { "label": "中方县", "value": "431221" }, { "label": "沅陵县", "value": "431222" }, { "label": "辰溪县", "value": "431223" }, { "label": "溆浦县", "value": "431224" }, { "label": "会同县", "value": "431225" }, { "label": "麻阳苗族自治县", "value": "431226" }, { "label": "新晃侗族自治县", "value": "431227" }, { "label": "芷江侗族自治县", "value": "431228" }, { "label": "靖州苗族侗族自治县", "value": "431229" }, { "label": "通道侗族自治县", "value": "431230" }, { "label": "怀化市洪江管理区", "value": "431271" }, { "label": "洪江市", "value": "431281" }], [{ "label": "娄星区", "value": "431302" }, { "label": "双峰县", "value": "431321" }, { "label": "新化县", "value": "431322" }, { "label": "冷水江市", "value": "431381" }, { "label": "涟源市", "value": "431382" }], [{ "label": "吉首市", "value": "433101" }, { "label": "泸溪县", "value": "433122" }, { "label": "凤凰县", "value": "433123" }, { "label": "花垣县", "value": "433124" }, { "label": "保靖县", "value": "433125" }, { "label": "古丈县", "value": "433126" }, { "label": "永顺县", "value": "433127" }, { "label": "龙山县", "value": "433130" }, { "label": "湖南吉首经济开发区", "value": "433172" }, { "label": "湖南永顺经济开发区", "value": "433173" }]], [[{ "label": "荔湾区", "value": "440103" }, { "label": "越秀区", "value": "440104" }, { "label": "海珠区", "value": "440105" }, { "label": "天河区", "value": "440106" }, { "label": "白云区", "value": "440111" }, { "label": "黄埔区", "value": "440112" }, { "label": "番禺区", "value": "440113" }, { "label": "花都区", "value": "440114" }, { "label": "南沙区", "value": "440115" }, { "label": "从化区", "value": "440117" }, { "label": "增城区", "value": "440118" }], [{ "label": "武江区", "value": "440203" }, { "label": "浈江区", "value": "440204" }, { "label": "曲江区", "value": "440205" }, { "label": "始兴县", "value": "440222" }, { "label": "仁化县", "value": "440224" }, { "label": "翁源县", "value": "440229" }, { "label": "乳源瑶族自治县", "value": "440232" }, { "label": "新丰县", "value": "440233" }, { "label": "乐昌市", "value": "440281" }, { "label": "南雄市", "value": "440282" }], [{ "label": "罗湖区", "value": "440303" }, { "label": "福田区", "value": "440304" }, { "label": "南山区", "value": "440305" }, { "label": "宝安区", "value": "440306" }, { "label": "龙岗区", "value": "440307" }, { "label": "盐田区", "value": "440308" }, { "label": "龙华区", "value": "440309" }, { "label": "坪山区", "value": "440310" }], [{ "label": "香洲区", "value": "440402" }, { "label": "斗门区", "value": "440403" }, { "label": "金湾区", "value": "440404" }], [{ "label": "龙湖区", "value": "440507" }, { "label": "金平区", "value": "440511" }, { "label": "濠江区", "value": "440512" }, { "label": "潮阳区", "value": "440513" }, { "label": "潮南区", "value": "440514" }, { "label": "澄海区", "value": "440515" }, { "label": "南澳县", "value": "440523" }], [{ "label": "禅城区", "value": "440604" }, { "label": "南海区", "value": "440605" }, { "label": "顺德区", "value": "440606" }, { "label": "三水区", "value": "440607" }, { "label": "高明区", "value": "440608" }], [{ "label": "蓬江区", "value": "440703" }, { "label": "江海区", "value": "440704" }, { "label": "新会区", "value": "440705" }, { "label": "台山市", "value": "440781" }, { "label": "开平市", "value": "440783" }, { "label": "鹤山市", "value": "440784" }, { "label": "恩平市", "value": "440785" }], [{ "label": "赤坎区", "value": "440802" }, { "label": "霞山区", "value": "440803" }, { "label": "坡头区", "value": "440804" }, { "label": "麻章区", "value": "440811" }, { "label": "遂溪县", "value": "440823" }, { "label": "徐闻县", "value": "440825" }, { "label": "廉江市", "value": "440881" }, { "label": "雷州市", "value": "440882" }, { "label": "吴川市", "value": "440883" }], [{ "label": "茂南区", "value": "440902" }, { "label": "电白区", "value": "440904" }, { "label": "高州市", "value": "440981" }, { "label": "化州市", "value": "440982" }, { "label": "信宜市", "value": "440983" }], [{ "label": "端州区", "value": "441202" }, { "label": "鼎湖区", "value": "441203" }, { "label": "高要区", "value": "441204" }, { "label": "广宁县", "value": "441223" }, { "label": "怀集县", "value": "441224" }, { "label": "封开县", "value": "441225" }, { "label": "德庆县", "value": "441226" }, { "label": "四会市", "value": "441284" }], [{ "label": "惠城区", "value": "441302" }, { "label": "惠阳区", "value": "441303" }, { "label": "博罗县", "value": "441322" }, { "label": "惠东县", "value": "441323" }, { "label": "龙门县", "value": "441324" }], [{ "label": "梅江区", "value": "441402" }, { "label": "梅县区", "value": "441403" }, { "label": "大埔县", "value": "441422" }, { "label": "丰顺县", "value": "441423" }, { "label": "五华县", "value": "441424" }, { "label": "平远县", "value": "441426" }, { "label": "蕉岭县", "value": "441427" }, { "label": "兴宁市", "value": "441481" }], [{ "label": "城区", "value": "441502" }, { "label": "海丰县", "value": "441521" }, { "label": "陆河县", "value": "441523" }, { "label": "陆丰市", "value": "441581" }], [{ "label": "源城区", "value": "441602" }, { "label": "紫金县", "value": "441621" }, { "label": "龙川县", "value": "441622" }, { "label": "连平县", "value": "441623" }, { "label": "和平县", "value": "441624" }, { "label": "东源县", "value": "441625" }], [{ "label": "江城区", "value": "441702" }, { "label": "阳东区", "value": "441704" }, { "label": "阳西县", "value": "441721" }, { "label": "阳春市", "value": "441781" }], [{ "label": "清城区", "value": "441802" }, { "label": "清新区", "value": "441803" }, { "label": "佛冈县", "value": "441821" }, { "label": "阳山县", "value": "441823" }, { "label": "连山壮族瑶族自治县", "value": "441825" }, { "label": "连南瑶族自治县", "value": "441826" }, { "label": "英德市", "value": "441881" }, { "label": "连州市", "value": "441882" }], [{ "label": "东莞市", "value": "441900" }], [{ "label": "中山市", "value": "442000" }], [{ "label": "湘桥区", "value": "445102" }, { "label": "潮安区", "value": "445103" }, { "label": "饶平县", "value": "445122" }], [{ "label": "榕城区", "value": "445202" }, { "label": "揭东区", "value": "445203" }, { "label": "揭西县", "value": "445222" }, { "label": "惠来县", "value": "445224" }, { "label": "普宁市", "value": "445281" }], [{ "label": "云城区", "value": "445302" }, { "label": "云安区", "value": "445303" }, { "label": "新兴县", "value": "445321" }, { "label": "郁南县", "value": "445322" }, { "label": "罗定市", "value": "445381" }]], [[{ "label": "兴宁区", "value": "450102" }, { "label": "青秀区", "value": "450103" }, { "label": "江南区", "value": "450105" }, { "label": "西乡塘区", "value": "450107" }, { "label": "良庆区", "value": "450108" }, { "label": "邕宁区", "value": "450109" }, { "label": "武鸣区", "value": "450110" }, { "label": "隆安县", "value": "450123" }, { "label": "马山县", "value": "450124" }, { "label": "上林县", "value": "450125" }, { "label": "宾阳县", "value": "450126" }, { "label": "横县", "value": "450127" }], [{ "label": "城中区", "value": "450202" }, { "label": "鱼峰区", "value": "450203" }, { "label": "柳南区", "value": "450204" }, { "label": "柳北区", "value": "450205" }, { "label": "柳江区", "value": "450206" }, { "label": "柳城县", "value": "450222" }, { "label": "鹿寨县", "value": "450223" }, { "label": "融安县", "value": "450224" }, { "label": "融水苗族自治县", "value": "450225" }, { "label": "三江侗族自治县", "value": "450226" }], [{ "label": "秀峰区", "value": "450302" }, { "label": "叠彩区", "value": "450303" }, { "label": "象山区", "value": "450304" }, { "label": "七星区", "value": "450305" }, { "label": "雁山区", "value": "450311" }, { "label": "临桂区", "value": "450312" }, { "label": "阳朔县", "value": "450321" }, { "label": "灵川县", "value": "450323" }, { "label": "全州县", "value": "450324" }, { "label": "兴安县", "value": "450325" }, { "label": "永福县", "value": "450326" }, { "label": "灌阳县", "value": "450327" }, { "label": "龙胜各族自治县", "value": "450328" }, { "label": "资源县", "value": "450329" }, { "label": "平乐县", "value": "450330" }, { "label": "荔浦县", "value": "450331" }, { "label": "恭城瑶族自治县", "value": "450332" }], [{ "label": "万秀区", "value": "450403" }, { "label": "长洲区", "value": "450405" }, { "label": "龙圩区", "value": "450406" }, { "label": "苍梧县", "value": "450421" }, { "label": "藤县", "value": "450422" }, { "label": "蒙山县", "value": "450423" }, { "label": "岑溪市", "value": "450481" }], [{ "label": "海城区", "value": "450502" }, { "label": "银海区", "value": "450503" }, { "label": "铁山港区", "value": "450512" }, { "label": "合浦县", "value": "450521" }], [{ "label": "港口区", "value": "450602" }, { "label": "防城区", "value": "450603" }, { "label": "上思县", "value": "450621" }, { "label": "东兴市", "value": "450681" }], [{ "label": "钦南区", "value": "450702" }, { "label": "钦北区", "value": "450703" }, { "label": "灵山县", "value": "450721" }, { "label": "浦北县", "value": "450722" }], [{ "label": "港北区", "value": "450802" }, { "label": "港南区", "value": "450803" }, { "label": "覃塘区", "value": "450804" }, { "label": "平南县", "value": "450821" }, { "label": "桂平市", "value": "450881" }], [{ "label": "玉州区", "value": "450902" }, { "label": "福绵区", "value": "450903" }, { "label": "容县", "value": "450921" }, { "label": "陆川县", "value": "450922" }, { "label": "博白县", "value": "450923" }, { "label": "兴业县", "value": "450924" }, { "label": "北流市", "value": "450981" }], [{ "label": "右江区", "value": "451002" }, { "label": "田阳县", "value": "451021" }, { "label": "田东县", "value": "451022" }, { "label": "平果县", "value": "451023" }, { "label": "德保县", "value": "451024" }, { "label": "那坡县", "value": "451026" }, { "label": "凌云县", "value": "451027" }, { "label": "乐业县", "value": "451028" }, { "label": "田林县", "value": "451029" }, { "label": "西林县", "value": "451030" }, { "label": "隆林各族自治县", "value": "451031" }, { "label": "靖西市", "value": "451081" }], [{ "label": "八步区", "value": "451102" }, { "label": "平桂区", "value": "451103" }, { "label": "昭平县", "value": "451121" }, { "label": "钟山县", "value": "451122" }, { "label": "富川瑶族自治县", "value": "451123" }], [{ "label": "金城江区", "value": "451202" }, { "label": "宜州区", "value": "451203" }, { "label": "南丹县", "value": "451221" }, { "label": "天峨县", "value": "451222" }, { "label": "凤山县", "value": "451223" }, { "label": "东兰县", "value": "451224" }, { "label": "罗城仫佬族自治县", "value": "451225" }, { "label": "环江毛南族自治县", "value": "451226" }, { "label": "巴马瑶族自治县", "value": "451227" }, { "label": "都安瑶族自治县", "value": "451228" }, { "label": "大化瑶族自治县", "value": "451229" }], [{ "label": "兴宾区", "value": "451302" }, { "label": "忻城县", "value": "451321" }, { "label": "象州县", "value": "451322" }, { "label": "武宣县", "value": "451323" }, { "label": "金秀瑶族自治县", "value": "451324" }, { "label": "合山市", "value": "451381" }], [{ "label": "江州区", "value": "451402" }, { "label": "扶绥县", "value": "451421" }, { "label": "宁明县", "value": "451422" }, { "label": "龙州县", "value": "451423" }, { "label": "大新县", "value": "451424" }, { "label": "天等县", "value": "451425" }, { "label": "凭祥市", "value": "451481" }]], [[{ "label": "秀英区", "value": "460105" }, { "label": "龙华区", "value": "460106" }, { "label": "琼山区", "value": "460107" }, { "label": "美兰区", "value": "460108" }], [{ "label": "海棠区", "value": "460202" }, { "label": "吉阳区", "value": "460203" }, { "label": "天涯区", "value": "460204" }, { "label": "崖州区", "value": "460205" }], [{ "label": "西沙群岛", "value": "460321" }, { "label": "南沙群岛", "value": "460322" }, { "label": "中沙群岛的岛礁及其海域", "value": "460323" }], [{ "label": "儋州市", "value": "460400" }], [{ "label": "五指山市", "value": "469001" }, { "label": "琼海市", "value": "469002" }, { "label": "文昌市", "value": "469005" }, { "label": "万宁市", "value": "469006" }, { "label": "东方市", "value": "469007" }, { "label": "定安县", "value": "469021" }, { "label": "屯昌县", "value": "469022" }, { "label": "澄迈县", "value": "469023" }, { "label": "临高县", "value": "469024" }, { "label": "白沙黎族自治县", "value": "469025" }, { "label": "昌江黎族自治县", "value": "469026" }, { "label": "乐东黎族自治县", "value": "469027" }, { "label": "陵水黎族自治县", "value": "469028" }, { "label": "保亭黎族苗族自治县", "value": "469029" }, { "label": "琼中黎族苗族自治县", "value": "469030" }]], [[{ "label": "万州区", "value": "500101" }, { "label": "涪陵区", "value": "500102" }, { "label": "渝中区", "value": "500103" }, { "label": "大渡口区", "value": "500104" }, { "label": "江北区", "value": "500105" }, { "label": "沙坪坝区", "value": "500106" }, { "label": "九龙坡区", "value": "500107" }, { "label": "南岸区", "value": "500108" }, { "label": "北碚区", "value": "500109" }, { "label": "綦江区", "value": "500110" }, { "label": "大足区", "value": "500111" }, { "label": "渝北区", "value": "500112" }, { "label": "巴南区", "value": "500113" }, { "label": "黔江区", "value": "500114" }, { "label": "长寿区", "value": "500115" }, { "label": "江津区", "value": "500116" }, { "label": "合川区", "value": "500117" }, { "label": "永川区", "value": "500118" }, { "label": "南川区", "value": "500119" }, { "label": "璧山区", "value": "500120" }, { "label": "铜梁区", "value": "500151" }, { "label": "潼南区", "value": "500152" }, { "label": "荣昌区", "value": "500153" }, { "label": "开州区", "value": "500154" }, { "label": "梁平区", "value": "500155" }, { "label": "武隆区", "value": "500156" }], [{ "label": "城口县", "value": "500229" }, { "label": "丰都县", "value": "500230" }, { "label": "垫江县", "value": "500231" }, { "label": "忠县", "value": "500233" }, { "label": "云阳县", "value": "500235" }, { "label": "奉节县", "value": "500236" }, { "label": "巫山县", "value": "500237" }, { "label": "巫溪县", "value": "500238" }, { "label": "石柱土家族自治县", "value": "500240" }, { "label": "秀山土家族苗族自治县", "value": "500241" }, { "label": "酉阳土家族苗族自治县", "value": "500242" }, { "label": "彭水苗族土家族自治县", "value": "500243" }]], [[{ "label": "锦江区", "value": "510104" }, { "label": "青羊区", "value": "510105" }, { "label": "金牛区", "value": "510106" }, { "label": "武侯区", "value": "510107" }, { "label": "成华区", "value": "510108" }, { "label": "龙泉驿区", "value": "510112" }, { "label": "青白江区", "value": "510113" }, { "label": "新都区", "value": "510114" }, { "label": "温江区", "value": "510115" }, { "label": "双流区", "value": "510116" }, { "label": "郫都区", "value": "510117" }, { "label": "金堂县", "value": "510121" }, { "label": "大邑县", "value": "510129" }, { "label": "蒲江县", "value": "510131" }, { "label": "新津县", "value": "510132" }, { "label": "都江堰市", "value": "510181" }, { "label": "彭州市", "value": "510182" }, { "label": "邛崃市", "value": "510183" }, { "label": "崇州市", "value": "510184" }, { "label": "简阳市", "value": "510185" }], [{ "label": "自流井区", "value": "510302" }, { "label": "贡井区", "value": "510303" }, { "label": "大安区", "value": "510304" }, { "label": "沿滩区", "value": "510311" }, { "label": "荣县", "value": "510321" }, { "label": "富顺县", "value": "510322" }], [{ "label": "东区", "value": "510402" }, { "label": "西区", "value": "510403" }, { "label": "仁和区", "value": "510411" }, { "label": "米易县", "value": "510421" }, { "label": "盐边县", "value": "510422" }], [{ "label": "江阳区", "value": "510502" }, { "label": "纳溪区", "value": "510503" }, { "label": "龙马潭区", "value": "510504" }, { "label": "泸县", "value": "510521" }, { "label": "合江县", "value": "510522" }, { "label": "叙永县", "value": "510524" }, { "label": "古蔺县", "value": "510525" }], [{ "label": "旌阳区", "value": "510603" }, { "label": "罗江区", "value": "510604" }, { "label": "中江县", "value": "510623" }, { "label": "广汉市", "value": "510681" }, { "label": "什邡市", "value": "510682" }, { "label": "绵竹市", "value": "510683" }], [{ "label": "涪城区", "value": "510703" }, { "label": "游仙区", "value": "510704" }, { "label": "安州区", "value": "510705" }, { "label": "三台县", "value": "510722" }, { "label": "盐亭县", "value": "510723" }, { "label": "梓潼县", "value": "510725" }, { "label": "北川羌族自治县", "value": "510726" }, { "label": "平武县", "value": "510727" }, { "label": "江油市", "value": "510781" }], [{ "label": "利州区", "value": "510802" }, { "label": "昭化区", "value": "510811" }, { "label": "朝天区", "value": "510812" }, { "label": "旺苍县", "value": "510821" }, { "label": "青川县", "value": "510822" }, { "label": "剑阁县", "value": "510823" }, { "label": "苍溪县", "value": "510824" }], [{ "label": "船山区", "value": "510903" }, { "label": "安居区", "value": "510904" }, { "label": "蓬溪县", "value": "510921" }, { "label": "射洪县", "value": "510922" }, { "label": "大英县", "value": "510923" }], [{ "label": "市中区", "value": "511002" }, { "label": "东兴区", "value": "511011" }, { "label": "威远县", "value": "511024" }, { "label": "资中县", "value": "511025" }, { "label": "内江经济开发区", "value": "511071" }, { "label": "隆昌市", "value": "511083" }], [{ "label": "市中区", "value": "511102" }, { "label": "沙湾区", "value": "511111" }, { "label": "五通桥区", "value": "511112" }, { "label": "金口河区", "value": "511113" }, { "label": "犍为县", "value": "511123" }, { "label": "井研县", "value": "511124" }, { "label": "夹江县", "value": "511126" }, { "label": "沐川县", "value": "511129" }, { "label": "峨边彝族自治县", "value": "511132" }, { "label": "马边彝族自治县", "value": "511133" }, { "label": "峨眉山市", "value": "511181" }], [{ "label": "顺庆区", "value": "511302" }, { "label": "高坪区", "value": "511303" }, { "label": "嘉陵区", "value": "511304" }, { "label": "南部县", "value": "511321" }, { "label": "营山县", "value": "511322" }, { "label": "蓬安县", "value": "511323" }, { "label": "仪陇县", "value": "511324" }, { "label": "西充县", "value": "511325" }, { "label": "阆中市", "value": "511381" }], [{ "label": "东坡区", "value": "511402" }, { "label": "彭山区", "value": "511403" }, { "label": "仁寿县", "value": "511421" }, { "label": "洪雅县", "value": "511423" }, { "label": "丹棱县", "value": "511424" }, { "label": "青神县", "value": "511425" }], [{ "label": "翠屏区", "value": "511502" }, { "label": "南溪区", "value": "511503" }, { "label": "宜宾县", "value": "511521" }, { "label": "江安县", "value": "511523" }, { "label": "长宁县", "value": "511524" }, { "label": "高县", "value": "511525" }, { "label": "珙县", "value": "511526" }, { "label": "筠连县", "value": "511527" }, { "label": "兴文县", "value": "511528" }, { "label": "屏山县", "value": "511529" }], [{ "label": "广安区", "value": "511602" }, { "label": "前锋区", "value": "511603" }, { "label": "岳池县", "value": "511621" }, { "label": "武胜县", "value": "511622" }, { "label": "邻水县", "value": "511623" }, { "label": "华蓥市", "value": "511681" }], [{ "label": "通川区", "value": "511702" }, { "label": "达川区", "value": "511703" }, { "label": "宣汉县", "value": "511722" }, { "label": "开江县", "value": "511723" }, { "label": "大竹县", "value": "511724" }, { "label": "渠县", "value": "511725" }, { "label": "达州经济开发区", "value": "511771" }, { "label": "万源市", "value": "511781" }], [{ "label": "雨城区", "value": "511802" }, { "label": "名山区", "value": "511803" }, { "label": "荥经县", "value": "511822" }, { "label": "汉源县", "value": "511823" }, { "label": "石棉县", "value": "511824" }, { "label": "天全县", "value": "511825" }, { "label": "芦山县", "value": "511826" }, { "label": "宝兴县", "value": "511827" }], [{ "label": "巴州区", "value": "511902" }, { "label": "恩阳区", "value": "511903" }, { "label": "通江县", "value": "511921" }, { "label": "南江县", "value": "511922" }, { "label": "平昌县", "value": "511923" }, { "label": "巴中经济开发区", "value": "511971" }], [{ "label": "雁江区", "value": "512002" }, { "label": "安岳县", "value": "512021" }, { "label": "乐至县", "value": "512022" }], [{ "label": "马尔康市", "value": "513201" }, { "label": "汶川县", "value": "513221" }, { "label": "理县", "value": "513222" }, { "label": "茂县", "value": "513223" }, { "label": "松潘县", "value": "513224" }, { "label": "九寨沟县", "value": "513225" }, { "label": "金川县", "value": "513226" }, { "label": "小金县", "value": "513227" }, { "label": "黑水县", "value": "513228" }, { "label": "壤塘县", "value": "513230" }, { "label": "阿坝县", "value": "513231" }, { "label": "若尔盖县", "value": "513232" }, { "label": "红原县", "value": "513233" }], [{ "label": "康定市", "value": "513301" }, { "label": "泸定县", "value": "513322" }, { "label": "丹巴县", "value": "513323" }, { "label": "九龙县", "value": "513324" }, { "label": "雅江县", "value": "513325" }, { "label": "道孚县", "value": "513326" }, { "label": "炉霍县", "value": "513327" }, { "label": "甘孜县", "value": "513328" }, { "label": "新龙县", "value": "513329" }, { "label": "德格县", "value": "513330" }, { "label": "白玉县", "value": "513331" }, { "label": "石渠县", "value": "513332" }, { "label": "色达县", "value": "513333" }, { "label": "理塘县", "value": "513334" }, { "label": "巴塘县", "value": "513335" }, { "label": "乡城县", "value": "513336" }, { "label": "稻城县", "value": "513337" }, { "label": "得荣县", "value": "513338" }], [{ "label": "西昌市", "value": "513401" }, { "label": "木里藏族自治县", "value": "513422" }, { "label": "盐源县", "value": "513423" }, { "label": "德昌县", "value": "513424" }, { "label": "会理县", "value": "513425" }, { "label": "会东县", "value": "513426" }, { "label": "宁南县", "value": "513427" }, { "label": "普格县", "value": "513428" }, { "label": "布拖县", "value": "513429" }, { "label": "金阳县", "value": "513430" }, { "label": "昭觉县", "value": "513431" }, { "label": "喜德县", "value": "513432" }, { "label": "冕宁县", "value": "513433" }, { "label": "越西县", "value": "513434" }, { "label": "甘洛县", "value": "513435" }, { "label": "美姑县", "value": "513436" }, { "label": "雷波县", "value": "513437" }]], [[{ "label": "南明区", "value": "520102" }, { "label": "云岩区", "value": "520103" }, { "label": "花溪区", "value": "520111" }, { "label": "乌当区", "value": "520112" }, { "label": "白云区", "value": "520113" }, { "label": "观山湖区", "value": "520115" }, { "label": "开阳县", "value": "520121" }, { "label": "息烽县", "value": "520122" }, { "label": "修文县", "value": "520123" }, { "label": "清镇市", "value": "520181" }], [{ "label": "钟山区", "value": "520201" }, { "label": "六枝特区", "value": "520203" }, { "label": "水城县", "value": "520221" }, { "label": "盘州市", "value": "520281" }], [{ "label": "红花岗区", "value": "520302" }, { "label": "汇川区", "value": "520303" }, { "label": "播州区", "value": "520304" }, { "label": "桐梓县", "value": "520322" }, { "label": "绥阳县", "value": "520323" }, { "label": "正安县", "value": "520324" }, { "label": "道真仡佬族苗族自治县", "value": "520325" }, { "label": "务川仡佬族苗族自治县", "value": "520326" }, { "label": "凤冈县", "value": "520327" }, { "label": "湄潭县", "value": "520328" }, { "label": "余庆县", "value": "520329" }, { "label": "习水县", "value": "520330" }, { "label": "赤水市", "value": "520381" }, { "label": "仁怀市", "value": "520382" }], [{ "label": "西秀区", "value": "520402" }, { "label": "平坝区", "value": "520403" }, { "label": "普定县", "value": "520422" }, { "label": "镇宁布依族苗族自治县", "value": "520423" }, { "label": "关岭布依族苗族自治县", "value": "520424" }, { "label": "紫云苗族布依族自治县", "value": "520425" }], [{ "label": "七星关区", "value": "520502" }, { "label": "大方县", "value": "520521" }, { "label": "黔西县", "value": "520522" }, { "label": "金沙县", "value": "520523" }, { "label": "织金县", "value": "520524" }, { "label": "纳雍县", "value": "520525" }, { "label": "威宁彝族回族苗族自治县", "value": "520526" }, { "label": "赫章县", "value": "520527" }], [{ "label": "碧江区", "value": "520602" }, { "label": "万山区", "value": "520603" }, { "label": "江口县", "value": "520621" }, { "label": "玉屏侗族自治县", "value": "520622" }, { "label": "石阡县", "value": "520623" }, { "label": "思南县", "value": "520624" }, { "label": "印江土家族苗族自治县", "value": "520625" }, { "label": "德江县", "value": "520626" }, { "label": "沿河土家族自治县", "value": "520627" }, { "label": "松桃苗族自治县", "value": "520628" }], [{ "label": "兴义市", "value": "522301" }, { "label": "兴仁县", "value": "522322" }, { "label": "普安县", "value": "522323" }, { "label": "晴隆县", "value": "522324" }, { "label": "贞丰县", "value": "522325" }, { "label": "望谟县", "value": "522326" }, { "label": "册亨县", "value": "522327" }, { "label": "安龙县", "value": "522328" }], [{ "label": "凯里市", "value": "522601" }, { "label": "黄平县", "value": "522622" }, { "label": "施秉县", "value": "522623" }, { "label": "三穗县", "value": "522624" }, { "label": "镇远县", "value": "522625" }, { "label": "岑巩县", "value": "522626" }, { "label": "天柱县", "value": "522627" }, { "label": "锦屏县", "value": "522628" }, { "label": "剑河县", "value": "522629" }, { "label": "台江县", "value": "522630" }, { "label": "黎平县", "value": "522631" }, { "label": "榕江县", "value": "522632" }, { "label": "从江县", "value": "522633" }, { "label": "雷山县", "value": "522634" }, { "label": "麻江县", "value": "522635" }, { "label": "丹寨县", "value": "522636" }], [{ "label": "都匀市", "value": "522701" }, { "label": "福泉市", "value": "522702" }, { "label": "荔波县", "value": "522722" }, { "label": "贵定县", "value": "522723" }, { "label": "瓮安县", "value": "522725" }, { "label": "独山县", "value": "522726" }, { "label": "平塘县", "value": "522727" }, { "label": "罗甸县", "value": "522728" }, { "label": "长顺县", "value": "522729" }, { "label": "龙里县", "value": "522730" }, { "label": "惠水县", "value": "522731" }, { "label": "三都水族自治县", "value": "522732" }]], [[{ "label": "五华区", "value": "530102" }, { "label": "盘龙区", "value": "530103" }, { "label": "官渡区", "value": "530111" }, { "label": "西山区", "value": "530112" }, { "label": "东川区", "value": "530113" }, { "label": "呈贡区", "value": "530114" }, { "label": "晋宁区", "value": "530115" }, { "label": "富民县", "value": "530124" }, { "label": "宜良县", "value": "530125" }, { "label": "石林彝族自治县", "value": "530126" }, { "label": "嵩明县", "value": "530127" }, { "label": "禄劝彝族苗族自治县", "value": "530128" }, { "label": "寻甸回族彝族自治县", "value": "530129" }, { "label": "安宁市", "value": "530181" }], [{ "label": "麒麟区", "value": "530302" }, { "label": "沾益区", "value": "530303" }, { "label": "马龙县", "value": "530321" }, { "label": "陆良县", "value": "530322" }, { "label": "师宗县", "value": "530323" }, { "label": "罗平县", "value": "530324" }, { "label": "富源县", "value": "530325" }, { "label": "会泽县", "value": "530326" }, { "label": "宣威市", "value": "530381" }], [{ "label": "红塔区", "value": "530402" }, { "label": "江川区", "value": "530403" }, { "label": "澄江县", "value": "530422" }, { "label": "通海县", "value": "530423" }, { "label": "华宁县", "value": "530424" }, { "label": "易门县", "value": "530425" }, { "label": "峨山彝族自治县", "value": "530426" }, { "label": "新平彝族傣族自治县", "value": "530427" }, { "label": "元江哈尼族彝族傣族自治县", "value": "530428" }], [{ "label": "隆阳区", "value": "530502" }, { "label": "施甸县", "value": "530521" }, { "label": "龙陵县", "value": "530523" }, { "label": "昌宁县", "value": "530524" }, { "label": "腾冲市", "value": "530581" }], [{ "label": "昭阳区", "value": "530602" }, { "label": "鲁甸县", "value": "530621" }, { "label": "巧家县", "value": "530622" }, { "label": "盐津县", "value": "530623" }, { "label": "大关县", "value": "530624" }, { "label": "永善县", "value": "530625" }, { "label": "绥江县", "value": "530626" }, { "label": "镇雄县", "value": "530627" }, { "label": "彝良县", "value": "530628" }, { "label": "威信县", "value": "530629" }, { "label": "水富县", "value": "530630" }], [{ "label": "古城区", "value": "530702" }, { "label": "玉龙纳西族自治县", "value": "530721" }, { "label": "永胜县", "value": "530722" }, { "label": "华坪县", "value": "530723" }, { "label": "宁蒗彝族自治县", "value": "530724" }], [{ "label": "思茅区", "value": "530802" }, { "label": "宁洱哈尼族彝族自治县", "value": "530821" }, { "label": "墨江哈尼族自治县", "value": "530822" }, { "label": "景东彝族自治县", "value": "530823" }, { "label": "景谷傣族彝族自治县", "value": "530824" }, { "label": "镇沅彝族哈尼族拉祜族自治县", "value": "530825" }, { "label": "江城哈尼族彝族自治县", "value": "530826" }, { "label": "孟连傣族拉祜族佤族自治县", "value": "530827" }, { "label": "澜沧拉祜族自治县", "value": "530828" }, { "label": "西盟佤族自治县", "value": "530829" }], [{ "label": "临翔区", "value": "530902" }, { "label": "凤庆县", "value": "530921" }, { "label": "云县", "value": "530922" }, { "label": "永德县", "value": "530923" }, { "label": "镇康县", "value": "530924" }, { "label": "双江拉祜族佤族布朗族傣族自治县", "value": "530925" }, { "label": "耿马傣族佤族自治县", "value": "530926" }, { "label": "沧源佤族自治县", "value": "530927" }], [{ "label": "楚雄市", "value": "532301" }, { "label": "双柏县", "value": "532322" }, { "label": "牟定县", "value": "532323" }, { "label": "南华县", "value": "532324" }, { "label": "姚安县", "value": "532325" }, { "label": "大姚县", "value": "532326" }, { "label": "永仁县", "value": "532327" }, { "label": "元谋县", "value": "532328" }, { "label": "武定县", "value": "532329" }, { "label": "禄丰县", "value": "532331" }], [{ "label": "个旧市", "value": "532501" }, { "label": "开远市", "value": "532502" }, { "label": "蒙自市", "value": "532503" }, { "label": "弥勒市", "value": "532504" }, { "label": "屏边苗族自治县", "value": "532523" }, { "label": "建水县", "value": "532524" }, { "label": "石屏县", "value": "532525" }, { "label": "泸西县", "value": "532527" }, { "label": "元阳县", "value": "532528" }, { "label": "红河县", "value": "532529" }, { "label": "金平苗族瑶族傣族自治县", "value": "532530" }, { "label": "绿春县", "value": "532531" }, { "label": "河口瑶族自治县", "value": "532532" }], [{ "label": "文山市", "value": "532601" }, { "label": "砚山县", "value": "532622" }, { "label": "西畴县", "value": "532623" }, { "label": "麻栗坡县", "value": "532624" }, { "label": "马关县", "value": "532625" }, { "label": "丘北县", "value": "532626" }, { "label": "广南县", "value": "532627" }, { "label": "富宁县", "value": "532628" }], [{ "label": "景洪市", "value": "532801" }, { "label": "勐海县", "value": "532822" }, { "label": "勐腊县", "value": "532823" }], [{ "label": "大理市", "value": "532901" }, { "label": "漾濞彝族自治县", "value": "532922" }, { "label": "祥云县", "value": "532923" }, { "label": "宾川县", "value": "532924" }, { "label": "弥渡县", "value": "532925" }, { "label": "南涧彝族自治县", "value": "532926" }, { "label": "巍山彝族回族自治县", "value": "532927" }, { "label": "永平县", "value": "532928" }, { "label": "云龙县", "value": "532929" }, { "label": "洱源县", "value": "532930" }, { "label": "剑川县", "value": "532931" }, { "label": "鹤庆县", "value": "532932" }], [{ "label": "瑞丽市", "value": "533102" }, { "label": "芒市", "value": "533103" }, { "label": "梁河县", "value": "533122" }, { "label": "盈江县", "value": "533123" }, { "label": "陇川县", "value": "533124" }], [{ "label": "泸水市", "value": "533301" }, { "label": "福贡县", "value": "533323" }, { "label": "贡山独龙族怒族自治县", "value": "533324" }, { "label": "兰坪白族普米族自治县", "value": "533325" }], [{ "label": "香格里拉市", "value": "533401" }, { "label": "德钦县", "value": "533422" }, { "label": "维西傈僳族自治县", "value": "533423" }]], [[{ "label": "城关区", "value": "540102" }, { "label": "堆龙德庆区", "value": "540103" }, { "label": "林周县", "value": "540121" }, { "label": "当雄县", "value": "540122" }, { "label": "尼木县", "value": "540123" }, { "label": "曲水县", "value": "540124" }, { "label": "达孜县", "value": "540126" }, { "label": "墨竹工卡县", "value": "540127" }, { "label": "格尔木藏青工业园区", "value": "540171" }, { "label": "拉萨经济技术开发区", "value": "540172" }, { "label": "西藏文化旅游创意园区", "value": "540173" }, { "label": "达孜工业园区", "value": "540174" }], [{ "label": "桑珠孜区", "value": "540202" }, { "label": "南木林县", "value": "540221" }, { "label": "江孜县", "value": "540222" }, { "label": "定日县", "value": "540223" }, { "label": "萨迦县", "value": "540224" }, { "label": "拉孜县", "value": "540225" }, { "label": "昂仁县", "value": "540226" }, { "label": "谢通门县", "value": "540227" }, { "label": "白朗县", "value": "540228" }, { "label": "仁布县", "value": "540229" }, { "label": "康马县", "value": "540230" }, { "label": "定结县", "value": "540231" }, { "label": "仲巴县", "value": "540232" }, { "label": "亚东县", "value": "540233" }, { "label": "吉隆县", "value": "540234" }, { "label": "聂拉木县", "value": "540235" }, { "label": "萨嘎县", "value": "540236" }, { "label": "岗巴县", "value": "540237" }], [{ "label": "卡若区", "value": "540302" }, { "label": "江达县", "value": "540321" }, { "label": "贡觉县", "value": "540322" }, { "label": "类乌齐县", "value": "540323" }, { "label": "丁青县", "value": "540324" }, { "label": "察雅县", "value": "540325" }, { "label": "八宿县", "value": "540326" }, { "label": "左贡县", "value": "540327" }, { "label": "芒康县", "value": "540328" }, { "label": "洛隆县", "value": "540329" }, { "label": "边坝县", "value": "540330" }], [{ "label": "巴宜区", "value": "540402" }, { "label": "工布江达县", "value": "540421" }, { "label": "米林县", "value": "540422" }, { "label": "墨脱县", "value": "540423" }, { "label": "波密县", "value": "540424" }, { "label": "察隅县", "value": "540425" }, { "label": "朗县", "value": "540426" }], [{ "label": "乃东区", "value": "540502" }, { "label": "扎囊县", "value": "540521" }, { "label": "贡嘎县", "value": "540522" }, { "label": "桑日县", "value": "540523" }, { "label": "琼结县", "value": "540524" }, { "label": "曲松县", "value": "540525" }, { "label": "措美县", "value": "540526" }, { "label": "洛扎县", "value": "540527" }, { "label": "加查县", "value": "540528" }, { "label": "隆子县", "value": "540529" }, { "label": "错那县", "value": "540530" }, { "label": "浪卡子县", "value": "540531" }], [{ "label": "那曲县", "value": "542421" }, { "label": "嘉黎县", "value": "542422" }, { "label": "比如县", "value": "542423" }, { "label": "聂荣县", "value": "542424" }, { "label": "安多县", "value": "542425" }, { "label": "申扎县", "value": "542426" }, { "label": "索县", "value": "542427" }, { "label": "班戈县", "value": "542428" }, { "label": "巴青县", "value": "542429" }, { "label": "尼玛县", "value": "542430" }, { "label": "双湖县", "value": "542431" }], [{ "label": "普兰县", "value": "542521" }, { "label": "札达县", "value": "542522" }, { "label": "噶尔县", "value": "542523" }, { "label": "日土县", "value": "542524" }, { "label": "革吉县", "value": "542525" }, { "label": "改则县", "value": "542526" }, { "label": "措勤县", "value": "542527" }]], [[{ "label": "新城区", "value": "610102" }, { "label": "碑林区", "value": "610103" }, { "label": "莲湖区", "value": "610104" }, { "label": "灞桥区", "value": "610111" }, { "label": "未央区", "value": "610112" }, { "label": "雁塔区", "value": "610113" }, { "label": "阎良区", "value": "610114" }, { "label": "临潼区", "value": "610115" }, { "label": "长安区", "value": "610116" }, { "label": "高陵区", "value": "610117" }, { "label": "鄠邑区", "value": "610118" }, { "label": "蓝田县", "value": "610122" }, { "label": "周至县", "value": "610124" }], [{ "label": "王益区", "value": "610202" }, { "label": "印台区", "value": "610203" }, { "label": "耀州区", "value": "610204" }, { "label": "宜君县", "value": "610222" }], [{ "label": "渭滨区", "value": "610302" }, { "label": "金台区", "value": "610303" }, { "label": "陈仓区", "value": "610304" }, { "label": "凤翔县", "value": "610322" }, { "label": "岐山县", "value": "610323" }, { "label": "扶风县", "value": "610324" }, { "label": "眉县", "value": "610326" }, { "label": "陇县", "value": "610327" }, { "label": "千阳县", "value": "610328" }, { "label": "麟游县", "value": "610329" }, { "label": "凤县", "value": "610330" }, { "label": "太白县", "value": "610331" }], [{ "label": "秦都区", "value": "610402" }, { "label": "杨陵区", "value": "610403" }, { "label": "渭城区", "value": "610404" }, { "label": "三原县", "value": "610422" }, { "label": "泾阳县", "value": "610423" }, { "label": "乾县", "value": "610424" }, { "label": "礼泉县", "value": "610425" }, { "label": "永寿县", "value": "610426" }, { "label": "彬县", "value": "610427" }, { "label": "长武县", "value": "610428" }, { "label": "旬邑县", "value": "610429" }, { "label": "淳化县", "value": "610430" }, { "label": "武功县", "value": "610431" }, { "label": "兴平市", "value": "610481" }], [{ "label": "临渭区", "value": "610502" }, { "label": "华州区", "value": "610503" }, { "label": "潼关县", "value": "610522" }, { "label": "大荔县", "value": "610523" }, { "label": "合阳县", "value": "610524" }, { "label": "澄城县", "value": "610525" }, { "label": "蒲城县", "value": "610526" }, { "label": "白水县", "value": "610527" }, { "label": "富平县", "value": "610528" }, { "label": "韩城市", "value": "610581" }, { "label": "华阴市", "value": "610582" }], [{ "label": "宝塔区", "value": "610602" }, { "label": "安塞区", "value": "610603" }, { "label": "延长县", "value": "610621" }, { "label": "延川县", "value": "610622" }, { "label": "子长县", "value": "610623" }, { "label": "志丹县", "value": "610625" }, { "label": "吴起县", "value": "610626" }, { "label": "甘泉县", "value": "610627" }, { "label": "富县", "value": "610628" }, { "label": "洛川县", "value": "610629" }, { "label": "宜川县", "value": "610630" }, { "label": "黄龙县", "value": "610631" }, { "label": "黄陵县", "value": "610632" }], [{ "label": "汉台区", "value": "610702" }, { "label": "南郑区", "value": "610703" }, { "label": "城固县", "value": "610722" }, { "label": "洋县", "value": "610723" }, { "label": "西乡县", "value": "610724" }, { "label": "勉县", "value": "610725" }, { "label": "宁强县", "value": "610726" }, { "label": "略阳县", "value": "610727" }, { "label": "镇巴县", "value": "610728" }, { "label": "留坝县", "value": "610729" }, { "label": "佛坪县", "value": "610730" }], [{ "label": "榆阳区", "value": "610802" }, { "label": "横山区", "value": "610803" }, { "label": "府谷县", "value": "610822" }, { "label": "靖边县", "value": "610824" }, { "label": "定边县", "value": "610825" }, { "label": "绥德县", "value": "610826" }, { "label": "米脂县", "value": "610827" }, { "label": "佳县", "value": "610828" }, { "label": "吴堡县", "value": "610829" }, { "label": "清涧县", "value": "610830" }, { "label": "子洲县", "value": "610831" }, { "label": "神木市", "value": "610881" }], [{ "label": "汉滨区", "value": "610902" }, { "label": "汉阴县", "value": "610921" }, { "label": "石泉县", "value": "610922" }, { "label": "宁陕县", "value": "610923" }, { "label": "紫阳县", "value": "610924" }, { "label": "岚皋县", "value": "610925" }, { "label": "平利县", "value": "610926" }, { "label": "镇坪县", "value": "610927" }, { "label": "旬阳县", "value": "610928" }, { "label": "白河县", "value": "610929" }], [{ "label": "商州区", "value": "611002" }, { "label": "洛南县", "value": "611021" }, { "label": "丹凤县", "value": "611022" }, { "label": "商南县", "value": "611023" }, { "label": "山阳县", "value": "611024" }, { "label": "镇安县", "value": "611025" }, { "label": "柞水县", "value": "611026" }]], [[{ "label": "城关区", "value": "620102" }, { "label": "七里河区", "value": "620103" }, { "label": "西固区", "value": "620104" }, { "label": "安宁区", "value": "620105" }, { "label": "红古区", "value": "620111" }, { "label": "永登县", "value": "620121" }, { "label": "皋兰县", "value": "620122" }, { "label": "榆中县", "value": "620123" }, { "label": "兰州新区", "value": "620171" }], [{ "label": "嘉峪关市", "value": "620201" }], [{ "label": "金川区", "value": "620302" }, { "label": "永昌县", "value": "620321" }], [{ "label": "白银区", "value": "620402" }, { "label": "平川区", "value": "620403" }, { "label": "靖远县", "value": "620421" }, { "label": "会宁县", "value": "620422" }, { "label": "景泰县", "value": "620423" }], [{ "label": "秦州区", "value": "620502" }, { "label": "麦积区", "value": "620503" }, { "label": "清水县", "value": "620521" }, { "label": "秦安县", "value": "620522" }, { "label": "甘谷县", "value": "620523" }, { "label": "武山县", "value": "620524" }, { "label": "张家川回族自治县", "value": "620525" }], [{ "label": "凉州区", "value": "620602" }, { "label": "民勤县", "value": "620621" }, { "label": "古浪县", "value": "620622" }, { "label": "天祝藏族自治县", "value": "620623" }], [{ "label": "甘州区", "value": "620702" }, { "label": "肃南裕固族自治县", "value": "620721" }, { "label": "民乐县", "value": "620722" }, { "label": "临泽县", "value": "620723" }, { "label": "高台县", "value": "620724" }, { "label": "山丹县", "value": "620725" }], [{ "label": "崆峒区", "value": "620802" }, { "label": "泾川县", "value": "620821" }, { "label": "灵台县", "value": "620822" }, { "label": "崇信县", "value": "620823" }, { "label": "华亭县", "value": "620824" }, { "label": "庄浪县", "value": "620825" }, { "label": "静宁县", "value": "620826" }, { "label": "平凉工业园区", "value": "620871" }], [{ "label": "肃州区", "value": "620902" }, { "label": "金塔县", "value": "620921" }, { "label": "瓜州县", "value": "620922" }, { "label": "肃北蒙古族自治县", "value": "620923" }, { "label": "阿克塞哈萨克族自治县", "value": "620924" }, { "label": "玉门市", "value": "620981" }, { "label": "敦煌市", "value": "620982" }], [{ "label": "西峰区", "value": "621002" }, { "label": "庆城县", "value": "621021" }, { "label": "环县", "value": "621022" }, { "label": "华池县", "value": "621023" }, { "label": "合水县", "value": "621024" }, { "label": "正宁县", "value": "621025" }, { "label": "宁县", "value": "621026" }, { "label": "镇原县", "value": "621027" }], [{ "label": "安定区", "value": "621102" }, { "label": "通渭县", "value": "621121" }, { "label": "陇西县", "value": "621122" }, { "label": "渭源县", "value": "621123" }, { "label": "临洮县", "value": "621124" }, { "label": "漳县", "value": "621125" }, { "label": "岷县", "value": "621126" }], [{ "label": "武都区", "value": "621202" }, { "label": "成县", "value": "621221" }, { "label": "文县", "value": "621222" }, { "label": "宕昌县", "value": "621223" }, { "label": "康县", "value": "621224" }, { "label": "西和县", "value": "621225" }, { "label": "礼县", "value": "621226" }, { "label": "徽县", "value": "621227" }, { "label": "两当县", "value": "621228" }], [{ "label": "临夏市", "value": "622901" }, { "label": "临夏县", "value": "622921" }, { "label": "康乐县", "value": "622922" }, { "label": "永靖县", "value": "622923" }, { "label": "广河县", "value": "622924" }, { "label": "和政县", "value": "622925" }, { "label": "东乡族自治县", "value": "622926" }, { "label": "积石山保安族东乡族撒拉族自治县", "value": "622927" }], [{ "label": "合作市", "value": "623001" }, { "label": "临潭县", "value": "623021" }, { "label": "卓尼县", "value": "623022" }, { "label": "舟曲县", "value": "623023" }, { "label": "迭部县", "value": "623024" }, { "label": "玛曲县", "value": "623025" }, { "label": "碌曲县", "value": "623026" }, { "label": "夏河县", "value": "623027" }]], [[{ "label": "城东区", "value": "630102" }, { "label": "城中区", "value": "630103" }, { "label": "城西区", "value": "630104" }, { "label": "城北区", "value": "630105" }, { "label": "大通回族土族自治县", "value": "630121" }, { "label": "湟中县", "value": "630122" }, { "label": "湟源县", "value": "630123" }], [{ "label": "乐都区", "value": "630202" }, { "label": "平安区", "value": "630203" }, { "label": "民和回族土族自治县", "value": "630222" }, { "label": "互助土族自治县", "value": "630223" }, { "label": "化隆回族自治县", "value": "630224" }, { "label": "循化撒拉族自治县", "value": "630225" }], [{ "label": "门源回族自治县", "value": "632221" }, { "label": "祁连县", "value": "632222" }, { "label": "海晏县", "value": "632223" }, { "label": "刚察县", "value": "632224" }], [{ "label": "同仁县", "value": "632321" }, { "label": "尖扎县", "value": "632322" }, { "label": "泽库县", "value": "632323" }, { "label": "河南蒙古族自治县", "value": "632324" }], [{ "label": "共和县", "value": "632521" }, { "label": "同德县", "value": "632522" }, { "label": "贵德县", "value": "632523" }, { "label": "兴海县", "value": "632524" }, { "label": "贵南县", "value": "632525" }], [{ "label": "玛沁县", "value": "632621" }, { "label": "班玛县", "value": "632622" }, { "label": "甘德县", "value": "632623" }, { "label": "达日县", "value": "632624" }, { "label": "久治县", "value": "632625" }, { "label": "玛多县", "value": "632626" }], [{ "label": "玉树市", "value": "632701" }, { "label": "杂多县", "value": "632722" }, { "label": "称多县", "value": "632723" }, { "label": "治多县", "value": "632724" }, { "label": "囊谦县", "value": "632725" }, { "label": "曲麻莱县", "value": "632726" }], [{ "label": "格尔木市", "value": "632801" }, { "label": "德令哈市", "value": "632802" }, { "label": "乌兰县", "value": "632821" }, { "label": "都兰县", "value": "632822" }, { "label": "天峻县", "value": "632823" }, { "label": "大柴旦行政委员会", "value": "632857" }, { "label": "冷湖行政委员会", "value": "632858" }, { "label": "茫崖行政委员会", "value": "632859" }]], [[{ "label": "兴庆区", "value": "640104" }, { "label": "西夏区", "value": "640105" }, { "label": "金凤区", "value": "640106" }, { "label": "永宁县", "value": "640121" }, { "label": "贺兰县", "value": "640122" }, { "label": "灵武市", "value": "640181" }], [{ "label": "大武口区", "value": "640202" }, { "label": "惠农区", "value": "640205" }, { "label": "平罗县", "value": "640221" }], [{ "label": "利通区", "value": "640302" }, { "label": "红寺堡区", "value": "640303" }, { "label": "盐池县", "value": "640323" }, { "label": "同心县", "value": "640324" }, { "label": "青铜峡市", "value": "640381" }], [{ "label": "原州区", "value": "640402" }, { "label": "西吉县", "value": "640422" }, { "label": "隆德县", "value": "640423" }, { "label": "泾源县", "value": "640424" }, { "label": "彭阳县", "value": "640425" }], [{ "label": "沙坡头区", "value": "640502" }, { "label": "中宁县", "value": "640521" }, { "label": "海原县", "value": "640522" }]], [[{ "label": "天山区", "value": "650102" }, { "label": "沙依巴克区", "value": "650103" }, { "label": "新市区", "value": "650104" }, { "label": "水磨沟区", "value": "650105" }, { "label": "头屯河区", "value": "650106" }, { "label": "达坂城区", "value": "650107" }, { "label": "米东区", "value": "650109" }, { "label": "乌鲁木齐县", "value": "650121" }, { "label": "乌鲁木齐经济技术开发区", "value": "650171" }, { "label": "乌鲁木齐高新技术产业开发区", "value": "650172" }], [{ "label": "独山子区", "value": "650202" }, { "label": "克拉玛依区", "value": "650203" }, { "label": "白碱滩区", "value": "650204" }, { "label": "乌尔禾区", "value": "650205" }], [{ "label": "高昌区", "value": "650402" }, { "label": "鄯善县", "value": "650421" }, { "label": "托克逊县", "value": "650422" }], [{ "label": "伊州区", "value": "650502" }, { "label": "巴里坤哈萨克自治县", "value": "650521" }, { "label": "伊吾县", "value": "650522" }], [{ "label": "昌吉市", "value": "652301" }, { "label": "阜康市", "value": "652302" }, { "label": "呼图壁县", "value": "652323" }, { "label": "玛纳斯县", "value": "652324" }, { "label": "奇台县", "value": "652325" }, { "label": "吉木萨尔县", "value": "652327" }, { "label": "木垒哈萨克自治县", "value": "652328" }], [{ "label": "博乐市", "value": "652701" }, { "label": "阿拉山口市", "value": "652702" }, { "label": "精河县", "value": "652722" }, { "label": "温泉县", "value": "652723" }], [{ "label": "库尔勒市", "value": "652801" }, { "label": "轮台县", "value": "652822" }, { "label": "尉犁县", "value": "652823" }, { "label": "若羌县", "value": "652824" }, { "label": "且末县", "value": "652825" }, { "label": "焉耆回族自治县", "value": "652826" }, { "label": "和静县", "value": "652827" }, { "label": "和硕县", "value": "652828" }, { "label": "博湖县", "value": "652829" }, { "label": "库尔勒经济技术开发区", "value": "652871" }], [{ "label": "阿克苏市", "value": "652901" }, { "label": "温宿县", "value": "652922" }, { "label": "库车县", "value": "652923" }, { "label": "沙雅县", "value": "652924" }, { "label": "新和县", "value": "652925" }, { "label": "拜城县", "value": "652926" }, { "label": "乌什县", "value": "652927" }, { "label": "阿瓦提县", "value": "652928" }, { "label": "柯坪县", "value": "652929" }], [{ "label": "阿图什市", "value": "653001" }, { "label": "阿克陶县", "value": "653022" }, { "label": "阿合奇县", "value": "653023" }, { "label": "乌恰县", "value": "653024" }], [{ "label": "喀什市", "value": "653101" }, { "label": "疏附县", "value": "653121" }, { "label": "疏勒县", "value": "653122" }, { "label": "英吉沙县", "value": "653123" }, { "label": "泽普县", "value": "653124" }, { "label": "莎车县", "value": "653125" }, { "label": "叶城县", "value": "653126" }, { "label": "麦盖提县", "value": "653127" }, { "label": "岳普湖县", "value": "653128" }, { "label": "伽师县", "value": "653129" }, { "label": "巴楚县", "value": "653130" }, { "label": "塔什库尔干塔吉克自治县", "value": "653131" }], [{ "label": "和田市", "value": "653201" }, { "label": "和田县", "value": "653221" }, { "label": "墨玉县", "value": "653222" }, { "label": "皮山县", "value": "653223" }, { "label": "洛浦县", "value": "653224" }, { "label": "策勒县", "value": "653225" }, { "label": "于田县", "value": "653226" }, { "label": "民丰县", "value": "653227" }], [{ "label": "伊宁市", "value": "654002" }, { "label": "奎屯市", "value": "654003" }, { "label": "霍尔果斯市", "value": "654004" }, { "label": "伊宁县", "value": "654021" }, { "label": "察布查尔锡伯自治县", "value": "654022" }, { "label": "霍城县", "value": "654023" }, { "label": "巩留县", "value": "654024" }, { "label": "新源县", "value": "654025" }, { "label": "昭苏县", "value": "654026" }, { "label": "特克斯县", "value": "654027" }, { "label": "尼勒克县", "value": "654028" }], [{ "label": "塔城市", "value": "654201" }, { "label": "乌苏市", "value": "654202" }, { "label": "额敏县", "value": "654221" }, { "label": "沙湾县", "value": "654223" }, { "label": "托里县", "value": "654224" }, { "label": "裕民县", "value": "654225" }, { "label": "和布克赛尔蒙古自治县", "value": "654226" }], [{ "label": "阿勒泰市", "value": "654301" }, { "label": "布尔津县", "value": "654321" }, { "label": "富蕴县", "value": "654322" }, { "label": "福海县", "value": "654323" }, { "label": "哈巴河县", "value": "654324" }, { "label": "青河县", "value": "654325" }, { "label": "吉木乃县", "value": "654326" }], [{ "label": "石河子市", "value": "659001" }, { "label": "阿拉尔市", "value": "659002" }, { "label": "图木舒克市", "value": "659003" }, { "label": "五家渠市", "value": "659004" }, { "label": "铁门关市", "value": "659006" }]], [[{ "label": "台北", "value": "660101" }], [{ "label": "高雄", "value": "660201" }], [{ "label": "基隆", "value": "660301" }], [{ "label": "台中", "value": "660401" }], [{ "label": "台南", "value": "660501" }], [{ "label": "新竹", "value": "660601" }], [{ "label": "嘉义", "value": "660701" }], [{ "label": "宜兰", "value": "660801" }], [{ "label": "桃园", "value": "660901" }], [{ "label": "苗栗", "value": "661001" }], [{ "label": "彰化", "value": "661101" }], [{ "label": "南投", "value": "661201" }], [{ "label": "云林", "value": "661301" }], [{ "label": "屏东", "value": "661401" }], [{ "label": "台东", "value": "661501" }], [{ "label": "花莲", "value": "661601" }], [{ "label": "澎湖", "value": "661701" }]], [[{ "label": "香港岛", "value": "670101" }], [{ "label": "九龙", "value": "670201" }], [{ "label": "新界", "value": "670301" }]], [[{ "label": "澳门半岛", "value": "680101" }], [{ "label": "氹仔岛", "value": "680201" }], [{ "label": "路环岛", "value": "680301" }], [{ "label": "路氹城", "value": "680401" }]]];var _default = areaData;exports.default = _default;
 
 /***/ }),
 
@@ -4413,13 +6235,13 @@ function colorToRgba(color) {var alpha = arguments.length > 1 && arguments[1] !=
 /***/ }),
 
 /***/ 253:
-/*!************************************!*\
-  !*** E:/HX/flow/static/updown.png ***!
-  \************************************/
+/*!****************************************!*\
+  !*** E:/HX/flow/static/pub/updown.png ***!
+  \****************************************/
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-module.exports = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACwAAAAsCAYAAAAehFoBAAAAAXNSR0IArs4c6QAAAUBJREFUWEftlrFKA0EQhv8hmN4iTWx8I0lzYkRbwYTE+ALhsBU9YVuxu+hWeaWAadKkT5QRQSFEZJbdCWRhrp3Zve+++29uCZldlBkvDHjXb8wMm+EtAxYJi4RFYtcZMMO5G65cXQIYEPHDsHd+p/08anOYmenJTRwI1xuQ1bB3dktErAWuAuy9b8wX6xcCXfwBI3putxpXRVF8akAnA4/HvnnY+ngF0PkXiPhtuTi4LMtilQqdDPzoJlMCn0ggDPhRv3sq9Un1ZODK1XMAbelGDMxG/e6x1CfVk4GlG2jXDVjb6PZ+yYYrV78DOJJA9ybD2U2J7ObwdxSy+tP9Zjers8TmB/dzWrsh4vu9Pq1JU0KrnjzWtEBC9zHgUFOxfWY41lzoOjMcaiq2zwzHmgtdZ4ZDTcX2meFYc6HrsjP8Bbr1Xi3QRPhGAAAAAElFTkSuQmCC"
+module.exports = "data:image/png;base64,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"
 
 /***/ }),
 
@@ -4431,6 +6253,28 @@ module.exports = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACwAAAAsCAYAAAAe
 /***/ (function(module, exports) {
 
 module.exports = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACwAAAAsCAYAAAAehFoBAAAAAXNSR0IArs4c6QAAAj1JREFUWEftlj9oE2EYh5/32jQoBQuCg+jgIDh0cBBEcHDQoQVBRUKTCDoIhd4lOf+Mglm61SbGHA4OipCk1MGtgg6COhRcBHVyU0Sc/IMItk0+OduIHI3c910LBr+b7sL73vvc8/2+uwh9dkif8WKBN3vFrGFrOGLARsJGwkZiszOwEYYrtcZRx5FpBfuBIU3mJYEXCq74Xu6RZq/+p7labx4DHgADusMi9W1HnPGiO/FQ5z7ar7VqvbkIHBSYHZTBq66b+aYzMAjmh5fV8jRIESWLfiF7SKffBPgjsAN4MuSoE1NT+U86A2dvtA44wjyoPSg++IXcTp1+beDrN+dGVbsTRmIX8LotMnbJzb6LM7QaNDyUzABpUM9ZSZ32/czbOL3dGm3gsPFa0No90FELCKPA+47qjF0snHnZa/BqDFZuARO/apTUHbXtcrE4/kMHNqw1Ag4bK5XbI5JK3weOAF9E1MmSm38cBVhbkXvAPuArSp33C/nw2ugwBg6n1WoL6bbz+a5ABlgS1NmSl5/rklSCxjlRBCBbUbySjjpVKuXfGJGuNSUCDu9RLpedke17ZxC5EC627+WcLlC13lSr53JnS2rYnZw8/j0JbKJIRAd34Xwv91vCer9ZYFMD1nAPc4k3XXSD2QxHTP/Xhp+CiO9lD/8tJqabOtF/ibhD/+n38HoP0YfArWfhg/wZk7ir06tuwzZdUpC4/RY4rinTOmvY1FzcPms4rinTOmvY1FzcPms4rinTur4z/BOAcdEtK4bKaQAAAABJRU5ErkJggg=="
+
+/***/ }),
+
+/***/ 255:
+/*!************************************!*\
+  !*** E:/HX/flow/static/pub/up.png ***!
+  \************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = "data:image/png;base64,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"
+
+/***/ }),
+
+/***/ 256:
+/*!**************************************!*\
+  !*** E:/HX/flow/static/pub/down.png ***!
+  \**************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = "data:image/png;base64,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"
 
 /***/ }),
 
@@ -10947,7 +12791,7 @@ var version = '1.8.3';var _default =
 
 /***/ }),
 
-/***/ 391:
+/***/ 393:
 /*!*************************************!*\
   !*** E:/HX/flow/utils/clipboard.js ***!
   \*************************************/
@@ -12868,7 +14712,7 @@ module.exports = index_cjs;
 
 /***/ }),
 
-/***/ 530:
+/***/ 532:
 /*!************************************!*\
   !*** E:/HX/flow/static/pub/zy.jpg ***!
   \************************************/
@@ -12879,7 +14723,7 @@ module.exports = "/static/pub/zy.jpg";
 
 /***/ }),
 
-/***/ 531:
+/***/ 533:
 /*!*****************************************!*\
   !*** E:/HX/flow/static/comm/avatar.png ***!
   \*****************************************/
@@ -12937,1858 +14781,1404 @@ var throttle = function throttle(func, wait) {
 
 /***/ }),
 
-/***/ 766:
-/*!****************************************!*\
-  !*** E:/HX/flow/static/pub/updown.png ***!
-  \****************************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-module.exports = "data:image/png;base64,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"
-
-/***/ }),
-
-/***/ 767:
+/***/ 750:
 /*!************************************!*\
-  !*** E:/HX/flow/static/pub/up.png ***!
+  !*** E:/HX/flow/static/updown.png ***!
   \************************************/
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-module.exports = "data:image/png;base64,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"
+module.exports = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACwAAAAsCAYAAAAehFoBAAAAAXNSR0IArs4c6QAAAUBJREFUWEftlrFKA0EQhv8hmN4iTWx8I0lzYkRbwYTE+ALhsBU9YVuxu+hWeaWAadKkT5QRQSFEZJbdCWRhrp3Zve+++29uCZldlBkvDHjXb8wMm+EtAxYJi4RFYtcZMMO5G65cXQIYEPHDsHd+p/08anOYmenJTRwI1xuQ1bB3dktErAWuAuy9b8wX6xcCXfwBI3putxpXRVF8akAnA4/HvnnY+ngF0PkXiPhtuTi4LMtilQqdDPzoJlMCn0ggDPhRv3sq9Un1ZODK1XMAbelGDMxG/e6x1CfVk4GlG2jXDVjb6PZ+yYYrV78DOJJA9ybD2U2J7ObwdxSy+tP9Zjers8TmB/dzWrsh4vu9Pq1JU0KrnjzWtEBC9zHgUFOxfWY41lzoOjMcaiq2zwzHmgtdZ4ZDTcX2meFYc6HrsjP8Bbr1Xi3QRPhGAAAAAElFTkSuQmCC"
 
 /***/ }),
 
-/***/ 768:
-/*!**************************************!*\
-  !*** E:/HX/flow/static/pub/down.png ***!
-  \**************************************/
+/***/ 822:
+/*!************************************!*\
+  !*** E:/HX/flow/static/pub/fj.jpg ***!
+  \************************************/
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-module.exports = "data:image/png;base64,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"
+module.exports = "data:image/jpeg;base64,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"
 
 /***/ }),
 
-/***/ 849:
-/*!*************************************************************!*\
-  !*** E:/HX/flow/node_modules/uview-ui/libs/util/emitter.js ***!
-  \*************************************************************/
+/***/ 842:
+/*!*********************************************************************************!*\
+  !*** E:/HX/flow/node_modules/uview-ui/components/u-avatar-cropper/weCropper.js ***!
+  \*********************************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });exports.default = void 0; /**
-                                                                                                      * 递归使用 call 方式this指向
-                                                                                                      * @param componentName // 需要找的组件的名称
-                                                                                                      * @param eventName // 事件名称
-                                                                                                      * @param params // 需要传递的参数
-                                                                                                      */
-function _broadcast(componentName, eventName, params) {
-  // 循环子节点找到名称一样的子节点 否则 递归 当前子节点
-  this.$children.map(function (child) {
-    if (componentName === child.$options.name) {
-      child.$emit.apply(child, [eventName].concat(params));
-    } else {
-      _broadcast.apply(child, [componentName, eventName].concat(params));
+/* WEBPACK VAR INJECTION */(function(uni, global) {/**
+ * we-cropper v1.3.9
+ * (c) 2020 dlhandsome
+ * @license MIT
+ */
+(function (global, factory) {
+   true ? module.exports = factory() :
+  undefined;
+})(this, function () {
+  'use strict';
+
+  var device = void 0;
+  var TOUCH_STATE = ['touchstarted', 'touchmoved', 'touchended'];
+
+  function firstLetterUpper(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+
+  function setTouchState(instance) {
+    var arg = [],
+    len = arguments.length - 1;
+    while (len-- > 0) {arg[len] = arguments[len + 1];}
+
+    TOUCH_STATE.forEach(function (key, i) {
+      if (arg[i] !== undefined) {
+        instance[key] = arg[i];
+      }
+    });
+  }
+
+  function validator(instance, o) {
+    Object.defineProperties(instance, o);
+  }
+
+  function getDevice() {
+    if (!device) {
+      device = uni.getSystemInfoSync();
     }
-  });
-}var _default =
-{
-  methods: {
-    /**
-              * 派发 (向上查找) (一个)
-              * @param componentName // 需要找的组件的名称
-              * @param eventName // 事件名称
-              * @param params // 需要传递的参数
-              */
-    dispatch: function dispatch(componentName, eventName, params) {
-      var parent = this.$parent || this.$root; //$parent 找到最近的父节点 $root 根节点
-      var name = parent.$options.name; // 获取当前组件实例的name
-      // 如果当前有节点 && 当前没名称 且 当前名称等于需要传进来的名称的时候就去查找当前的节点
-      // 循环出当前名称的一样的组件实例
-      while (parent && (!name || name !== componentName)) {
-        parent = parent.$parent;
-        if (parent) {
-          name = parent.$options.name;
+    return device;
+  }
+
+  var tmp = {};
+
+  var ref = getDevice();
+  var pixelRatio = ref.pixelRatio;
+
+  var DEFAULT = {
+    id: {
+      default: 'cropper',
+      get: function get() {
+        return tmp.id;
+      },
+      set: function set(value) {
+        if (typeof value !== 'string') {
+          console.error("id：" + value + " is invalid");
         }
-      }
-      // 有节点表示当前找到了name一样的实例
-      if (parent) {
-        parent.$emit.apply(parent, [eventName].concat(params));
-      }
-    },
-    /**
-        * 广播 (向下查找) (广播多个)
-        * @param componentName // 需要找的组件的名称
-        * @param eventName // 事件名称
-        * @param params // 需要传递的参数
-        */
-    broadcast: function broadcast(componentName, eventName, params) {
-      _broadcast.call(this, componentName, eventName, params);
-    } } };exports.default = _default;
+        tmp.id = value;
+      } },
 
-/***/ }),
-
-/***/ 850:
-/*!*********************************************************************!*\
-  !*** E:/HX/flow/node_modules/uview-ui/libs/util/async-validator.js ***!
-  \*********************************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-/* WEBPACK VAR INJECTION */(function(process) {Object.defineProperty(exports, "__esModule", { value: true });exports.default = void 0;function _extends() {
-  _extends = Object.assign || function (target) {
-    for (var i = 1; i < arguments.length; i++) {
-      var source = arguments[i];
-
-      for (var key in source) {
-        if (Object.prototype.hasOwnProperty.call(source, key)) {
-          target[key] = source[key];
+    width: {
+      default: 750,
+      get: function get() {
+        return tmp.width;
+      },
+      set: function set(value) {
+        if (typeof value !== 'number') {
+          console.error("width：" + value + " is invalid");
         }
-      }
-    }
+        tmp.width = value;
+      } },
 
-    return target;
-  };
+    height: {
+      default: 750,
+      get: function get() {
+        return tmp.height;
+      },
+      set: function set(value) {
+        if (typeof value !== 'number') {
+          console.error("height：" + value + " is invalid");
+        }
+        tmp.height = value;
+      } },
 
-  return _extends.apply(this, arguments);
-}
+    pixelRatio: {
+      default: pixelRatio,
+      get: function get() {
+        return tmp.pixelRatio;
+      },
+      set: function set(value) {
+        if (typeof value !== 'number') {
+          console.error("pixelRatio：" + value + " is invalid");
+        }
+        tmp.pixelRatio = value;
+      } },
 
-/* eslint no-console:0 */
-var formatRegExp = /%[sdj%]/g;
-var warning = function warning() {}; // don't print warning message when in production env or node runtime
+    scale: {
+      default: 2.5,
+      get: function get() {
+        return tmp.scale;
+      },
+      set: function set(value) {
+        if (typeof value !== 'number') {
+          console.error("scale：" + value + " is invalid");
+        }
+        tmp.scale = value;
+      } },
 
-if (typeof process !== 'undefined' && Object({"NODE_ENV":"development","VUE_APP_NAME":"流象","VUE_APP_PLATFORM":"mp-weixin","BASE_URL":"/"}) && "development" !== 'production' && typeof window !==
-'undefined' && typeof document !== 'undefined') {
-  warning = function warning(type, errors) {
-    if (typeof console !== 'undefined' && console.warn) {
-      if (errors.every(function (e) {
-        return typeof e === 'string';
-      })) {
-        console.warn(type, errors);
-      }
-    }
-  };
-}
+    zoom: {
+      default: 5,
+      get: function get() {
+        return tmp.zoom;
+      },
+      set: function set(value) {
+        if (typeof value !== 'number') {
+          console.error("zoom：" + value + " is invalid");
+        } else if (value < 0 || value > 10) {
+          console.error("zoom should be ranged in 0 ~ 10");
+        }
+        tmp.zoom = value;
+      } },
 
-function convertFieldsError(errors) {
-  if (!errors || !errors.length) return null;
-  var fields = {};
-  errors.forEach(function (error) {
-    var field = error.field;
-    fields[field] = fields[field] || [];
-    fields[field].push(error);
-  });
-  return fields;
-}
+    src: {
+      default: '',
+      get: function get() {
+        return tmp.src;
+      },
+      set: function set(value) {
+        if (typeof value !== 'string') {
+          console.error("src：" + value + " is invalid");
+        }
+        tmp.src = value;
+      } },
 
-function format() {
-  for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
-    args[_key] = arguments[_key];
-  }
+    cut: {
+      default: {},
+      get: function get() {
+        return tmp.cut;
+      },
+      set: function set(value) {
+        if (typeof value !== 'object') {
+          console.error("cut：" + value + " is invalid");
+        }
+        tmp.cut = value;
+      } },
 
-  var i = 1;
-  var f = args[0];
-  var len = args.length;
+    boundStyle: {
+      default: {},
+      get: function get() {
+        return tmp.boundStyle;
+      },
+      set: function set(value) {
+        if (typeof value !== 'object') {
+          console.error("boundStyle：" + value + " is invalid");
+        }
+        tmp.boundStyle = value;
+      } },
 
-  if (typeof f === 'function') {
-    return f.apply(null, args.slice(1));
-  }
+    onReady: {
+      default: null,
+      get: function get() {
+        return tmp.ready;
+      },
+      set: function set(value) {
+        tmp.ready = value;
+      } },
 
-  if (typeof f === 'string') {
-    var str = String(f).replace(formatRegExp, function (x) {
-      if (x === '%%') {
-        return '%';
-      }
+    onBeforeImageLoad: {
+      default: null,
+      get: function get() {
+        return tmp.beforeImageLoad;
+      },
+      set: function set(value) {
+        tmp.beforeImageLoad = value;
+      } },
 
-      if (i >= len) {
-        return x;
-      }
+    onImageLoad: {
+      default: null,
+      get: function get() {
+        return tmp.imageLoad;
+      },
+      set: function set(value) {
+        tmp.imageLoad = value;
+      } },
 
-      switch (x) {
-        case '%s':
-          return String(args[i++]);
+    onBeforeDraw: {
+      default: null,
+      get: function get() {
+        return tmp.beforeDraw;
+      },
+      set: function set(value) {
+        tmp.beforeDraw = value;
+      } } };
 
-        case '%d':
-          return Number(args[i++]);
 
-        case '%j':
-          try {
-            return JSON.stringify(args[i++]);
-          } catch (_) {
-            return '[Circular]';
-          }
 
-          break;
+  var ref$1 = getDevice();
+  var windowWidth = ref$1.windowWidth;
 
-        default:
-          return x;}
+  function prepare() {
+    var self = this;
 
-    });
+    // v1.4.0 版本中将不再自动绑定we-cropper实例
+    self.attachPage = function () {
+      var pages = getCurrentPages();
+      // 获取到当前page上下文
+      var pageContext = pages[pages.length - 1];
+      // 把this依附在Page上下文的wecropper属性上，便于在page钩子函数中访问
+      Object.defineProperty(pageContext, 'wecropper', {
+        get: function get() {
+          console.warn(
+          'Instance will not be automatically bound to the page after v1.4.0\n\n' +
+          'Please use a custom instance name instead\n\n' +
+          'Example: \n' +
+          'this.mycropper = new WeCropper(options)\n\n' +
+          '// ...\n' +
+          'this.mycropper.getCropperImage()');
 
-    for (var arg = args[i]; i < len; arg = args[++i]) {
-      str += " " + arg;
-    }
+          return self;
+        },
+        configurable: true });
 
-    return str;
-  }
+    };
 
-  return f;
-}
+    self.createCtx = function () {
+      var id = self.id;
+      var targetId = self.targetId;
 
-function isNativeStringType(type) {
-  return type === 'string' || type === 'url' || type === 'hex' || type === 'email' || type === 'pattern';
-}
-
-function isEmptyValue(value, type) {
-  if (value === undefined || value === null) {
-    return true;
-  }
-
-  if (type === 'array' && Array.isArray(value) && !value.length) {
-    return true;
-  }
-
-  if (isNativeStringType(type) && typeof value === 'string' && !value) {
-    return true;
-  }
-
-  return false;
-}
-
-function asyncParallelArray(arr, func, callback) {
-  var results = [];
-  var total = 0;
-  var arrLength = arr.length;
-
-  function count(errors) {
-    results.push.apply(results, errors);
-    total++;
-
-    if (total === arrLength) {
-      callback(results);
-    }
-  }
-
-  arr.forEach(function (a) {
-    func(a, count);
-  });
-}
-
-function asyncSerialArray(arr, func, callback) {
-  var index = 0;
-  var arrLength = arr.length;
-
-  function next(errors) {
-    if (errors && errors.length) {
-      callback(errors);
-      return;
-    }
-
-    var original = index;
-    index = index + 1;
-
-    if (original < arrLength) {
-      func(arr[original], next);
-    } else {
-      callback([]);
-    }
-  }
-
-  next([]);
-}
-
-function flattenObjArr(objArr) {
-  var ret = [];
-  Object.keys(objArr).forEach(function (k) {
-    ret.push.apply(ret, objArr[k]);
-  });
-  return ret;
-}
-
-function asyncMap(objArr, option, func, callback) {
-  if (option.first) {
-    var _pending = new Promise(function (resolve, reject) {
-      var next = function next(errors) {
-        callback(errors);
-        return errors.length ? reject({
-          errors: errors,
-          fields: convertFieldsError(errors) }) :
-        resolve();
-      };
-
-      var flattenArr = flattenObjArr(objArr);
-      asyncSerialArray(flattenArr, func, next);
-    });
-
-    _pending["catch"](function (e) {
-      return e;
-    });
-
-    return _pending;
-  }
-
-  var firstFields = option.firstFields || [];
-
-  if (firstFields === true) {
-    firstFields = Object.keys(objArr);
-  }
-
-  var objArrKeys = Object.keys(objArr);
-  var objArrLength = objArrKeys.length;
-  var total = 0;
-  var results = [];
-  var pending = new Promise(function (resolve, reject) {
-    var next = function next(errors) {
-      results.push.apply(results, errors);
-      total++;
-
-      if (total === objArrLength) {
-        callback(results);
-        return results.length ? reject({
-          errors: results,
-          fields: convertFieldsError(results) }) :
-        resolve();
+      if (id) {
+        self.ctx = self.ctx || uni.createCanvasContext(id);
+        self.targetCtx = self.targetCtx || uni.createCanvasContext(targetId);
+      } else {
+        console.error("constructor: create canvas context failed, 'id' must be valuable");
       }
     };
 
-    if (!objArrKeys.length) {
-      callback(results);
-      resolve();
-    }
-
-    objArrKeys.forEach(function (key) {
-      var arr = objArr[key];
-
-      if (firstFields.indexOf(key) !== -1) {
-        asyncSerialArray(arr, func, next);
-      } else {
-        asyncParallelArray(arr, func, next);
-      }
-    });
-  });
-  pending["catch"](function (e) {
-    return e;
-  });
-  return pending;
-}
-
-function complementError(rule) {
-  return function (oe) {
-    if (oe && oe.message) {
-      oe.field = oe.field || rule.fullField;
-      return oe;
-    }
-
-    return {
-      message: typeof oe === 'function' ? oe() : oe,
-      field: oe.field || rule.fullField };
-
-  };
-}
-
-function deepMerge(target, source) {
-  if (source) {
-    for (var s in source) {
-      if (source.hasOwnProperty(s)) {
-        var value = source[s];
-
-        if (typeof value === 'object' && typeof target[s] === 'object') {
-          target[s] = _extends({}, target[s], {}, value);
-        } else {
-          target[s] = value;
-        }
-      }
-    }
+    self.deviceRadio = windowWidth / 750;
   }
 
-  return target;
-}
+  var commonjsGlobal = typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !==
+  'undefined' ? self : {};
 
-/**
-   *  Rule for validating required fields.
-   *
-   *  @param rule The validation rule.
-   *  @param value The value of the field on the source object.
-   *  @param source The source object being validated.
-   *  @param errors An array of errors that this rule may add
-   *  validation errors to.
-   *  @param options The validation options.
-   *  @param options.messages The validation messages.
-   */
 
-function required(rule, value, source, errors, options, type) {
-  if (rule.required && (!source.hasOwnProperty(rule.field) || isEmptyValue(value, type || rule.type))) {
-    errors.push(format(options.messages.required, rule.fullField));
+
+
+
+  function createCommonjsModule(fn, module) {
+    return module = {
+      exports: {} },
+    fn(module, module.exports), module.exports;
   }
-}
 
-/**
-   *  Rule for validating whitespace.
-   *
-   *  @param rule The validation rule.
-   *  @param value The value of the field on the source object.
-   *  @param source The source object being validated.
-   *  @param errors An array of errors that this rule may add
-   *  validation errors to.
-   *  @param options The validation options.
-   *  @param options.messages The validation messages.
-   */
-
-function whitespace(rule, value, source, errors, options) {
-  if (/^\s+$/.test(value) || value === '') {
-    errors.push(format(options.messages.whitespace, rule.fullField));
-  }
-}
-
-/* eslint max-len:0 */
-
-var pattern = {
-  // http://emailregex.com/
-  email: /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
-  url: new RegExp(
-  "^(?!mailto:)(?:(?:http|https|ftp)://|//)(?:\\S+(?::\\S*)?@)?(?:(?:(?:[1-9]\\d?|1\\d\\d|2[01]\\d|22[0-3])(?:\\.(?:1?\\d{1,2}|2[0-4]\\d|25[0-5])){2}(?:\\.(?:[0-9]\\d?|1\\d\\d|2[0-4]\\d|25[0-4]))|(?:(?:[a-z\\u00a1-\\uffff0-9]+-*)*[a-z\\u00a1-\\uffff0-9]+)(?:\\.(?:[a-z\\u00a1-\\uffff0-9]+-*)*[a-z\\u00a1-\\uffff0-9]+)*(?:\\.(?:[a-z\\u00a1-\\uffff]{2,})))|localhost)(?::\\d{2,5})?(?:(/|\\?|#)[^\\s]*)?$",
-  'i'),
-  hex: /^#?([a-f0-9]{6}|[a-f0-9]{3})$/i };
-
-var types = {
-  integer: function integer(value) {
-    return types.number(value) && parseInt(value, 10) === value;
-  },
-  "float": function float(value) {
-    return types.number(value) && !types.integer(value);
-  },
-  array: function array(value) {
-    return Array.isArray(value);
-  },
-  regexp: function regexp(value) {
-    if (value instanceof RegExp) {
-      return true;
-    }
-
-    try {
-      return !!new RegExp(value);
-    } catch (e) {
-      return false;
-    }
-  },
-  date: function date(value) {
-    return typeof value.getTime === 'function' && typeof value.getMonth === 'function' && typeof value.getYear ===
-    'function';
-  },
-  number: function number(value) {
-    if (isNaN(value)) {
-      return false;
-    }
-
-    // 修改源码，将字符串数值先转为数值
-    return typeof +value === 'number';
-  },
-  object: function object(value) {
-    return typeof value === 'object' && !types.array(value);
-  },
-  method: function method(value) {
-    return typeof value === 'function';
-  },
-  email: function email(value) {
-    return typeof value === 'string' && !!value.match(pattern.email) && value.length < 255;
-  },
-  url: function url(value) {
-    return typeof value === 'string' && !!value.match(pattern.url);
-  },
-  hex: function hex(value) {
-    return typeof value === 'string' && !!value.match(pattern.hex);
-  } };
-
-/**
-        *  Rule for validating the type of a value.
-        *
-        *  @param rule The validation rule.
-        *  @param value The value of the field on the source object.
-        *  @param source The source object being validated.
-        *  @param errors An array of errors that this rule may add
-        *  validation errors to.
-        *  @param options The validation options.
-        *  @param options.messages The validation messages.
+  var tools = createCommonjsModule(function (module, exports) {
+    /**
+                                                                * String type check
+                                                                */
+    exports.isStr = function (v) {
+      return typeof v === 'string';
+    };
+    /**
+        * Number type check
         */
-
-function type(rule, value, source, errors, options) {
-  if (rule.required && value === undefined) {
-    required(rule, value, source, errors, options);
-    return;
-  }
-
-  var custom = ['integer', 'float', 'array', 'regexp', 'object', 'method', 'email', 'number', 'date', 'url', 'hex'];
-  var ruleType = rule.type;
-
-  if (custom.indexOf(ruleType) > -1) {
-    if (!types[ruleType](value)) {
-      errors.push(format(options.messages.types[ruleType], rule.fullField, rule.type));
-    } // straight typeof check
-
-  } else if (ruleType && typeof value !== rule.type) {
-    errors.push(format(options.messages.types[ruleType], rule.fullField, rule.type));
-  }
-}
-
-/**
-   *  Rule for validating minimum and maximum allowed values.
-   *
-   *  @param rule The validation rule.
-   *  @param value The value of the field on the source object.
-   *  @param source The source object being validated.
-   *  @param errors An array of errors that this rule may add
-   *  validation errors to.
-   *  @param options The validation options.
-   *  @param options.messages The validation messages.
-   */
-
-function range(rule, value, source, errors, options) {
-  var len = typeof rule.len === 'number';
-  var min = typeof rule.min === 'number';
-  var max = typeof rule.max === 'number'; // 正则匹配码点范围从U+010000一直到U+10FFFF的文字（补充平面Supplementary Plane）
-
-  var spRegexp = /[\uD800-\uDBFF][\uDC00-\uDFFF]/g;
-  var val = value;
-  var key = null;
-  var num = typeof value === 'number';
-  var str = typeof value === 'string';
-  var arr = Array.isArray(value);
-
-  if (num) {
-    key = 'number';
-  } else if (str) {
-    key = 'string';
-  } else if (arr) {
-    key = 'array';
-  } // if the value is not of a supported type for range validation
-  // the validation rule rule should use the
-  // type property to also test for a particular type
-
-
-  if (!key) {
-    return false;
-  }
-
-  if (arr) {
-    val = value.length;
-  }
-
-  if (str) {
-    // 处理码点大于U+010000的文字length属性不准确的bug，如"𠮷𠮷𠮷".lenght !== 3
-    val = value.replace(spRegexp, '_').length;
-  }
-
-  if (len) {
-    if (val !== rule.len) {
-      errors.push(format(options.messages[key].len, rule.fullField, rule.len));
-    }
-  } else if (min && !max && val < rule.min) {
-    errors.push(format(options.messages[key].min, rule.fullField, rule.min));
-  } else if (max && !min && val > rule.max) {
-    errors.push(format(options.messages[key].max, rule.fullField, rule.max));
-  } else if (min && max && (val < rule.min || val > rule.max)) {
-    errors.push(format(options.messages[key].range, rule.fullField, rule.min, rule.max));
-  }
-}
-
-var ENUM = 'enum';
-/**
-                    *  Rule for validating a value exists in an enumerable list.
-                    *
-                    *  @param rule The validation rule.
-                    *  @param value The value of the field on the source object.
-                    *  @param source The source object being validated.
-                    *  @param errors An array of errors that this rule may add
-                    *  validation errors to.
-                    *  @param options The validation options.
-                    *  @param options.messages The validation messages.
-                    */
-
-function enumerable(rule, value, source, errors, options) {
-  rule[ENUM] = Array.isArray(rule[ENUM]) ? rule[ENUM] : [];
-
-  if (rule[ENUM].indexOf(value) === -1) {
-    errors.push(format(options.messages[ENUM], rule.fullField, rule[ENUM].join(', ')));
-  }
-}
-
-/**
-   *  Rule for validating a regular expression pattern.
-   *
-   *  @param rule The validation rule.
-   *  @param value The value of the field on the source object.
-   *  @param source The source object being validated.
-   *  @param errors An array of errors that this rule may add
-   *  validation errors to.
-   *  @param options The validation options.
-   *  @param options.messages The validation messages.
-   */
-
-function pattern$1(rule, value, source, errors, options) {
-  if (rule.pattern) {
-    if (rule.pattern instanceof RegExp) {
-      // if a RegExp instance is passed, reset `lastIndex` in case its `global`
-      // flag is accidentally set to `true`, which in a validation scenario
-      // is not necessary and the result might be misleading
-      rule.pattern.lastIndex = 0;
-
-      if (!rule.pattern.test(value)) {
-        errors.push(format(options.messages.pattern.mismatch, rule.fullField, value, rule.pattern));
-      }
-    } else if (typeof rule.pattern === 'string') {
-      var _pattern = new RegExp(rule.pattern);
-
-      if (!_pattern.test(value)) {
-        errors.push(format(options.messages.pattern.mismatch, rule.fullField, value, rule.pattern));
-      }
-    }
-  }
-}
-
-var rules = {
-  required: required,
-  whitespace: whitespace,
-  type: type,
-  range: range,
-  "enum": enumerable,
-  pattern: pattern$1 };
-
-
-/**
-                         *  Performs validation for string types.
-                         *
-                         *  @param rule The validation rule.
-                         *  @param value The value of the field on the source object.
-                         *  @param callback The callback function.
-                         *  @param source The source object being validated.
-                         *  @param options The validation options.
-                         *  @param options.messages The validation messages.
-                         */
-
-function string(rule, value, callback, source, options) {
-  var errors = [];
-  var validate = rule.required || !rule.required && source.hasOwnProperty(rule.field);
-
-  if (validate) {
-    if (isEmptyValue(value, 'string') && !rule.required) {
-      return callback();
-    }
-
-    rules.required(rule, value, source, errors, options, 'string');
-
-    if (!isEmptyValue(value, 'string')) {
-      rules.type(rule, value, source, errors, options);
-      rules.range(rule, value, source, errors, options);
-      rules.pattern(rule, value, source, errors, options);
-
-      if (rule.whitespace === true) {
-        rules.whitespace(rule, value, source, errors, options);
-      }
-    }
-  }
-
-  callback(errors);
-}
-
-/**
-   *  Validates a function.
-   *
-   *  @param rule The validation rule.
-   *  @param value The value of the field on the source object.
-   *  @param callback The callback function.
-   *  @param source The source object being validated.
-   *  @param options The validation options.
-   *  @param options.messages The validation messages.
-   */
-
-function method(rule, value, callback, source, options) {
-  var errors = [];
-  var validate = rule.required || !rule.required && source.hasOwnProperty(rule.field);
-
-  if (validate) {
-    if (isEmptyValue(value) && !rule.required) {
-      return callback();
-    }
-
-    rules.required(rule, value, source, errors, options);
-
-    if (value !== undefined) {
-      rules.type(rule, value, source, errors, options);
-    }
-  }
-
-  callback(errors);
-}
-
-/**
-   *  Validates a number.
-   *
-   *  @param rule The validation rule.
-   *  @param value The value of the field on the source object.
-   *  @param callback The callback function.
-   *  @param source The source object being validated.
-   *  @param options The validation options.
-   *  @param options.messages The validation messages.
-   */
-
-function number(rule, value, callback, source, options) {
-  var errors = [];
-  var validate = rule.required || !rule.required && source.hasOwnProperty(rule.field);
-
-  if (validate) {
-    if (value === '') {
-      value = undefined;
-    }
-
-    if (isEmptyValue(value) && !rule.required) {
-      return callback();
-    }
-
-    rules.required(rule, value, source, errors, options);
-
-    if (value !== undefined) {
-      rules.type(rule, value, source, errors, options);
-      rules.range(rule, value, source, errors, options);
-    }
-  }
-
-  callback(errors);
-}
-
-/**
-   *  Validates a boolean.
-   *
-   *  @param rule The validation rule.
-   *  @param value The value of the field on the source object.
-   *  @param callback The callback function.
-   *  @param source The source object being validated.
-   *  @param options The validation options.
-   *  @param options.messages The validation messages.
-   */
-
-function _boolean(rule, value, callback, source, options) {
-  var errors = [];
-  var validate = rule.required || !rule.required && source.hasOwnProperty(rule.field);
-
-  if (validate) {
-    if (isEmptyValue(value) && !rule.required) {
-      return callback();
-    }
-
-    rules.required(rule, value, source, errors, options);
-
-    if (value !== undefined) {
-      rules.type(rule, value, source, errors, options);
-    }
-  }
-
-  callback(errors);
-}
-
-/**
-   *  Validates the regular expression type.
-   *
-   *  @param rule The validation rule.
-   *  @param value The value of the field on the source object.
-   *  @param callback The callback function.
-   *  @param source The source object being validated.
-   *  @param options The validation options.
-   *  @param options.messages The validation messages.
-   */
-
-function regexp(rule, value, callback, source, options) {
-  var errors = [];
-  var validate = rule.required || !rule.required && source.hasOwnProperty(rule.field);
-
-  if (validate) {
-    if (isEmptyValue(value) && !rule.required) {
-      return callback();
-    }
-
-    rules.required(rule, value, source, errors, options);
-
-    if (!isEmptyValue(value)) {
-      rules.type(rule, value, source, errors, options);
-    }
-  }
-
-  callback(errors);
-}
-
-/**
-   *  Validates a number is an integer.
-   *
-   *  @param rule The validation rule.
-   *  @param value The value of the field on the source object.
-   *  @param callback The callback function.
-   *  @param source The source object being validated.
-   *  @param options The validation options.
-   *  @param options.messages The validation messages.
-   */
-
-function integer(rule, value, callback, source, options) {
-  var errors = [];
-  var validate = rule.required || !rule.required && source.hasOwnProperty(rule.field);
-
-  if (validate) {
-    if (isEmptyValue(value) && !rule.required) {
-      return callback();
-    }
-
-    rules.required(rule, value, source, errors, options);
-
-    if (value !== undefined) {
-      rules.type(rule, value, source, errors, options);
-      rules.range(rule, value, source, errors, options);
-    }
-  }
-
-  callback(errors);
-}
-
-/**
-   *  Validates a number is a floating point number.
-   *
-   *  @param rule The validation rule.
-   *  @param value The value of the field on the source object.
-   *  @param callback The callback function.
-   *  @param source The source object being validated.
-   *  @param options The validation options.
-   *  @param options.messages The validation messages.
-   */
-
-function floatFn(rule, value, callback, source, options) {
-  var errors = [];
-  var validate = rule.required || !rule.required && source.hasOwnProperty(rule.field);
-
-  if (validate) {
-    if (isEmptyValue(value) && !rule.required) {
-      return callback();
-    }
-
-    rules.required(rule, value, source, errors, options);
-
-    if (value !== undefined) {
-      rules.type(rule, value, source, errors, options);
-      rules.range(rule, value, source, errors, options);
-    }
-  }
-
-  callback(errors);
-}
-
-/**
-   *  Validates an array.
-   *
-   *  @param rule The validation rule.
-   *  @param value The value of the field on the source object.
-   *  @param callback The callback function.
-   *  @param source The source object being validated.
-   *  @param options The validation options.
-   *  @param options.messages The validation messages.
-   */
-
-function array(rule, value, callback, source, options) {
-  var errors = [];
-  var validate = rule.required || !rule.required && source.hasOwnProperty(rule.field);
-
-  if (validate) {
-    if (isEmptyValue(value, 'array') && !rule.required) {
-      return callback();
-    }
-
-    rules.required(rule, value, source, errors, options, 'array');
-
-    if (!isEmptyValue(value, 'array')) {
-      rules.type(rule, value, source, errors, options);
-      rules.range(rule, value, source, errors, options);
-    }
-  }
-
-  callback(errors);
-}
-
-/**
-   *  Validates an object.
-   *
-   *  @param rule The validation rule.
-   *  @param value The value of the field on the source object.
-   *  @param callback The callback function.
-   *  @param source The source object being validated.
-   *  @param options The validation options.
-   *  @param options.messages The validation messages.
-   */
-
-function object(rule, value, callback, source, options) {
-  var errors = [];
-  var validate = rule.required || !rule.required && source.hasOwnProperty(rule.field);
-
-  if (validate) {
-    if (isEmptyValue(value) && !rule.required) {
-      return callback();
-    }
-
-    rules.required(rule, value, source, errors, options);
-
-    if (value !== undefined) {
-      rules.type(rule, value, source, errors, options);
-    }
-  }
-
-  callback(errors);
-}
-
-var ENUM$1 = 'enum';
-/**
-                      *  Validates an enumerable list.
-                      *
-                      *  @param rule The validation rule.
-                      *  @param value The value of the field on the source object.
-                      *  @param callback The callback function.
-                      *  @param source The source object being validated.
-                      *  @param options The validation options.
-                      *  @param options.messages The validation messages.
-                      */
-
-function enumerable$1(rule, value, callback, source, options) {
-  var errors = [];
-  var validate = rule.required || !rule.required && source.hasOwnProperty(rule.field);
-
-  if (validate) {
-    if (isEmptyValue(value) && !rule.required) {
-      return callback();
-    }
-
-    rules.required(rule, value, source, errors, options);
-
-    if (value !== undefined) {
-      rules[ENUM$1](rule, value, source, errors, options);
-    }
-  }
-
-  callback(errors);
-}
-
-/**
-   *  Validates a regular expression pattern.
-   *
-   *  Performs validation when a rule only contains
-   *  a pattern property but is not declared as a string type.
-   *
-   *  @param rule The validation rule.
-   *  @param value The value of the field on the source object.
-   *  @param callback The callback function.
-   *  @param source The source object being validated.
-   *  @param options The validation options.
-   *  @param options.messages The validation messages.
-   */
-
-function pattern$2(rule, value, callback, source, options) {
-  var errors = [];
-  var validate = rule.required || !rule.required && source.hasOwnProperty(rule.field);
-
-  if (validate) {
-    if (isEmptyValue(value, 'string') && !rule.required) {
-      return callback();
-    }
-
-    rules.required(rule, value, source, errors, options);
-
-    if (!isEmptyValue(value, 'string')) {
-      rules.pattern(rule, value, source, errors, options);
-    }
-  }
-
-  callback(errors);
-}
-
-function date(rule, value, callback, source, options) {
-  var errors = [];
-  var validate = rule.required || !rule.required && source.hasOwnProperty(rule.field);
-
-  if (validate) {
-    if (isEmptyValue(value) && !rule.required) {
-      return callback();
-    }
-
-    rules.required(rule, value, source, errors, options);
-
-    if (!isEmptyValue(value)) {
-      var dateObject;
-
-      if (typeof value === 'number') {
-        dateObject = new Date(value);
+    exports.isNum = function (v) {
+      return typeof v === 'number';
+    };
+    /**
+        * Array type check
+        */
+    exports.isArr = Array.isArray;
+    /**
+                                    * undefined type check
+                                    */
+    exports.isUndef = function (v) {
+      return v === undefined;
+    };
+
+    exports.isTrue = function (v) {
+      return v === true;
+    };
+
+    exports.isFalse = function (v) {
+      return v === false;
+    };
+    /**
+        * Function type check
+        */
+    exports.isFunc = function (v) {
+      return typeof v === 'function';
+    };
+    /**
+        * Quick object check - this is primarily used to tell
+        * Objects from primitive values when we know the value
+        * is a JSON-compliant type.
+        */
+    exports.isObj = exports.isObject = function (obj) {
+      return obj !== null && typeof obj === 'object';
+    };
+
+    /**
+        * Strict object type check. Only returns true
+        * for plain JavaScript objects.
+        */
+    var _toString = Object.prototype.toString;
+    exports.isPlainObject = function (obj) {
+      return _toString.call(obj) === '[object Object]';
+    };
+
+    /**
+        * Check whether the object has the property.
+        */
+    var hasOwnProperty = Object.prototype.hasOwnProperty;
+    exports.hasOwn = function (obj, key) {
+      return hasOwnProperty.call(obj, key);
+    };
+
+    /**
+        * Perform no operation.
+        * Stubbing args to make Flow happy without leaving useless transpiled code
+        * with ...rest (https://flow.org/blog/2017/05/07/Strict-Function-Call-Arity/)
+        */
+    exports.noop = function (a, b, c) {};
+
+    /**
+                                           * Check if val is a valid array index.
+                                           */
+    exports.isValidArrayIndex = function (val) {
+      var n = parseFloat(String(val));
+      return n >= 0 && Math.floor(n) === n && isFinite(val);
+    };
+  });
+
+  var tools_7 = tools.isFunc;
+  var tools_10 = tools.isPlainObject;
+
+  var EVENT_TYPE = ['ready', 'beforeImageLoad', 'beforeDraw', 'imageLoad'];
+
+  function observer() {
+    var self = this;
+
+    self.on = function (event, fn) {
+      if (EVENT_TYPE.indexOf(event) > -1) {
+        if (tools_7(fn)) {
+          event === 'ready' ?
+          fn(self) :
+          self["on" + firstLetterUpper(event)] = fn;
+        }
       } else {
-        dateObject = value;
+        console.error("event: " + event + " is invalid");
+      }
+      return self;
+    };
+  }
+
+  function wxPromise(fn) {
+    return function (obj) {
+      var args = [],
+      len = arguments.length - 1;
+      while (len-- > 0) {args[len] = arguments[len + 1];}
+
+      if (obj === void 0) obj = {};
+      return new Promise(function (resolve, reject) {
+        obj.success = function (res) {
+          resolve(res);
+        };
+        obj.fail = function (err) {
+          reject(err);
+        };
+        fn.apply(void 0, [obj].concat(args));
+      });
+    };
+  }
+
+  function draw(ctx, reserve) {
+    if (reserve === void 0) reserve = false;
+
+    return new Promise(function (resolve) {
+      ctx.draw(reserve, resolve);
+    });
+  }
+
+  var getImageInfo = wxPromise(uni.getImageInfo);
+
+  var canvasToTempFilePath = wxPromise(uni.canvasToTempFilePath);
+
+  var base64 = createCommonjsModule(function (module, exports) {
+    /*! http://mths.be/base64 v0.1.0 by @mathias | MIT license */
+    (function (root) {
+
+      // Detect free variables `exports`.
+      var freeExports =  true && exports;
+
+      // Detect free variable `module`.
+      var freeModule =  true && module &&
+      module.exports == freeExports && module;
+
+      // Detect free variable `global`, from Node.js or Browserified code, and use
+      // it as `root`.
+      var freeGlobal = typeof commonjsGlobal == 'object' && commonjsGlobal;
+      if (freeGlobal.global === freeGlobal || freeGlobal.window === freeGlobal) {
+        root = freeGlobal;
       }
 
-      rules.type(rule, dateObject, source, errors, options);
+      /*--------------------------------------------------------------------------*/
 
-      if (dateObject) {
-        rules.range(rule, dateObject.getTime(), source, errors, options);
+      var InvalidCharacterError = function InvalidCharacterError(message) {
+        this.message = message;
+      };
+      InvalidCharacterError.prototype = new Error();
+      InvalidCharacterError.prototype.name = 'InvalidCharacterError';
+
+      var error = function error(message) {
+        // Note: the error messages used throughout this file match those used by
+        // the native `atob`/`btoa` implementation in Chromium.
+        throw new InvalidCharacterError(message);
+      };
+
+      var TABLE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+      // http://whatwg.org/html/common-microsyntaxes.html#space-character
+      var REGEX_SPACE_CHARACTERS = /[\t\n\f\r ]/g;
+
+      // `decode` is designed to be fully compatible with `atob` as described in the
+      // HTML Standard. http://whatwg.org/html/webappapis.html#dom-windowbase64-atob
+      // The optimized base64-decoding algorithm used is based on @atk’s excellent
+      // implementation. https://gist.github.com/atk/1020396
+      var decode = function decode(input) {
+        input = String(input).
+        replace(REGEX_SPACE_CHARACTERS, '');
+        var length = input.length;
+        if (length % 4 == 0) {
+          input = input.replace(/==?$/, '');
+          length = input.length;
+        }
+        if (
+        length % 4 == 1 ||
+        // http://whatwg.org/C#alphanumeric-ascii-characters
+        /[^+a-zA-Z0-9/]/.test(input))
+        {
+          error(
+          'Invalid character: the string to be decoded is not correctly encoded.');
+
+        }
+        var bitCounter = 0;
+        var bitStorage;
+        var buffer;
+        var output = '';
+        var position = -1;
+        while (++position < length) {
+          buffer = TABLE.indexOf(input.charAt(position));
+          bitStorage = bitCounter % 4 ? bitStorage * 64 + buffer : buffer;
+          // Unless this is the first of a group of 4 characters…
+          if (bitCounter++ % 4) {
+            // …convert the first 8 bits to a single ASCII character.
+            output += String.fromCharCode(
+            0xFF & bitStorage >> (-2 * bitCounter & 6));
+
+          }
+        }
+        return output;
+      };
+
+      // `encode` is designed to be fully compatible with `btoa` as described in the
+      // HTML Standard: http://whatwg.org/html/webappapis.html#dom-windowbase64-btoa
+      var encode = function encode(input) {
+        input = String(input);
+        if (/[^\0-\xFF]/.test(input)) {
+          // Note: no need to special-case astral symbols here, as surrogates are
+          // matched, and the input is supposed to only contain ASCII anyway.
+          error(
+          'The string to be encoded contains characters outside of the ' +
+          'Latin1 range.');
+
+        }
+        var padding = input.length % 3;
+        var output = '';
+        var position = -1;
+        var a;
+        var b;
+        var c;
+        var buffer;
+        // Make sure any padding is handled outside of the loop.
+        var length = input.length - padding;
+
+        while (++position < length) {
+          // Read three bytes, i.e. 24 bits.
+          a = input.charCodeAt(position) << 16;
+          b = input.charCodeAt(++position) << 8;
+          c = input.charCodeAt(++position);
+          buffer = a + b + c;
+          // Turn the 24 bits into four chunks of 6 bits each, and append the
+          // matching character for each of them to the output.
+          output +=
+          TABLE.charAt(buffer >> 18 & 0x3F) +
+          TABLE.charAt(buffer >> 12 & 0x3F) +
+          TABLE.charAt(buffer >> 6 & 0x3F) +
+          TABLE.charAt(buffer & 0x3F);
+
+        }
+
+        if (padding == 2) {
+          a = input.charCodeAt(position) << 8;
+          b = input.charCodeAt(++position);
+          buffer = a + b;
+          output +=
+          TABLE.charAt(buffer >> 10) +
+          TABLE.charAt(buffer >> 4 & 0x3F) +
+          TABLE.charAt(buffer << 2 & 0x3F) +
+          '=';
+
+        } else if (padding == 1) {
+          buffer = input.charCodeAt(position);
+          output +=
+          TABLE.charAt(buffer >> 2) +
+          TABLE.charAt(buffer << 4 & 0x3F) +
+          '==';
+
+        }
+
+        return output;
+      };
+
+      var base64 = {
+        'encode': encode,
+        'decode': decode,
+        'version': '0.1.0' };
+
+
+      // Some AMD build optimizers, like r.js, check for specific condition patterns
+      // like the following:
+      if (
+      false)
+      {} else if (freeExports && !freeExports.nodeType) {
+        if (freeModule) {// in Node.js or RingoJS v0.8.0+
+          freeModule.exports = base64;
+        } else {// in Narwhal or RingoJS v0.7.0-
+          for (var key in base64) {
+            base64.hasOwnProperty(key) && (freeExports[key] = base64[key]);
+          }
+        }
+      } else {// in Rhino or a web browser
+        root.base64 = base64;
+      }
+
+    })(commonjsGlobal);
+  });
+
+  function makeURI(strData, type) {
+    return 'data:' + type + ';base64,' + strData;
+  }
+
+  function fixType(type) {
+    type = type.toLowerCase().replace(/jpg/i, 'jpeg');
+    var r = type.match(/png|jpeg|bmp|gif/)[0];
+    return 'image/' + r;
+  }
+
+  function encodeData(data) {
+    var str = '';
+    if (typeof data === 'string') {
+      str = data;
+    } else {
+      for (var i = 0; i < data.length; i++) {
+        str += String.fromCharCode(data[i]);
       }
     }
+    return base64.encode(str);
   }
 
-  callback(errors);
-}
+  /**
+     * 获取图像区域隐含的像素数据
+     * @param canvasId canvas标识
+     * @param x 将要被提取的图像数据矩形区域的左上角 x 坐标
+     * @param y 将要被提取的图像数据矩形区域的左上角 y 坐标
+     * @param width 将要被提取的图像数据矩形区域的宽度
+     * @param height 将要被提取的图像数据矩形区域的高度
+     * @param done 完成回调
+     */
+  function getImageData(canvasId, x, y, width, height, done) {
+    uni.canvasGetImageData({
+      canvasId: canvasId,
+      x: x,
+      y: y,
+      width: width,
+      height: height,
+      success: function success(res) {
+        done(res, null);
+      },
+      fail: function fail(res) {
+        done(null, res);
+      } });
 
-function required$1(rule, value, callback, source, options) {
-  var errors = [];
-  var type = Array.isArray(value) ? 'array' : typeof value;
-  rules.required(rule, value, source, errors, options, type);
-  callback(errors);
-}
+  }
 
-function type$1(rule, value, callback, source, options) {
-  var ruleType = rule.type;
-  var errors = [];
-  var validate = rule.required || !rule.required && source.hasOwnProperty(rule.field);
+  /**
+     * 生成bmp格式图片
+     * 按照规则生成图片响应头和响应体
+     * @param oData 用来描述 canvas 区域隐含的像素数据 { data, width, height } = oData
+     * @returns {*} base64字符串
+     */
+  function genBitmapImage(oData) {
+    //
+    // BITMAPFILEHEADER: http://msdn.microsoft.com/en-us/library/windows/desktop/dd183374(v=vs.85).aspx
+    // BITMAPINFOHEADER: http://msdn.microsoft.com/en-us/library/dd183376.aspx
+    //
+    var biWidth = oData.width;
+    var biHeight = oData.height;
+    var biSizeImage = biWidth * biHeight * 3;
+    var bfSize = biSizeImage + 54; // total header size = 54 bytes
 
-  if (validate) {
-    if (isEmptyValue(value, ruleType) && !rule.required) {
-      return callback();
+    //
+    //  typedef struct tagBITMAPFILEHEADER {
+    //  	WORD bfType;
+    //  	DWORD bfSize;
+    //  	WORD bfReserved1;
+    //  	WORD bfReserved2;
+    //  	DWORD bfOffBits;
+    //  } BITMAPFILEHEADER;
+    //
+    var BITMAPFILEHEADER = [
+    // WORD bfType -- The file type signature; must be "BM"
+    0x42, 0x4D,
+    // DWORD bfSize -- The size, in bytes, of the bitmap file
+    bfSize & 0xff, bfSize >> 8 & 0xff, bfSize >> 16 & 0xff, bfSize >> 24 & 0xff,
+    // WORD bfReserved1 -- Reserved; must be zero
+    0, 0,
+    // WORD bfReserved2 -- Reserved; must be zero
+    0, 0,
+    // DWORD bfOffBits -- The offset, in bytes, from the beginning of the BITMAPFILEHEADER structure to the bitmap bits.
+    54, 0, 0, 0];
+
+
+    //
+    //  typedef struct tagBITMAPINFOHEADER {
+    //  	DWORD biSize;
+    //  	LONG  biWidth;
+    //  	LONG  biHeight;
+    //  	WORD  biPlanes;
+    //  	WORD  biBitCount;
+    //  	DWORD biCompression;
+    //  	DWORD biSizeImage;
+    //  	LONG  biXPelsPerMeter;
+    //  	LONG  biYPelsPerMeter;
+    //  	DWORD biClrUsed;
+    //  	DWORD biClrImportant;
+    //  } BITMAPINFOHEADER, *PBITMAPINFOHEADER;
+    //
+    var BITMAPINFOHEADER = [
+    // DWORD biSize -- The number of bytes required by the structure
+    40, 0, 0, 0,
+    // LONG biWidth -- The width of the bitmap, in pixels
+    biWidth & 0xff, biWidth >> 8 & 0xff, biWidth >> 16 & 0xff, biWidth >> 24 & 0xff,
+    // LONG biHeight -- The height of the bitmap, in pixels
+    biHeight & 0xff, biHeight >> 8 & 0xff, biHeight >> 16 & 0xff, biHeight >> 24 & 0xff,
+    // WORD biPlanes -- The number of planes for the target device. This value must be set to 1
+    1, 0,
+    // WORD biBitCount -- The number of bits-per-pixel, 24 bits-per-pixel -- the bitmap
+    // has a maximum of 2^24 colors (16777216, Truecolor)
+    24, 0,
+    // DWORD biCompression -- The type of compression, BI_RGB (code 0) -- uncompressed
+    0, 0, 0, 0,
+    // DWORD biSizeImage -- The size, in bytes, of the image. This may be set to zero for BI_RGB bitmaps
+    biSizeImage & 0xff, biSizeImage >> 8 & 0xff, biSizeImage >> 16 & 0xff, biSizeImage >> 24 & 0xff,
+    // LONG biXPelsPerMeter, unused
+    0, 0, 0, 0,
+    // LONG biYPelsPerMeter, unused
+    0, 0, 0, 0,
+    // DWORD biClrUsed, the number of color indexes of palette, unused
+    0, 0, 0, 0,
+    // DWORD biClrImportant, unused
+    0, 0, 0, 0];
+
+
+    var iPadding = (4 - biWidth * 3 % 4) % 4;
+
+    var aImgData = oData.data;
+
+    var strPixelData = '';
+    var biWidth4 = biWidth << 2;
+    var y = biHeight;
+    var fromCharCode = String.fromCharCode;
+
+    do {
+      var iOffsetY = biWidth4 * (y - 1);
+      var strPixelRow = '';
+      for (var x = 0; x < biWidth; x++) {
+        var iOffsetX = x << 2;
+        strPixelRow += fromCharCode(aImgData[iOffsetY + iOffsetX + 2]) +
+        fromCharCode(aImgData[iOffsetY + iOffsetX + 1]) +
+        fromCharCode(aImgData[iOffsetY + iOffsetX]);
+      }
+
+      for (var c = 0; c < iPadding; c++) {
+        strPixelRow += String.fromCharCode(0);
+      }
+
+      strPixelData += strPixelRow;
+    } while (--y);
+
+    var strEncoded = encodeData(BITMAPFILEHEADER.concat(BITMAPINFOHEADER)) + encodeData(strPixelData);
+
+    return strEncoded;
+  }
+
+  /**
+     * 转换为图片base64
+     * @param canvasId canvas标识
+     * @param x 将要被提取的图像数据矩形区域的左上角 x 坐标
+     * @param y 将要被提取的图像数据矩形区域的左上角 y 坐标
+     * @param width 将要被提取的图像数据矩形区域的宽度
+     * @param height 将要被提取的图像数据矩形区域的高度
+     * @param type 转换图片类型
+     * @param done 完成回调
+     */
+  function convertToImage(canvasId, x, y, width, height, type, done) {
+    if (done === void 0) done = function done() {};
+
+    if (type === undefined) {
+      type = 'png';
     }
-
-    rules.required(rule, value, source, errors, options, ruleType);
-
-    if (!isEmptyValue(value, ruleType)) {
-      rules.type(rule, value, source, errors, options);
+    type = fixType(type);
+    if (/bmp/.test(type)) {
+      getImageData(canvasId, x, y, width, height, function (data, err) {
+        var strData = genBitmapImage(data);
+        tools_7(done) && done(makeURI(strData, 'image/' + type), err);
+      });
+    } else {
+      console.error('暂不支持生成\'' + type + '\'类型的base64图片');
     }
   }
 
-  callback(errors);
-}
+  var CanvasToBase64 = {
+    convertToImage: convertToImage,
+    // convertToPNG: function (width, height, done) {
+    //   return convertToImage(width, height, 'png', done)
+    // },
+    // convertToJPEG: function (width, height, done) {
+    //   return convertToImage(width, height, 'jpeg', done)
+    // },
+    // convertToGIF: function (width, height, done) {
+    //   return convertToImage(width, height, 'gif', done)
+    // },
+    convertToBMP: function convertToBMP(ref, done) {
+      if (ref === void 0) ref = {};
+      var canvasId = ref.canvasId;
+      var x = ref.x;
+      var y = ref.y;
+      var width = ref.width;
+      var height = ref.height;
+      if (done === void 0) done = function done() {};
 
-/**
-   *  Performs validation for any type.
-   *
-   *  @param rule The validation rule.
-   *  @param value The value of the field on the source object.
-   *  @param callback The callback function.
-   *  @param source The source object being validated.
-   *  @param options The validation options.
-   *  @param options.messages The validation messages.
-   */
-
-function any(rule, value, callback, source, options) {
-  var errors = [];
-  var validate = rule.required || !rule.required && source.hasOwnProperty(rule.field);
-
-  if (validate) {
-    if (isEmptyValue(value) && !rule.required) {
-      return callback();
-    }
-
-    rules.required(rule, value, source, errors, options);
-  }
-
-  callback(errors);
-}
-
-var validators = {
-  string: string,
-  method: method,
-  number: number,
-  "boolean": _boolean,
-  regexp: regexp,
-  integer: integer,
-  "float": floatFn,
-  array: array,
-  object: object,
-  "enum": enumerable$1,
-  pattern: pattern$2,
-  date: date,
-  url: type$1,
-  hex: type$1,
-  email: type$1,
-  required: required$1,
-  any: any };
-
-
-function newMessages() {
-  return {
-    "default": 'Validation error on field %s',
-    required: '%s is required',
-    "enum": '%s must be one of %s',
-    whitespace: '%s cannot be empty',
-    date: {
-      format: '%s date %s is invalid for format %s',
-      parse: '%s date could not be parsed, %s is invalid ',
-      invalid: '%s date %s is invalid' },
-
-    types: {
-      string: '%s is not a %s',
-      method: '%s is not a %s (function)',
-      array: '%s is not an %s',
-      object: '%s is not an %s',
-      number: '%s is not a %s',
-      date: '%s is not a %s',
-      "boolean": '%s is not a %s',
-      integer: '%s is not an %s',
-      "float": '%s is not a %s',
-      regexp: '%s is not a valid %s',
-      email: '%s is not a valid %s',
-      url: '%s is not a valid %s',
-      hex: '%s is not a valid %s' },
-
-    string: {
-      len: '%s must be exactly %s characters',
-      min: '%s must be at least %s characters',
-      max: '%s cannot be longer than %s characters',
-      range: '%s must be between %s and %s characters' },
-
-    number: {
-      len: '%s must equal %s',
-      min: '%s cannot be less than %s',
-      max: '%s cannot be greater than %s',
-      range: '%s must be between %s and %s' },
-
-    array: {
-      len: '%s must be exactly %s in length',
-      min: '%s cannot be less than %s in length',
-      max: '%s cannot be greater than %s in length',
-      range: '%s must be between %s and %s in length' },
-
-    pattern: {
-      mismatch: '%s value %s does not match pattern %s' },
-
-    clone: function clone() {
-      var cloned = JSON.parse(JSON.stringify(this));
-      cloned.clone = this.clone;
-      return cloned;
+      return convertToImage(canvasId, x, y, width, height, 'bmp', done);
     } };
 
-}
-var messages = newMessages();
 
-/**
-                               *  Encapsulates a validation schema.
-                               *
-                               *  @param descriptor An object declaring validation rules
-                               *  for this schema.
-                               */
+  function methods() {
+    var self = this;
 
-function Schema(descriptor) {
-  this.rules = null;
-  this._messages = messages;
-  this.define(descriptor);
-}
+    var boundWidth = self.width; // 裁剪框默认宽度，即整个画布宽度
+    var boundHeight = self.height; // 裁剪框默认高度，即整个画布高度
 
-Schema.prototype = {
-  messages: function messages(_messages) {
-    if (_messages) {
-      this._messages = deepMerge(newMessages(), _messages);
-    }
+    var id = self.id;
+    var targetId = self.targetId;
+    var pixelRatio = self.pixelRatio;
 
-    return this._messages;
-  },
-  define: function define(rules) {
-    if (!rules) {
-      throw new Error('Cannot configure a schema with no rules');
-    }
+    var ref = self.cut;
+    var x = ref.x;
+    if (x === void 0) x = 0;
+    var y = ref.y;
+    if (y === void 0) y = 0;
+    var width = ref.width;
+    if (width === void 0) width = boundWidth;
+    var height = ref.height;
+    if (height === void 0) height = boundHeight;
 
-    if (typeof rules !== 'object' || Array.isArray(rules)) {
-      throw new Error('Rules must be an object');
-    }
+    self.updateCanvas = function (done) {
+      if (self.croperTarget) {
+        //  画布绘制图片
+        self.ctx.drawImage(
+        self.croperTarget,
+        self.imgLeft,
+        self.imgTop,
+        self.scaleWidth,
+        self.scaleHeight);
 
-    this.rules = {};
-    var z;
-    var item;
-
-    for (z in rules) {
-      if (rules.hasOwnProperty(z)) {
-        item = rules[z];
-        this.rules[z] = Array.isArray(item) ? item : [item];
       }
-    }
-  },
-  validate: function validate(source_, o, oc) {
-    var _this = this;
+      tools_7(self.onBeforeDraw) && self.onBeforeDraw(self.ctx, self);
 
-    if (o === void 0) {
-      o = {};
-    }
+      self.setBoundStyle(self.boundStyle); //	设置边界样式
 
-    if (oc === void 0) {
-      oc = function oc() {};
-    }
+      self.ctx.draw(false, done);
+      return self;
+    };
 
-    var source = source_;
-    var options = o;
-    var callback = oc;
+    self.pushOrigin = self.pushOrign = function (src) {
+      self.src = src;
 
-    if (typeof options === 'function') {
-      callback = options;
-      options = {};
-    }
+      tools_7(self.onBeforeImageLoad) && self.onBeforeImageLoad(self.ctx, self);
 
-    if (!this.rules || Object.keys(this.rules).length === 0) {
-      if (callback) {
-        callback();
-      }
+      return getImageInfo({
+        src: src }).
 
-      return Promise.resolve();
-    }
+      then(function (res) {
+        var innerAspectRadio = res.width / res.height;
+        var customAspectRadio = width / height;
 
-    function complete(results) {
-      var i;
-      var errors = [];
-      var fields = {};
+        self.croperTarget = res.path;
 
-      function add(e) {
-        if (Array.isArray(e)) {
-          var _errors;
-
-          errors = (_errors = errors).concat.apply(_errors, e);
+        if (innerAspectRadio < customAspectRadio) {
+          self.rectX = x;
+          self.baseWidth = width;
+          self.baseHeight = width / innerAspectRadio;
+          self.rectY = y - Math.abs((height - self.baseHeight) / 2);
         } else {
-          errors.push(e);
-        }
-      }
-
-      for (i = 0; i < results.length; i++) {
-        add(results[i]);
-      }
-
-      if (!errors.length) {
-        errors = null;
-        fields = null;
-      } else {
-        fields = convertFieldsError(errors);
-      }
-
-      callback(errors, fields);
-    }
-
-    if (options.messages) {
-      var messages$1 = this.messages();
-
-      if (messages$1 === messages) {
-        messages$1 = newMessages();
-      }
-
-      deepMerge(messages$1, options.messages);
-      options.messages = messages$1;
-    } else {
-      options.messages = this.messages();
-    }
-
-    var arr;
-    var value;
-    var series = {};
-    var keys = options.keys || Object.keys(this.rules);
-    keys.forEach(function (z) {
-      arr = _this.rules[z];
-      value = source[z];
-      arr.forEach(function (r) {
-        var rule = r;
-
-        if (typeof rule.transform === 'function') {
-          if (source === source_) {
-            source = _extends({}, source);
-          }
-
-          value = source[z] = rule.transform(value);
+          self.rectY = y;
+          self.baseWidth = height * innerAspectRadio;
+          self.baseHeight = height;
+          self.rectX = x - Math.abs((width - self.baseWidth) / 2);
         }
 
-        if (typeof rule === 'function') {
-          rule = {
-            validator: rule };
+        self.imgLeft = self.rectX;
+        self.imgTop = self.rectY;
+        self.scaleWidth = self.baseWidth;
+        self.scaleHeight = self.baseHeight;
 
-        } else {
-          rule = _extends({}, rule);
-        }
+        self.update();
 
-        rule.validator = _this.getValidationMethod(rule);
-        rule.field = z;
-        rule.fullField = rule.fullField || z;
-        rule.type = _this.getType(rule);
-
-        if (!rule.validator) {
-          return;
-        }
-
-        series[z] = series[z] || [];
-        series[z].push({
-          rule: rule,
-          value: value,
-          source: source,
-          field: z });
-
-      });
-    });
-    var errorFields = {};
-    return asyncMap(series, options, function (data, doIt) {
-      var rule = data.rule;
-      var deep = (rule.type === 'object' || rule.type === 'array') && (typeof rule.fields === 'object' || typeof rule.defaultField ===
-      'object');
-      deep = deep && (rule.required || !rule.required && data.value);
-      rule.field = data.field;
-
-      function addFullfield(key, schema) {
-        return _extends({}, schema, {
-          fullField: rule.fullField + "." + key });
-
-      }
-
-      function cb(e) {
-        if (e === void 0) {
-          e = [];
-        }
-
-        var errors = e;
-
-        if (!Array.isArray(errors)) {
-          errors = [errors];
-        }
-
-        if (!options.suppressWarning && errors.length) {
-          Schema.warning('async-validator:', errors);
-        }
-
-        if (errors.length && rule.message) {
-          errors = [].concat(rule.message);
-        }
-
-        errors = errors.map(complementError(rule));
-
-        if (options.first && errors.length) {
-          errorFields[rule.field] = 1;
-          return doIt(errors);
-        }
-
-        if (!deep) {
-          doIt(errors);
-        } else {
-          // if rule is required but the target object
-          // does not exist fail at the rule level and don't
-          // go deeper
-          if (rule.required && !data.value) {
-            if (rule.message) {
-              errors = [].concat(rule.message).map(complementError(rule));
-            } else if (options.error) {
-              errors = [options.error(rule, format(options.messages.required, rule.field))];
-            } else {
-              errors = [];
-            }
-
-            return doIt(errors);
-          }
-
-          var fieldsSchema = {};
-
-          if (rule.defaultField) {
-            for (var k in data.value) {
-              if (data.value.hasOwnProperty(k)) {
-                fieldsSchema[k] = rule.defaultField;
-              }
-            }
-          }
-
-          fieldsSchema = _extends({}, fieldsSchema, {}, data.rule.fields);
-
-          for (var f in fieldsSchema) {
-            if (fieldsSchema.hasOwnProperty(f)) {
-              var fieldSchema = Array.isArray(fieldsSchema[f]) ? fieldsSchema[f] : [fieldsSchema[f]];
-              fieldsSchema[f] = fieldSchema.map(addFullfield.bind(null, f));
-            }
-          }
-
-          var schema = new Schema(fieldsSchema);
-          schema.messages(options.messages);
-
-          if (data.rule.options) {
-            data.rule.options.messages = options.messages;
-            data.rule.options.error = options.error;
-          }
-
-          schema.validate(data.value, data.rule.options || options, function (errs) {
-            var finalErrors = [];
-
-            if (errors && errors.length) {
-              finalErrors.push.apply(finalErrors, errors);
-            }
-
-            if (errs && errs.length) {
-              finalErrors.push.apply(finalErrors, errs);
-            }
-
-            doIt(finalErrors.length ? finalErrors : null);
-          });
-        }
-      }
-
-      var res;
-
-      if (rule.asyncValidator) {
-        res = rule.asyncValidator(rule, data.value, cb, data.source, options);
-      } else if (rule.validator) {
-        res = rule.validator(rule, data.value, cb, data.source, options);
-
-        if (res === true) {
-          cb();
-        } else if (res === false) {
-          cb(rule.message || rule.field + " fails");
-        } else if (res instanceof Array) {
-          cb(res);
-        } else if (res instanceof Error) {
-          cb(res.message);
-        }
-      }
-
-      if (res && res.then) {
-        res.then(function () {
-          return cb();
-        }, function (e) {
-          return cb(e);
+        return new Promise(function (resolve) {
+          self.updateCanvas(resolve);
         });
+      }).
+      then(function () {
+        tools_7(self.onImageLoad) && self.onImageLoad(self.ctx, self);
+      });
+    };
+
+    self.removeImage = function () {
+      self.src = '';
+      self.croperTarget = '';
+      return draw(self.ctx);
+    };
+
+    self.getCropperBase64 = function (done) {
+      if (done === void 0) done = function done() {};
+
+      CanvasToBase64.convertToBMP({
+        canvasId: id,
+        x: x,
+        y: y,
+        width: width,
+        height: height },
+      done);
+    };
+
+    self.getCropperImage = function (opt, fn) {
+      var customOptions = opt;
+
+      var canvasOptions = {
+        canvasId: id,
+        x: x,
+        y: y,
+        width: width,
+        height: height };
+
+
+      var task = function task() {
+        return Promise.resolve();
+      };
+
+      if (
+      tools_10(customOptions) &&
+      customOptions.original)
+      {
+        // original mode
+        task = function task() {
+          self.targetCtx.drawImage(
+          self.croperTarget,
+          self.imgLeft * pixelRatio,
+          self.imgTop * pixelRatio,
+          self.scaleWidth * pixelRatio,
+          self.scaleHeight * pixelRatio);
+
+
+          canvasOptions = {
+            canvasId: targetId,
+            x: x * pixelRatio,
+            y: y * pixelRatio,
+            width: width * pixelRatio,
+            height: height * pixelRatio };
+
+
+          return draw(self.targetCtx);
+        };
       }
-    }, function (results) {
-      complete(results);
-    });
-  },
-  getType: function getType(rule) {
-    if (rule.type === undefined && rule.pattern instanceof RegExp) {
-      rule.type = 'pattern';
-    }
 
-    if (typeof rule.validator !== 'function' && rule.type && !validators.hasOwnProperty(rule.type)) {
-      throw new Error(format('Unknown rule type %s', rule.type));
-    }
+      return task().
+      then(function () {
+        if (tools_10(customOptions)) {
+          canvasOptions = Object.assign({}, canvasOptions, customOptions);
+        }
 
-    return rule.type || 'string';
-  },
-  getValidationMethod: function getValidationMethod(rule) {
-    if (typeof rule.validator === 'function') {
-      return rule.validator;
-    }
+        if (tools_7(customOptions)) {
+          fn = customOptions;
+        }
 
-    var keys = Object.keys(rule);
-    var messageIndex = keys.indexOf('message');
+        var arg = canvasOptions.componentContext ?
+        [canvasOptions, canvasOptions.componentContext] :
+        [canvasOptions];
 
-    if (messageIndex !== -1) {
-      keys.splice(messageIndex, 1);
-    }
+        return canvasToTempFilePath.apply(null, arg);
+      }).
+      then(function (res) {
+        var tempFilePath = res.tempFilePath;
 
-    if (keys.length === 1 && keys[0] === 'required') {
-      return validators.required;
-    }
-
-    return validators[this.getType(rule)] || false;
-  } };
-
-
-Schema.register = function register(type, validator) {
-  if (typeof validator !== 'function') {
-    throw new Error('Cannot register a validator by type, validator is not a function');
+        return tools_7(fn) ?
+        fn.call(self, tempFilePath, null) :
+        tempFilePath;
+      }).
+      catch(function (err) {
+        if (tools_7(fn)) {
+          fn.call(self, null, err);
+        } else {
+          throw err;
+        }
+      });
+    };
   }
 
-  validators[type] = validator;
-};
+  /**
+     * 获取最新缩放值
+     * @param oldScale 上一次触摸结束后的缩放值
+     * @param oldDistance 上一次触摸结束后的双指距离
+     * @param zoom 缩放系数
+     * @param touch0 第一指touch对象
+     * @param touch1 第二指touch对象
+     * @returns {*}
+     */
+  var getNewScale = function getNewScale(oldScale, oldDistance, zoom, touch0, touch1) {
+    var xMove, yMove, newDistance;
+    // 计算二指最新距离
+    xMove = Math.round(touch1.x - touch0.x);
+    yMove = Math.round(touch1.y - touch0.y);
+    newDistance = Math.round(Math.sqrt(xMove * xMove + yMove * yMove));
 
-Schema.warning = warning;
-Schema.messages = messages;var _default =
+    return oldScale + 0.001 * zoom * (newDistance - oldDistance);
+  };
 
-Schema;exports.default = _default;
-/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./node_modules/node-libs-browser/mock/process.js */ 851)))
+  function update() {
+    var self = this;
+
+    if (!self.src) {
+      return;
+    }
+
+    self.__oneTouchStart = function (touch) {
+      self.touchX0 = Math.round(touch.x);
+      self.touchY0 = Math.round(touch.y);
+    };
+
+    self.__oneTouchMove = function (touch) {
+      var xMove, yMove;
+      // 计算单指移动的距离
+      if (self.touchended) {
+        return self.updateCanvas();
+      }
+      xMove = Math.round(touch.x - self.touchX0);
+      yMove = Math.round(touch.y - self.touchY0);
+
+      var imgLeft = Math.round(self.rectX + xMove);
+      var imgTop = Math.round(self.rectY + yMove);
+
+      self.outsideBound(imgLeft, imgTop);
+
+      self.updateCanvas();
+    };
+
+    self.__twoTouchStart = function (touch0, touch1) {
+      var xMove, yMove, oldDistance;
+
+      self.touchX1 = Math.round(self.rectX + self.scaleWidth / 2);
+      self.touchY1 = Math.round(self.rectY + self.scaleHeight / 2);
+
+      // 计算两指距离
+      xMove = Math.round(touch1.x - touch0.x);
+      yMove = Math.round(touch1.y - touch0.y);
+      oldDistance = Math.round(Math.sqrt(xMove * xMove + yMove * yMove));
+
+      self.oldDistance = oldDistance;
+    };
+
+    self.__twoTouchMove = function (touch0, touch1) {
+      var oldScale = self.oldScale;
+      var oldDistance = self.oldDistance;
+      var scale = self.scale;
+      var zoom = self.zoom;
+
+      self.newScale = getNewScale(oldScale, oldDistance, zoom, touch0, touch1);
+
+      //  设定缩放范围
+      self.newScale <= 1 && (self.newScale = 1);
+      self.newScale >= scale && (self.newScale = scale);
+
+      self.scaleWidth = Math.round(self.newScale * self.baseWidth);
+      self.scaleHeight = Math.round(self.newScale * self.baseHeight);
+      var imgLeft = Math.round(self.touchX1 - self.scaleWidth / 2);
+      var imgTop = Math.round(self.touchY1 - self.scaleHeight / 2);
+
+      self.outsideBound(imgLeft, imgTop);
+
+      self.updateCanvas();
+    };
+
+    self.__xtouchEnd = function () {
+      self.oldScale = self.newScale;
+      self.rectX = self.imgLeft;
+      self.rectY = self.imgTop;
+    };
+  }
+
+  var handle = {
+    //  图片手势初始监测
+    touchStart: function touchStart(e) {
+      var self = this;
+      var ref = e.touches;
+      var touch0 = ref[0];
+      var touch1 = ref[1];
+
+      if (!self.src) {
+        return;
+      }
+
+      setTouchState(self, true, null, null);
+
+      // 计算第一个触摸点的位置，并参照改点进行缩放
+      self.__oneTouchStart(touch0);
+
+      // 两指手势触发
+      if (e.touches.length >= 2) {
+        self.__twoTouchStart(touch0, touch1);
+      }
+    },
+
+    //  图片手势动态缩放
+    touchMove: function touchMove(e) {
+      var self = this;
+      var ref = e.touches;
+      var touch0 = ref[0];
+      var touch1 = ref[1];
+
+      if (!self.src) {
+        return;
+      }
+
+      setTouchState(self, null, true);
+
+      // 单指手势时触发
+      if (e.touches.length === 1) {
+        self.__oneTouchMove(touch0);
+      }
+      // 两指手势触发
+      if (e.touches.length >= 2) {
+        self.__twoTouchMove(touch0, touch1);
+      }
+    },
+
+    touchEnd: function touchEnd(e) {
+      var self = this;
+
+      if (!self.src) {
+        return;
+      }
+
+      setTouchState(self, false, false, true);
+      self.__xtouchEnd();
+    } };
+
+
+  function cut() {
+    var self = this;
+    var boundWidth = self.width; // 裁剪框默认宽度，即整个画布宽度
+    var boundHeight = self.height;
+    // 裁剪框默认高度，即整个画布高度
+    var ref = self.cut;
+    var x = ref.x;
+    if (x === void 0) x = 0;
+    var y = ref.y;
+    if (y === void 0) y = 0;
+    var width = ref.width;
+    if (width === void 0) width = boundWidth;
+    var height = ref.height;
+    if (height === void 0) height = boundHeight;
+
+    /**
+                                                  * 设置边界
+                                                  * @param imgLeft 图片左上角横坐标值
+                                                  * @param imgTop 图片左上角纵坐标值
+                                                  */
+    self.outsideBound = function (imgLeft, imgTop) {
+      self.imgLeft = imgLeft >= x ?
+      x :
+      self.scaleWidth + imgLeft - x <= width ?
+      x + width - self.scaleWidth :
+      imgLeft;
+
+      self.imgTop = imgTop >= y ?
+      y :
+      self.scaleHeight + imgTop - y <= height ?
+      y + height - self.scaleHeight :
+      imgTop;
+    };
+
+    /**
+        * 设置边界样式
+        * @param color	边界颜色
+        */
+    self.setBoundStyle = function (ref) {
+      if (ref === void 0) ref = {};
+      var color = ref.color;
+      if (color === void 0) color = '#04b00f';
+      var mask = ref.mask;
+      if (mask === void 0) mask = 'rgba(0, 0, 0, 0.3)';
+      var lineWidth = ref.lineWidth;
+      if (lineWidth === void 0) lineWidth = 1;
+
+      var half = lineWidth / 2;
+      var boundOption = [{
+        start: {
+          x: x - half,
+          y: y + 10 - half },
+
+        step1: {
+          x: x - half,
+          y: y - half },
+
+        step2: {
+          x: x + 10 - half,
+          y: y - half } },
+
+
+      {
+        start: {
+          x: x - half,
+          y: y + height - 10 + half },
+
+        step1: {
+          x: x - half,
+          y: y + height + half },
+
+        step2: {
+          x: x + 10 - half,
+          y: y + height + half } },
+
+
+      {
+        start: {
+          x: x + width - 10 + half,
+          y: y - half },
+
+        step1: {
+          x: x + width + half,
+          y: y - half },
+
+        step2: {
+          x: x + width + half,
+          y: y + 10 - half } },
+
+
+      {
+        start: {
+          x: x + width + half,
+          y: y + height - 10 + half },
+
+        step1: {
+          x: x + width + half,
+          y: y + height + half },
+
+        step2: {
+          x: x + width - 10 + half,
+          y: y + height + half } }];
+
+
+
+
+      // 绘制半透明层
+      self.ctx.beginPath();
+      self.ctx.setFillStyle(mask);
+      self.ctx.fillRect(0, 0, x, boundHeight);
+      self.ctx.fillRect(x, 0, width, y);
+      self.ctx.fillRect(x, y + height, width, boundHeight - y - height);
+      self.ctx.fillRect(x + width, 0, boundWidth - x - width, boundHeight);
+      self.ctx.fill();
+
+      boundOption.forEach(function (op) {
+        self.ctx.beginPath();
+        self.ctx.setStrokeStyle(color);
+        self.ctx.setLineWidth(lineWidth);
+        self.ctx.moveTo(op.start.x, op.start.y);
+        self.ctx.lineTo(op.step1.x, op.step1.y);
+        self.ctx.lineTo(op.step2.x, op.step2.y);
+        self.ctx.stroke();
+      });
+    };
+  }
+
+  var version = "1.3.9";
+
+  var WeCropper = function WeCropper(params) {
+    var self = this;
+    var _default = {};
+
+    validator(self, DEFAULT);
+
+    Object.keys(DEFAULT).forEach(function (key) {
+      _default[key] = DEFAULT[key].default;
+    });
+    Object.assign(self, _default, params);
+
+    self.prepare();
+    self.attachPage();
+    self.createCtx();
+    self.observer();
+    self.cutt();
+    self.methods();
+    self.init();
+    self.update();
+
+    return self;
+  };
+
+  WeCropper.prototype.init = function init() {
+    var self = this;
+    var src = self.src;
+
+    self.version = version;
+
+    typeof self.onReady === 'function' && self.onReady(self.ctx, self);
+
+    if (src) {
+      self.pushOrign(src);
+    } else {
+      self.updateCanvas();
+    }
+    setTouchState(self, false, false, false);
+
+    self.oldScale = 1;
+    self.newScale = 1;
+
+    return self;
+  };
+
+  Object.assign(WeCropper.prototype, handle);
+
+  WeCropper.prototype.prepare = prepare;
+  WeCropper.prototype.observer = observer;
+  WeCropper.prototype.methods = methods;
+  WeCropper.prototype.cutt = cut;
+  WeCropper.prototype.update = update;
+
+  return WeCropper;
+
+});
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./node_modules/@dcloudio/uni-mp-weixin/dist/index.js */ 1)["default"], __webpack_require__(/*! (webpack)/buildin/global.js */ 2)))
 
 /***/ }),
 
 /***/ 851:
-/*!********************************************************!*\
-  !*** ./node_modules/node-libs-browser/mock/process.js ***!
-  \********************************************************/
+/*!****************************************!*\
+  !*** E:/HX/flow/static/leave/tag1.png ***!
+  \****************************************/
 /*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(module, exports) {
 
-exports.nextTick = function nextTick(fn) {
-    var args = Array.prototype.slice.call(arguments);
-    args.shift();
-    setTimeout(function () {
-        fn.apply(null, args);
-    }, 0);
-};
-
-exports.platform = exports.arch = 
-exports.execPath = exports.title = 'browser';
-exports.pid = 1;
-exports.browser = true;
-exports.env = {};
-exports.argv = [];
-
-exports.binding = function (name) {
-	throw new Error('No such module. (Possibly not yet loaded)')
-};
-
-(function () {
-    var cwd = '/';
-    var path;
-    exports.cwd = function () { return cwd };
-    exports.chdir = function (dir) {
-        if (!path) path = __webpack_require__(/*! path */ 852);
-        cwd = path.resolve(dir, cwd);
-    };
-})();
-
-exports.exit = exports.kill = 
-exports.umask = exports.dlopen = 
-exports.uptime = exports.memoryUsage = 
-exports.uvCounters = function() {};
-exports.features = {};
-
+module.exports = "data:image/png;base64,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"
 
 /***/ }),
 
 /***/ 852:
-/*!***********************************************!*\
-  !*** ./node_modules/path-browserify/index.js ***!
-  \***********************************************/
+/*!****************************************!*\
+  !*** E:/HX/flow/static/leave/tag2.png ***!
+  \****************************************/
 /*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(module, exports) {
 
-/* WEBPACK VAR INJECTION */(function(process) {// .dirname, .basename, and .extname methods are extracted from Node.js v8.11.1,
-// backported and transplited with Babel, with backwards-compat fixes
-
-// Copyright Joyent, Inc. and other Node contributors.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a
-// copy of this software and associated documentation files (the
-// "Software"), to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to permit
-// persons to whom the Software is furnished to do so, subject to the
-// following conditions:
-//
-// The above copyright notice and this permission notice shall be included
-// in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
-// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-// USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-// resolves . and .. elements in a path array with directory names there
-// must be no slashes, empty elements, or device names (c:\) in the array
-// (so also no leading and trailing slashes - it does not distinguish
-// relative and absolute paths)
-function normalizeArray(parts, allowAboveRoot) {
-  // if the path tries to go above the root, `up` ends up > 0
-  var up = 0;
-  for (var i = parts.length - 1; i >= 0; i--) {
-    var last = parts[i];
-    if (last === '.') {
-      parts.splice(i, 1);
-    } else if (last === '..') {
-      parts.splice(i, 1);
-      up++;
-    } else if (up) {
-      parts.splice(i, 1);
-      up--;
-    }
-  }
-
-  // if the path is allowed to go above the root, restore leading ..s
-  if (allowAboveRoot) {
-    for (; up--; up) {
-      parts.unshift('..');
-    }
-  }
-
-  return parts;
-}
-
-// path.resolve([from ...], to)
-// posix version
-exports.resolve = function() {
-  var resolvedPath = '',
-      resolvedAbsolute = false;
-
-  for (var i = arguments.length - 1; i >= -1 && !resolvedAbsolute; i--) {
-    var path = (i >= 0) ? arguments[i] : process.cwd();
-
-    // Skip empty and invalid entries
-    if (typeof path !== 'string') {
-      throw new TypeError('Arguments to path.resolve must be strings');
-    } else if (!path) {
-      continue;
-    }
-
-    resolvedPath = path + '/' + resolvedPath;
-    resolvedAbsolute = path.charAt(0) === '/';
-  }
-
-  // At this point the path should be resolved to a full absolute path, but
-  // handle relative paths to be safe (might happen when process.cwd() fails)
-
-  // Normalize the path
-  resolvedPath = normalizeArray(filter(resolvedPath.split('/'), function(p) {
-    return !!p;
-  }), !resolvedAbsolute).join('/');
-
-  return ((resolvedAbsolute ? '/' : '') + resolvedPath) || '.';
-};
-
-// path.normalize(path)
-// posix version
-exports.normalize = function(path) {
-  var isAbsolute = exports.isAbsolute(path),
-      trailingSlash = substr(path, -1) === '/';
-
-  // Normalize the path
-  path = normalizeArray(filter(path.split('/'), function(p) {
-    return !!p;
-  }), !isAbsolute).join('/');
-
-  if (!path && !isAbsolute) {
-    path = '.';
-  }
-  if (path && trailingSlash) {
-    path += '/';
-  }
-
-  return (isAbsolute ? '/' : '') + path;
-};
-
-// posix version
-exports.isAbsolute = function(path) {
-  return path.charAt(0) === '/';
-};
-
-// posix version
-exports.join = function() {
-  var paths = Array.prototype.slice.call(arguments, 0);
-  return exports.normalize(filter(paths, function(p, index) {
-    if (typeof p !== 'string') {
-      throw new TypeError('Arguments to path.join must be strings');
-    }
-    return p;
-  }).join('/'));
-};
-
-
-// path.relative(from, to)
-// posix version
-exports.relative = function(from, to) {
-  from = exports.resolve(from).substr(1);
-  to = exports.resolve(to).substr(1);
-
-  function trim(arr) {
-    var start = 0;
-    for (; start < arr.length; start++) {
-      if (arr[start] !== '') break;
-    }
-
-    var end = arr.length - 1;
-    for (; end >= 0; end--) {
-      if (arr[end] !== '') break;
-    }
-
-    if (start > end) return [];
-    return arr.slice(start, end - start + 1);
-  }
-
-  var fromParts = trim(from.split('/'));
-  var toParts = trim(to.split('/'));
-
-  var length = Math.min(fromParts.length, toParts.length);
-  var samePartsLength = length;
-  for (var i = 0; i < length; i++) {
-    if (fromParts[i] !== toParts[i]) {
-      samePartsLength = i;
-      break;
-    }
-  }
-
-  var outputParts = [];
-  for (var i = samePartsLength; i < fromParts.length; i++) {
-    outputParts.push('..');
-  }
-
-  outputParts = outputParts.concat(toParts.slice(samePartsLength));
-
-  return outputParts.join('/');
-};
-
-exports.sep = '/';
-exports.delimiter = ':';
-
-exports.dirname = function (path) {
-  if (typeof path !== 'string') path = path + '';
-  if (path.length === 0) return '.';
-  var code = path.charCodeAt(0);
-  var hasRoot = code === 47 /*/*/;
-  var end = -1;
-  var matchedSlash = true;
-  for (var i = path.length - 1; i >= 1; --i) {
-    code = path.charCodeAt(i);
-    if (code === 47 /*/*/) {
-        if (!matchedSlash) {
-          end = i;
-          break;
-        }
-      } else {
-      // We saw the first non-path separator
-      matchedSlash = false;
-    }
-  }
-
-  if (end === -1) return hasRoot ? '/' : '.';
-  if (hasRoot && end === 1) {
-    // return '//';
-    // Backwards-compat fix:
-    return '/';
-  }
-  return path.slice(0, end);
-};
-
-function basename(path) {
-  if (typeof path !== 'string') path = path + '';
-
-  var start = 0;
-  var end = -1;
-  var matchedSlash = true;
-  var i;
-
-  for (i = path.length - 1; i >= 0; --i) {
-    if (path.charCodeAt(i) === 47 /*/*/) {
-        // If we reached a path separator that was not part of a set of path
-        // separators at the end of the string, stop now
-        if (!matchedSlash) {
-          start = i + 1;
-          break;
-        }
-      } else if (end === -1) {
-      // We saw the first non-path separator, mark this as the end of our
-      // path component
-      matchedSlash = false;
-      end = i + 1;
-    }
-  }
-
-  if (end === -1) return '';
-  return path.slice(start, end);
-}
-
-// Uses a mixed approach for backwards-compatibility, as ext behavior changed
-// in new Node.js versions, so only basename() above is backported here
-exports.basename = function (path, ext) {
-  var f = basename(path);
-  if (ext && f.substr(-1 * ext.length) === ext) {
-    f = f.substr(0, f.length - ext.length);
-  }
-  return f;
-};
-
-exports.extname = function (path) {
-  if (typeof path !== 'string') path = path + '';
-  var startDot = -1;
-  var startPart = 0;
-  var end = -1;
-  var matchedSlash = true;
-  // Track the state of characters (if any) we see before our first dot and
-  // after any path separator we find
-  var preDotState = 0;
-  for (var i = path.length - 1; i >= 0; --i) {
-    var code = path.charCodeAt(i);
-    if (code === 47 /*/*/) {
-        // If we reached a path separator that was not part of a set of path
-        // separators at the end of the string, stop now
-        if (!matchedSlash) {
-          startPart = i + 1;
-          break;
-        }
-        continue;
-      }
-    if (end === -1) {
-      // We saw the first non-path separator, mark this as the end of our
-      // extension
-      matchedSlash = false;
-      end = i + 1;
-    }
-    if (code === 46 /*.*/) {
-        // If this is our first dot, mark it as the start of our extension
-        if (startDot === -1)
-          startDot = i;
-        else if (preDotState !== 1)
-          preDotState = 1;
-    } else if (startDot !== -1) {
-      // We saw a non-dot and non-path separator before our dot, so we should
-      // have a good chance at having a non-empty extension
-      preDotState = -1;
-    }
-  }
-
-  if (startDot === -1 || end === -1 ||
-      // We saw a non-dot character immediately before the dot
-      preDotState === 0 ||
-      // The (right-most) trimmed path component is exactly '..'
-      preDotState === 1 && startDot === end - 1 && startDot === startPart + 1) {
-    return '';
-  }
-  return path.slice(startDot, end);
-};
-
-function filter (xs, f) {
-    if (xs.filter) return xs.filter(f);
-    var res = [];
-    for (var i = 0; i < xs.length; i++) {
-        if (f(xs[i], i, xs)) res.push(xs[i]);
-    }
-    return res;
-}
-
-// String.prototype.substr - negative index don't work in IE8
-var substr = 'ab'.substr(-1) === 'b'
-    ? function (str, start, len) { return str.substr(start, len) }
-    : function (str, start, len) {
-        if (start < 0) start = str.length + start;
-        return str.substr(start, len);
-    }
-;
-
-/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../node-libs-browser/mock/process.js */ 851)))
+module.exports = "data:image/png;base64,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"
 
 /***/ }),
 
-/***/ 965:
-/*!**************************************************************!*\
-  !*** E:/HX/flow/node_modules/uview-ui/libs/util/province.js ***!
-  \**************************************************************/
+/***/ 853:
+/*!****************************************!*\
+  !*** E:/HX/flow/static/leave/tag3.png ***!
+  \****************************************/
 /*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(module, exports) {
 
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });exports.default = void 0;var provinceData = [{ "label": "北京市", "value": "11" }, { "label": "天津市", "value": "12" }, { "label": "河北省", "value": "13" }, { "label": "山西省", "value": "14" }, { "label": "内蒙古自治区", "value": "15" }, { "label": "辽宁省", "value": "21" }, { "label": "吉林省", "value": "22" }, { "label": "黑龙江省", "value": "23" }, { "label": "上海市", "value": "31" }, { "label": "江苏省", "value": "32" }, { "label": "浙江省", "value": "33" }, { "label": "安徽省", "value": "34" }, { "label": "福建省", "value": "35" }, { "label": "江西省", "value": "36" }, { "label": "山东省", "value": "37" }, { "label": "河南省", "value": "41" }, { "label": "湖北省", "value": "42" }, { "label": "湖南省", "value": "43" }, { "label": "广东省", "value": "44" }, { "label": "广西壮族自治区", "value": "45" }, { "label": "海南省", "value": "46" }, { "label": "重庆市", "value": "50" }, { "label": "四川省", "value": "51" }, { "label": "贵州省", "value": "52" }, { "label": "云南省", "value": "53" }, { "label": "西藏自治区", "value": "54" }, { "label": "陕西省", "value": "61" }, { "label": "甘肃省", "value": "62" }, { "label": "青海省", "value": "63" }, { "label": "宁夏回族自治区", "value": "64" }, { "label": "新疆维吾尔自治区", "value": "65" }, { "label": "台湾", "value": "66" }, { "label": "香港", "value": "67" }, { "label": "澳门", "value": "68" }];var _default = provinceData;exports.default = _default;
+module.exports = "data:image/png;base64,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"
 
 /***/ }),
 
-/***/ 966:
-/*!**********************************************************!*\
-  !*** E:/HX/flow/node_modules/uview-ui/libs/util/city.js ***!
-  \**********************************************************/
+/***/ 854:
+/*!****************************************!*\
+  !*** E:/HX/flow/static/leave/tag4.png ***!
+  \****************************************/
 /*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(module, exports) {
 
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });exports.default = void 0;var cityData = [[{ "label": "市辖区", "value": "1101" }], [{ "label": "市辖区", "value": "1201" }], [{ "label": "石家庄市", "value": "1301" }, { "label": "唐山市", "value": "1302" }, { "label": "秦皇岛市", "value": "1303" }, { "label": "邯郸市", "value": "1304" }, { "label": "邢台市", "value": "1305" }, { "label": "保定市", "value": "1306" }, { "label": "张家口市", "value": "1307" }, { "label": "承德市", "value": "1308" }, { "label": "沧州市", "value": "1309" }, { "label": "廊坊市", "value": "1310" }, { "label": "衡水市", "value": "1311" }], [{ "label": "太原市", "value": "1401" }, { "label": "大同市", "value": "1402" }, { "label": "阳泉市", "value": "1403" }, { "label": "长治市", "value": "1404" }, { "label": "晋城市", "value": "1405" }, { "label": "朔州市", "value": "1406" }, { "label": "晋中市", "value": "1407" }, { "label": "运城市", "value": "1408" }, { "label": "忻州市", "value": "1409" }, { "label": "临汾市", "value": "1410" }, { "label": "吕梁市", "value": "1411" }], [{ "label": "呼和浩特市", "value": "1501" }, { "label": "包头市", "value": "1502" }, { "label": "乌海市", "value": "1503" }, { "label": "赤峰市", "value": "1504" }, { "label": "通辽市", "value": "1505" }, { "label": "鄂尔多斯市", "value": "1506" }, { "label": "呼伦贝尔市", "value": "1507" }, { "label": "巴彦淖尔市", "value": "1508" }, { "label": "乌兰察布市", "value": "1509" }, { "label": "兴安盟", "value": "1522" }, { "label": "锡林郭勒盟", "value": "1525" }, { "label": "阿拉善盟", "value": "1529" }], [{ "label": "沈阳市", "value": "2101" }, { "label": "大连市", "value": "2102" }, { "label": "鞍山市", "value": "2103" }, { "label": "抚顺市", "value": "2104" }, { "label": "本溪市", "value": "2105" }, { "label": "丹东市", "value": "2106" }, { "label": "锦州市", "value": "2107" }, { "label": "营口市", "value": "2108" }, { "label": "阜新市", "value": "2109" }, { "label": "辽阳市", "value": "2110" }, { "label": "盘锦市", "value": "2111" }, { "label": "铁岭市", "value": "2112" }, { "label": "朝阳市", "value": "2113" }, { "label": "葫芦岛市", "value": "2114" }], [{ "label": "长春市", "value": "2201" }, { "label": "吉林市", "value": "2202" }, { "label": "四平市", "value": "2203" }, { "label": "辽源市", "value": "2204" }, { "label": "通化市", "value": "2205" }, { "label": "白山市", "value": "2206" }, { "label": "松原市", "value": "2207" }, { "label": "白城市", "value": "2208" }, { "label": "延边朝鲜族自治州", "value": "2224" }], [{ "label": "哈尔滨市", "value": "2301" }, { "label": "齐齐哈尔市", "value": "2302" }, { "label": "鸡西市", "value": "2303" }, { "label": "鹤岗市", "value": "2304" }, { "label": "双鸭山市", "value": "2305" }, { "label": "大庆市", "value": "2306" }, { "label": "伊春市", "value": "2307" }, { "label": "佳木斯市", "value": "2308" }, { "label": "七台河市", "value": "2309" }, { "label": "牡丹江市", "value": "2310" }, { "label": "黑河市", "value": "2311" }, { "label": "绥化市", "value": "2312" }, { "label": "大兴安岭地区", "value": "2327" }], [{ "label": "市辖区", "value": "3101" }], [{ "label": "南京市", "value": "3201" }, { "label": "无锡市", "value": "3202" }, { "label": "徐州市", "value": "3203" }, { "label": "常州市", "value": "3204" }, { "label": "苏州市", "value": "3205" }, { "label": "南通市", "value": "3206" }, { "label": "连云港市", "value": "3207" }, { "label": "淮安市", "value": "3208" }, { "label": "盐城市", "value": "3209" }, { "label": "扬州市", "value": "3210" }, { "label": "镇江市", "value": "3211" }, { "label": "泰州市", "value": "3212" }, { "label": "宿迁市", "value": "3213" }], [{ "label": "杭州市", "value": "3301" }, { "label": "宁波市", "value": "3302" }, { "label": "温州市", "value": "3303" }, { "label": "嘉兴市", "value": "3304" }, { "label": "湖州市", "value": "3305" }, { "label": "绍兴市", "value": "3306" }, { "label": "金华市", "value": "3307" }, { "label": "衢州市", "value": "3308" }, { "label": "舟山市", "value": "3309" }, { "label": "台州市", "value": "3310" }, { "label": "丽水市", "value": "3311" }], [{ "label": "合肥市", "value": "3401" }, { "label": "芜湖市", "value": "3402" }, { "label": "蚌埠市", "value": "3403" }, { "label": "淮南市", "value": "3404" }, { "label": "马鞍山市", "value": "3405" }, { "label": "淮北市", "value": "3406" }, { "label": "铜陵市", "value": "3407" }, { "label": "安庆市", "value": "3408" }, { "label": "黄山市", "value": "3410" }, { "label": "滁州市", "value": "3411" }, { "label": "阜阳市", "value": "3412" }, { "label": "宿州市", "value": "3413" }, { "label": "六安市", "value": "3415" }, { "label": "亳州市", "value": "3416" }, { "label": "池州市", "value": "3417" }, { "label": "宣城市", "value": "3418" }], [{ "label": "福州市", "value": "3501" }, { "label": "厦门市", "value": "3502" }, { "label": "莆田市", "value": "3503" }, { "label": "三明市", "value": "3504" }, { "label": "泉州市", "value": "3505" }, { "label": "漳州市", "value": "3506" }, { "label": "南平市", "value": "3507" }, { "label": "龙岩市", "value": "3508" }, { "label": "宁德市", "value": "3509" }], [{ "label": "南昌市", "value": "3601" }, { "label": "景德镇市", "value": "3602" }, { "label": "萍乡市", "value": "3603" }, { "label": "九江市", "value": "3604" }, { "label": "新余市", "value": "3605" }, { "label": "鹰潭市", "value": "3606" }, { "label": "赣州市", "value": "3607" }, { "label": "吉安市", "value": "3608" }, { "label": "宜春市", "value": "3609" }, { "label": "抚州市", "value": "3610" }, { "label": "上饶市", "value": "3611" }], [{ "label": "济南市", "value": "3701" }, { "label": "青岛市", "value": "3702" }, { "label": "淄博市", "value": "3703" }, { "label": "枣庄市", "value": "3704" }, { "label": "东营市", "value": "3705" }, { "label": "烟台市", "value": "3706" }, { "label": "潍坊市", "value": "3707" }, { "label": "济宁市", "value": "3708" }, { "label": "泰安市", "value": "3709" }, { "label": "威海市", "value": "3710" }, { "label": "日照市", "value": "3711" }, { "label": "莱芜市", "value": "3712" }, { "label": "临沂市", "value": "3713" }, { "label": "德州市", "value": "3714" }, { "label": "聊城市", "value": "3715" }, { "label": "滨州市", "value": "3716" }, { "label": "菏泽市", "value": "3717" }], [{ "label": "郑州市", "value": "4101" }, { "label": "开封市", "value": "4102" }, { "label": "洛阳市", "value": "4103" }, { "label": "平顶山市", "value": "4104" }, { "label": "安阳市", "value": "4105" }, { "label": "鹤壁市", "value": "4106" }, { "label": "新乡市", "value": "4107" }, { "label": "焦作市", "value": "4108" }, { "label": "濮阳市", "value": "4109" }, { "label": "许昌市", "value": "4110" }, { "label": "漯河市", "value": "4111" }, { "label": "三门峡市", "value": "4112" }, { "label": "南阳市", "value": "4113" }, { "label": "商丘市", "value": "4114" }, { "label": "信阳市", "value": "4115" }, { "label": "周口市", "value": "4116" }, { "label": "驻马店市", "value": "4117" }, { "label": "省直辖县级行政区划", "value": "4190" }], [{ "label": "武汉市", "value": "4201" }, { "label": "黄石市", "value": "4202" }, { "label": "十堰市", "value": "4203" }, { "label": "宜昌市", "value": "4205" }, { "label": "襄阳市", "value": "4206" }, { "label": "鄂州市", "value": "4207" }, { "label": "荆门市", "value": "4208" }, { "label": "孝感市", "value": "4209" }, { "label": "荆州市", "value": "4210" }, { "label": "黄冈市", "value": "4211" }, { "label": "咸宁市", "value": "4212" }, { "label": "随州市", "value": "4213" }, { "label": "恩施土家族苗族自治州", "value": "4228" }, { "label": "省直辖县级行政区划", "value": "4290" }], [{ "label": "长沙市", "value": "4301" }, { "label": "株洲市", "value": "4302" }, { "label": "湘潭市", "value": "4303" }, { "label": "衡阳市", "value": "4304" }, { "label": "邵阳市", "value": "4305" }, { "label": "岳阳市", "value": "4306" }, { "label": "常德市", "value": "4307" }, { "label": "张家界市", "value": "4308" }, { "label": "益阳市", "value": "4309" }, { "label": "郴州市", "value": "4310" }, { "label": "永州市", "value": "4311" }, { "label": "怀化市", "value": "4312" }, { "label": "娄底市", "value": "4313" }, { "label": "湘西土家族苗族自治州", "value": "4331" }], [{ "label": "广州市", "value": "4401" }, { "label": "韶关市", "value": "4402" }, { "label": "深圳市", "value": "4403" }, { "label": "珠海市", "value": "4404" }, { "label": "汕头市", "value": "4405" }, { "label": "佛山市", "value": "4406" }, { "label": "江门市", "value": "4407" }, { "label": "湛江市", "value": "4408" }, { "label": "茂名市", "value": "4409" }, { "label": "肇庆市", "value": "4412" }, { "label": "惠州市", "value": "4413" }, { "label": "梅州市", "value": "4414" }, { "label": "汕尾市", "value": "4415" }, { "label": "河源市", "value": "4416" }, { "label": "阳江市", "value": "4417" }, { "label": "清远市", "value": "4418" }, { "label": "东莞市", "value": "4419" }, { "label": "中山市", "value": "4420" }, { "label": "潮州市", "value": "4451" }, { "label": "揭阳市", "value": "4452" }, { "label": "云浮市", "value": "4453" }], [{ "label": "南宁市", "value": "4501" }, { "label": "柳州市", "value": "4502" }, { "label": "桂林市", "value": "4503" }, { "label": "梧州市", "value": "4504" }, { "label": "北海市", "value": "4505" }, { "label": "防城港市", "value": "4506" }, { "label": "钦州市", "value": "4507" }, { "label": "贵港市", "value": "4508" }, { "label": "玉林市", "value": "4509" }, { "label": "百色市", "value": "4510" }, { "label": "贺州市", "value": "4511" }, { "label": "河池市", "value": "4512" }, { "label": "来宾市", "value": "4513" }, { "label": "崇左市", "value": "4514" }], [{ "label": "海口市", "value": "4601" }, { "label": "三亚市", "value": "4602" }, { "label": "三沙市", "value": "4603" }, { "label": "儋州市", "value": "4604" }, { "label": "省直辖县级行政区划", "value": "4690" }], [{ "label": "市辖区", "value": "5001" }, { "label": "县", "value": "5002" }], [{ "label": "成都市", "value": "5101" }, { "label": "自贡市", "value": "5103" }, { "label": "攀枝花市", "value": "5104" }, { "label": "泸州市", "value": "5105" }, { "label": "德阳市", "value": "5106" }, { "label": "绵阳市", "value": "5107" }, { "label": "广元市", "value": "5108" }, { "label": "遂宁市", "value": "5109" }, { "label": "内江市", "value": "5110" }, { "label": "乐山市", "value": "5111" }, { "label": "南充市", "value": "5113" }, { "label": "眉山市", "value": "5114" }, { "label": "宜宾市", "value": "5115" }, { "label": "广安市", "value": "5116" }, { "label": "达州市", "value": "5117" }, { "label": "雅安市", "value": "5118" }, { "label": "巴中市", "value": "5119" }, { "label": "资阳市", "value": "5120" }, { "label": "阿坝藏族羌族自治州", "value": "5132" }, { "label": "甘孜藏族自治州", "value": "5133" }, { "label": "凉山彝族自治州", "value": "5134" }], [{ "label": "贵阳市", "value": "5201" }, { "label": "六盘水市", "value": "5202" }, { "label": "遵义市", "value": "5203" }, { "label": "安顺市", "value": "5204" }, { "label": "毕节市", "value": "5205" }, { "label": "铜仁市", "value": "5206" }, { "label": "黔西南布依族苗族自治州", "value": "5223" }, { "label": "黔东南苗族侗族自治州", "value": "5226" }, { "label": "黔南布依族苗族自治州", "value": "5227" }], [{ "label": "昆明市", "value": "5301" }, { "label": "曲靖市", "value": "5303" }, { "label": "玉溪市", "value": "5304" }, { "label": "保山市", "value": "5305" }, { "label": "昭通市", "value": "5306" }, { "label": "丽江市", "value": "5307" }, { "label": "普洱市", "value": "5308" }, { "label": "临沧市", "value": "5309" }, { "label": "楚雄彝族自治州", "value": "5323" }, { "label": "红河哈尼族彝族自治州", "value": "5325" }, { "label": "文山壮族苗族自治州", "value": "5326" }, { "label": "西双版纳傣族自治州", "value": "5328" }, { "label": "大理白族自治州", "value": "5329" }, { "label": "德宏傣族景颇族自治州", "value": "5331" }, { "label": "怒江傈僳族自治州", "value": "5333" }, { "label": "迪庆藏族自治州", "value": "5334" }], [{ "label": "拉萨市", "value": "5401" }, { "label": "日喀则市", "value": "5402" }, { "label": "昌都市", "value": "5403" }, { "label": "林芝市", "value": "5404" }, { "label": "山南市", "value": "5405" }, { "label": "那曲地区", "value": "5424" }, { "label": "阿里地区", "value": "5425" }], [{ "label": "西安市", "value": "6101" }, { "label": "铜川市", "value": "6102" }, { "label": "宝鸡市", "value": "6103" }, { "label": "咸阳市", "value": "6104" }, { "label": "渭南市", "value": "6105" }, { "label": "延安市", "value": "6106" }, { "label": "汉中市", "value": "6107" }, { "label": "榆林市", "value": "6108" }, { "label": "安康市", "value": "6109" }, { "label": "商洛市", "value": "6110" }], [{ "label": "兰州市", "value": "6201" }, { "label": "嘉峪关市", "value": "6202" }, { "label": "金昌市", "value": "6203" }, { "label": "白银市", "value": "6204" }, { "label": "天水市", "value": "6205" }, { "label": "武威市", "value": "6206" }, { "label": "张掖市", "value": "6207" }, { "label": "平凉市", "value": "6208" }, { "label": "酒泉市", "value": "6209" }, { "label": "庆阳市", "value": "6210" }, { "label": "定西市", "value": "6211" }, { "label": "陇南市", "value": "6212" }, { "label": "临夏回族自治州", "value": "6229" }, { "label": "甘南藏族自治州", "value": "6230" }], [{ "label": "西宁市", "value": "6301" }, { "label": "海东市", "value": "6302" }, { "label": "海北藏族自治州", "value": "6322" }, { "label": "黄南藏族自治州", "value": "6323" }, { "label": "海南藏族自治州", "value": "6325" }, { "label": "果洛藏族自治州", "value": "6326" }, { "label": "玉树藏族自治州", "value": "6327" }, { "label": "海西蒙古族藏族自治州", "value": "6328" }], [{ "label": "银川市", "value": "6401" }, { "label": "石嘴山市", "value": "6402" }, { "label": "吴忠市", "value": "6403" }, { "label": "固原市", "value": "6404" }, { "label": "中卫市", "value": "6405" }], [{ "label": "乌鲁木齐市", "value": "6501" }, { "label": "克拉玛依市", "value": "6502" }, { "label": "吐鲁番市", "value": "6504" }, { "label": "哈密市", "value": "6505" }, { "label": "昌吉回族自治州", "value": "6523" }, { "label": "博尔塔拉蒙古自治州", "value": "6527" }, { "label": "巴音郭楞蒙古自治州", "value": "6528" }, { "label": "阿克苏地区", "value": "6529" }, { "label": "克孜勒苏柯尔克孜自治州", "value": "6530" }, { "label": "喀什地区", "value": "6531" }, { "label": "和田地区", "value": "6532" }, { "label": "伊犁哈萨克自治州", "value": "6540" }, { "label": "塔城地区", "value": "6542" }, { "label": "阿勒泰地区", "value": "6543" }, { "label": "自治区直辖县级行政区划", "value": "6590" }], [{ "label": "台北", "value": "6601" }, { "label": "高雄", "value": "6602" }, { "label": "基隆", "value": "6603" }, { "label": "台中", "value": "6604" }, { "label": "台南", "value": "6605" }, { "label": "新竹", "value": "6606" }, { "label": "嘉义", "value": "6607" }, { "label": "宜兰", "value": "6608" }, { "label": "桃园", "value": "6609" }, { "label": "苗栗", "value": "6610" }, { "label": "彰化", "value": "6611" }, { "label": "南投", "value": "6612" }, { "label": "云林", "value": "6613" }, { "label": "屏东", "value": "6614" }, { "label": "台东", "value": "6615" }, { "label": "花莲", "value": "6616" }, { "label": "澎湖", "value": "6617" }], [{ "label": "香港岛", "value": "6701" }, { "label": "九龙", "value": "6702" }, { "label": "新界", "value": "6703" }], [{ "label": "澳门半岛", "value": "6801" }, { "label": "氹仔岛", "value": "6802" }, { "label": "路环岛", "value": "6803" }, { "label": "路氹城", "value": "6804" }]];var _default = cityData;exports.default = _default;
+module.exports = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAADDPmHLAAAAAXNSR0IArs4c6QAAFKpJREFUeF7tXQ2UZEV1/u7rHhaygyGQFXbn1evXu4MCSfjx8I8kIATULCqaEPlRAwhE5UcTPRBwExUxetREFxcSMZhz1LBCooTduPzITyKRhUUO4jkg2V369as3A+tKsphdws50v5tTMz0wO9szfave656ena5z5nA4e+vWrVtf16u6dX8IvTavNUDzeva9yaMHgHkOgh4AegCY5xqY59Pv7QA9AMxzDczz6fd2gB4A5rkG5vn0eztADwDzRwOLFi3q7+/vX1ir1fqZiwsLhbTfzL5e97YT1XYUi8Xt27dv37F169bt80Ure9wOEIbhfrUanwB4g56XHsxMgwAfDJj/2jTeBNBGIt6Upt5GIN1ULNIjURRts+HS7bRzHgC+7w8AhWMBOo4IpwI4ts1Kf4wZDwL8KFB/LEmSoTaP11b2cxIAZtE9r7g8TXk5ES1vq4ZaMGfmtZ5Ha9O0tnYugmEuAaDg++VzidgsuPlbOJsL32TsHQDWMtPaJKncZo4WXSZfU3G6HgCDg4OvGxmpXciMiwAcPheUCuApIty6117Fb27atOlX3Sxz1wIgDMOD6nW+CCCz8Mu6WYkzyLYZ4FsLBbo1iqIXunEOXQkA3y9dDNAKIpS6UWm2MjGjCvD1SVL9B9u+7abvKgAEQXAYs7cCwHvbPfFZ4r+aKL0+juOnZ2n83YbtGgAEQXglM60A+De7RTntkYN+ScTXx3G0sj387bjOOgB8f9kgUf0GAOfYiT7nqW9nLlyXJJs3zeZMZhUAvl86n4g+ByDogBKGAcTjfxwzezERm/8HMwVEaQCQkWPib0kHZIqZ+dokqX6nA2N11zVQqdKNAF3epolvBGgNM6/xvDQ2DUDNcqxiEARBmnoBEZ0F8FkADrbkISTnr2ldvUJInCvZrOwASoV3Azgz15mAHzZGGGbcMzQUPZkv73FuAwPhkUQ4c9wYRW/OeYx7tI7emjPPluw6DgClQrM4R7SUTEawjgj3EvE91Wr1GVmXfKhKpdKhzHQmM84A8LZ8uOKnWkdH5sRLxKajAFAqfB7AQSLJZiAiwiPMWKl1tDorrzz6KxW+lwhXMuOEHPi9oHW0OAc+IhYdA4BSIYskmpGINzF7K5OkcmN2Xvlz8P3yFUTplfZPz7vLonXUkbXpyCBKlcyhzPI9fhelbCPCynp9dOXQ0NCL+S9dfhwHBgYOKBT6zG5wJYD93DnzJq2rbTp0viZV2wGgVPiDjN/ImwsFrIyi6Ofuyux8zzAMD6nXx0DwoQyjr9M6enuG/i27thUAvl+6nYj+qKUUzQl2EtEVcVy5xbF/V3QLgvIlzGw+WQtcBGLmO5Kk2jYjWdsAkPGe/zRAH9K68h8uSuu2PkqVfxfgmwEc5iZb++wEbQFAw8L3bbfJYo3W0Tsc+3Z1N6XCuwAYg5J1Y+YL2mExzB0ADdv+/S7mXSJcE8fRF6y1M4c6BEF4NTM+7yByzFw4Le+3g9wBoFT4XZeHnUIBh861g57DIo51aRwQXQxXt2sd/bHruM365QqA8SddfNVWQOaaPxcdKm3nOZneOLYSFRNbHkS4Ks+n5NwAMO7MUfh32/d8Zn53klS/b6sIV/oDDzxw4V579ZeBdCkRlw0fZqoA3nMjI9srW7ZsMc6dmdrAwNI3ENWPIaI+ZnoiSSpPNWPo+6Wzieh7doMZf4L67+XlVJIbAJQKjSeslScPM76QJNE1dgqwo1aqfDLAxlb/FmaUifD6mTgw4xdEqAB4AKB1Wld+JB0xDMOwXqdbAD59Sp+fEdH1cVy5Yyov3w8/T4SrpWM06FZrHZ1r2acpeS4AMD58RPQNG4GI8GAcR2+x6SOhXbZs2etHR+vvAvhkZjILf4Ck3ww0LxLxOoB+1NdXuHPz5s2/aEY7ODi4YOfO2iszg4uOS5LKY1NpgiB8gHksqEXcmPmDefgYZgaA8d6t1bDe0oFzR72Oo4eHc7XueY0ziLG+jW3tbWgVY5JufIPTyfyVKn8Z4D9rAYD7k6QydXfAkiXhIYUCHreJdTCOpsUijs/qbZwZAEqVrgXIuHSJGzOfnyTVfxJ3aEEYBOULmNks/DF58WzBZwMRrYzjyqu2DqVKGiC/1fhE6dFxHP9kKp3vl84jIkvPIL5O66rxqHJumQBggjZ27qw9Yem3f7PW0YedJZ7U0ffLxxLxpzK+NWQRZR0zfYqZtnle+qyEEREui+Po681olQpvsnw72LxgQfFNWYJPMgEgCMKrmPEVycQbNNsKBZyQx30/CMrnMGOV7a3DQlYh6ZiX7ypm/JWkAzM+nSSRAe1urWEfeMTmFZEIH43jyPrqPTF4FgAUlArNr18crkWEz8RxJFLUTMoMgvAyZvydROHdRjMTAIysQRB+mhl/aSH3U1pHb3KNRXQGgO+XLyDib8kFNXH2teOzvudnMKXKRW0jZSsAGH8Czyuut/GfYKb3Jclr5xEb8Z0BoFRo3LHEZklmujKrJ4/vly8h4qbfT5tJzyZtKwAY2cY9i9gmcOS7WkdWNphMn4CGGdMcekQh2saHL46jE7MoPgiWns6c3peFRzf0lQCg8Sn4sYWP4Q7m2htdzOlOO4DDN/jcLA6cAwOlEzyPfpx9AelhZr4foBeB9L8BmD/T9ge8/QE+gIhOAzhvl+9XRZcCwDiaAjDWVVEjwp/GcfT3IuJJRE4A8P3SGovMHHdrHTm7Tft++XCA77I0NE3Ww71E9G2i9IfVatV4JbdspVJpMbN3unmDB8bcvnNrUgCYAZUK1wEQxQqYTCVJUrX2NbAGwOLFS4NiMa3KNUKf0LryJTn9rpQZfAo3EuHLLr+KyRI0drs/zysqyA4A5Y8D/EWp7mo1r/T888+NhbtJmzUAlArNI4TYipemdOTQUOWnUoF2Vf6Yhc/ipjHe2/jR1Wp9H3nhhU1bXcad2ueggwYXFYujqzL4N77K0gYAAwPlIzyPbaKcztM6En82jFAOACh/DeCPyBTLj2tddTXPekqF623Nu+10oszo5NoA5/SGoGY6Vaq0AaCjZfqmVVpXrOItHQAgD+3K8twbBOFHmfG3solP/PLtlGvDe4LW98NPEcmsfs342+wApr/lc7F1aJkVAHzf35+oKA7MSFOcMDQUmV+xVTNPuiMjddNP/Kpnq1grgaYQZwGBrZwDA+HxngdjHhY15toBSZJM3G5a9rEEQOltRGQCPSQt0joSL+BkhkqFJpjCPIyIGhF/I46rl4iIcyIKgtItzPRBW3a2ADD8lQqNg0ooGYuZ354kVXN7EDVLAMgtVER8YxxXzROtdQuC8j8z83uEHTeOjhZPyuvAJxwT5mDY11f7T9vbgQsAgqC0kplE+QNsLa5WALATBKcmSfSQVKFTdgCzhf2GpK+rAUTCuxWNg0EMLgDw/fAU40HVSh7z77Y/PCsA2NzJidJlcRw/JxF618UvnwHwPcJ+92od5ZxoQjhyg0yp0MgqNha5ACAIgqXM3mahZFbxhJYAkEf5ah31OaRlgVKlLwL0ceFkL9I6+qaQti1kSoUXArhVytwFAACKSoWjsjHsoootASCO8R/WOhqQCbwrVePuf5ykb71eCIaHN2sJbbtolixZpgqFutj65ggAcxA0WclFiatscguIAWCKLey998L/FSpyvdaRU7YM3w+3tHLdbsiwQeuo3anhRdP1/fAZIhwiIc4AAHMVPF4yxiuv7NhXWvRCDIByuXxgrcbSfLdOIUzjQRv7iKp1uCpSokBbGqXCfwTwAVk//pzW1etktK9R2YTcFYt0UKVS2SIZQwwApdQyoCBMashf0rr6CYkAux4Al/02UP+ZpJ/tdUfC05XG98OvmhxBsv50k9YVoSl9MgBszkb1Qa216NAoBoB5liVi0aOO6+IoVX4HwP8qUWS7wqUlY0+lUar0WYCkv+rbtI7Osx3HxkuImY6YLhxt6rhiAJRKpRPTlIzhQ9LepXUkWsjJzGy8jG0tXhKhXWl8P7yaSBzy7eQfoVT4TgB3SmT0PD6pWq2KHGh6AJBotAWNJQDu0zoS2w0mhi6VSn+QprRWIu50wSfN+ooB0PsETK96y0/A97WO3i1ZyMk0dvGX9QGttcmN3LKJAdA7BE6vS5tDoHFwSZLq+1uuzBQCmxA8raMCgF1iF6cbTwyA3jVwph3A5hoIp9A4C5Bt0ToSZ2MVA6D7DEH0sNaVk21/Se2gVyo0FUAOlfF2vSLL4jCI8GQcR0fJZLF0CbNI99oRU7Dn8RKpp69UIbZ0jaRYG6X9XA1YSoXmNfAUwThz/TEoNOHOfyGYKIjo/XFcsXYalfCW0tjczw3PDACQ7jK3ah1dLJVf/AkwDDv0HGxSukgTRM7qc3AYhnvX63jUJkA2AwCEPhJ0g9aVT7YFAB10CPmlNLXLbDqEKGXnt++6AzS8j5qmptl9oflyraur2gIAu+2O/kbrigmosG5BUPoWM5moHEmbFZcwcysaHeVHbSOWXHYAG88j40qXJFVx5jGrT4DvWzmFbtQ6eoNkBafSBEF4KTPEcW7tjAWYTn7XGAEXANh4HTF7hyfJc6IHNTM3KwCEYbhfvY7/kS5qmuIol/o9bm7h7c2qPXnOrovv8glYtOiw/r33flnqh6G1jqwqsFkBoHEQNIcekSMGM65JErfcv73AkHHIBUH4AWYYf4OWjRlfT5LospaEkwisAWAXqcIPa111NdY4hoa1LzooS0DIhM5tPwFKheZVVZo9/WytI9GL4YQ8DgCwS2/qeXyYa0WvRvo363u+CRQZGem7Nq9YAXPgq9fTz7oEgkz9NdoB4JSiUpHQGdTYGOyigqzPAKaDbZJjInwsjiObTGK76MzG9jBF2ZnDw8fv+XQ5M19ue9qfbhu2AYBS5U+aquPCLd3pmdl6BxgHgVWCCCvT5NTJjucCxL9lSAd3L4DV9Xrhh1IPYpP4GvDOYIZx+RZnQZMslA0AfD+MpMBzrbXgBACbe2lDKZlSxIznBGRThyBr28CMH8yUIsbz8E5mtK14oxQAdu//gOfxidVqVRxE6nwGmPQZ6HCSqLmbG3AyaiUAaGRgNS5dvyVE/MtaR6KEXVP5Oe0Ajetgx9PEzfUcgUZvkquaw23jGa0jp4JUzgCYrUSRe0CuwJ9oHU2b8cNh8Q2uvqJ19DHhbrELmTMAAMxiqtiuzBloAjEOlCyCqQ3QLHLacfErWkdLJeM2o8kCAGOlmrVk0SZ3IBHdJj0luypI0G8rUXo2s2fy+0q9fR9qnAXGwud9v/QeIroKgLXRjIjOaVaJRCD3GEkmAHRBungTrGJKsDnnIZQqahq6JwoFXBxF0ZNKhSZ5tZUZNuPYpvudWkdnZ+GTCQDjh0H7ghFEdGmeJWE7XTCCGT8H6KYkqZg0NvXxX3HH8xhvS1Oc6vLYNhkwmQHgWDJmJ0Bn5FwathMlYzQRbtpnnwWrnn322d1e6JQqPwzwSVl+kdK+WS2smewAU4W0NVo0+j+tdSS950r1gsZTsvmmnsbMpiiVKNVMiwFMZZB1xSLfMVONHtskmuJJTSEkon+J48ofuvbPdQeYYOZSNg5of51gpUzKmfT3ATpZUjZuknLuYqY1CxZ4d01XKazZAigV3g2gnWlrHtI6sqowNhNQMn8CJpi7Fo50tWG7on9q4Uhm6iPCFuaxvxf6+rBFGlvfTIYgKJ/FzKYQponOybllel5vKktuADDcXUvH7ml1g30/fCvRWD7lPD4/YwtnCk4nSSRyl7dBXa4AGL8VuBWP3tPqB5uKpSYOMA87heT9wGbR23IGmGCapXx8p+sIuypN2q9UKh2VpmScW50SZpvDninGbVO+VipbrreAJreC802RBlthGltd2+sJu8iVpU/jXGAqgJgaS63OBlsBumPc09kt0aaNrLl/Al67FZRuBMgqdfmrqCQ8WKvhwzmXlrXRS1tolyxZ8muFwl4mNPyNwFgR60UATD5FY5TdDPB9ROm9cRyLPa+zCto2ADTOA1muRDuY+dI8S8xmVdae2L+tAGiAwFS8OCKD8m4uFLAyj2qjGWTYY7u2HQANEJhiTeKkBU20vc1U7a7XR1dmLTy5x66k48Q6AoAGCNhRxkndeBOztzJrAcrsckzPIQzDcHSUfp25b2h4+L9MkGtXt44BYBwE8mTTM2nNFKJkxsostQjzXJVSqXRomnoXAGzKtv3OBG9zkjdlb4aG7J0185RvRl12aqCJcTL4+TcT9W6A7k9T3OdamSzL/Mfz+JsoZn4fgL2m42WTuDGLPC59O7oDTAiYJbhy+kny48x0PzPudKlTJFVeEASnpal3MtFY4mbpo8+sJrLoqh3gtZ3A3U4gWKyIiNekKX3P89LYNJfaBYODgwtGRtJjmOvHjj8vw5SUfZ1g/N1IsrpuuYwp6TMrO8CkncBYDE1OIKuQZsnEmtCYxIkGCDHAMbMXE3EM0P8xp/sS0b7M1O95vC/AZWYyEdBZrq+7iDAbOQwkeppVABgBG28HNwA4RyLwXKUhou/EcUWa9aRj05x1AEzMdPwpmVZkiAHsmNIcB/prraNrHfu2rVvXAMDMcNypxFsBwDyc7EntV/X6yLLh4eGuswt0FQAmnQ0uBmhFHm/p3YAiovTNcRxLU+13VOSuBIDRgPE2rtf5IoAuArCso1rJb7ANROmfxHFskjx2ZetaAExoywSfjIzULmSGAUKusfptXBETyr7aNl1LG+WZlnXXA2CS5AXfL59LxMsBmD+ncOg2KjkCcBszrZaWa2mjLGLWcwkAr07KpKnxvOLyNOXlRGTAMGuNGQ8AdNvOndtXS0u1zZqwTQaekwCYPI/Fi5cGxWJ6EkAnAWwsdbkZb5royxRh2ADwBiLvMc/jDXPdT2HOA2DqIvm+vz9QOA7wBj0vPZiZBgE+GDD/FbURAC8B2AbwSwANA/xommI98+j64eHhl0Vc5gjRHgeAmfRuil709/cvrNVq/czFhYVC2l+rUVosmoXGttHR0Zf2tAVuhcN5BYBWypiP/94DwHxc9Ulz7gGgB4B5roF5Pv3eDtADwDzXwDyffm8H6AFgnmtgnk+/twP0ADDPNTDPp///B6JCCD/ba8AAAAAASUVORK5CYII="
 
 /***/ }),
 
-/***/ 967:
-/*!**********************************************************!*\
-  !*** E:/HX/flow/node_modules/uview-ui/libs/util/area.js ***!
-  \**********************************************************/
+/***/ 855:
+/*!****************************************!*\
+  !*** E:/HX/flow/static/leave/tag5.png ***!
+  \****************************************/
 /*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(module, exports) {
 
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });exports.default = void 0;var areaData = [[[{ "label": "东城区", "value": "110101" }, { "label": "西城区", "value": "110102" }, { "label": "朝阳区", "value": "110105" }, { "label": "丰台区", "value": "110106" }, { "label": "石景山区", "value": "110107" }, { "label": "海淀区", "value": "110108" }, { "label": "门头沟区", "value": "110109" }, { "label": "房山区", "value": "110111" }, { "label": "通州区", "value": "110112" }, { "label": "顺义区", "value": "110113" }, { "label": "昌平区", "value": "110114" }, { "label": "大兴区", "value": "110115" }, { "label": "怀柔区", "value": "110116" }, { "label": "平谷区", "value": "110117" }, { "label": "密云区", "value": "110118" }, { "label": "延庆区", "value": "110119" }]], [[{ "label": "和平区", "value": "120101" }, { "label": "河东区", "value": "120102" }, { "label": "河西区", "value": "120103" }, { "label": "南开区", "value": "120104" }, { "label": "河北区", "value": "120105" }, { "label": "红桥区", "value": "120106" }, { "label": "东丽区", "value": "120110" }, { "label": "西青区", "value": "120111" }, { "label": "津南区", "value": "120112" }, { "label": "北辰区", "value": "120113" }, { "label": "武清区", "value": "120114" }, { "label": "宝坻区", "value": "120115" }, { "label": "滨海新区", "value": "120116" }, { "label": "宁河区", "value": "120117" }, { "label": "静海区", "value": "120118" }, { "label": "蓟州区", "value": "120119" }]], [[{ "label": "长安区", "value": "130102" }, { "label": "桥西区", "value": "130104" }, { "label": "新华区", "value": "130105" }, { "label": "井陉矿区", "value": "130107" }, { "label": "裕华区", "value": "130108" }, { "label": "藁城区", "value": "130109" }, { "label": "鹿泉区", "value": "130110" }, { "label": "栾城区", "value": "130111" }, { "label": "井陉县", "value": "130121" }, { "label": "正定县", "value": "130123" }, { "label": "行唐县", "value": "130125" }, { "label": "灵寿县", "value": "130126" }, { "label": "高邑县", "value": "130127" }, { "label": "深泽县", "value": "130128" }, { "label": "赞皇县", "value": "130129" }, { "label": "无极县", "value": "130130" }, { "label": "平山县", "value": "130131" }, { "label": "元氏县", "value": "130132" }, { "label": "赵县", "value": "130133" }, { "label": "石家庄高新技术产业开发区", "value": "130171" }, { "label": "石家庄循环化工园区", "value": "130172" }, { "label": "辛集市", "value": "130181" }, { "label": "晋州市", "value": "130183" }, { "label": "新乐市", "value": "130184" }], [{ "label": "路南区", "value": "130202" }, { "label": "路北区", "value": "130203" }, { "label": "古冶区", "value": "130204" }, { "label": "开平区", "value": "130205" }, { "label": "丰南区", "value": "130207" }, { "label": "丰润区", "value": "130208" }, { "label": "曹妃甸区", "value": "130209" }, { "label": "滦县", "value": "130223" }, { "label": "滦南县", "value": "130224" }, { "label": "乐亭县", "value": "130225" }, { "label": "迁西县", "value": "130227" }, { "label": "玉田县", "value": "130229" }, { "label": "唐山市芦台经济技术开发区", "value": "130271" }, { "label": "唐山市汉沽管理区", "value": "130272" }, { "label": "唐山高新技术产业开发区", "value": "130273" }, { "label": "河北唐山海港经济开发区", "value": "130274" }, { "label": "遵化市", "value": "130281" }, { "label": "迁安市", "value": "130283" }], [{ "label": "海港区", "value": "130302" }, { "label": "山海关区", "value": "130303" }, { "label": "北戴河区", "value": "130304" }, { "label": "抚宁区", "value": "130306" }, { "label": "青龙满族自治县", "value": "130321" }, { "label": "昌黎县", "value": "130322" }, { "label": "卢龙县", "value": "130324" }, { "label": "秦皇岛市经济技术开发区", "value": "130371" }, { "label": "北戴河新区", "value": "130372" }], [{ "label": "邯山区", "value": "130402" }, { "label": "丛台区", "value": "130403" }, { "label": "复兴区", "value": "130404" }, { "label": "峰峰矿区", "value": "130406" }, { "label": "肥乡区", "value": "130407" }, { "label": "永年区", "value": "130408" }, { "label": "临漳县", "value": "130423" }, { "label": "成安县", "value": "130424" }, { "label": "大名县", "value": "130425" }, { "label": "涉县", "value": "130426" }, { "label": "磁县", "value": "130427" }, { "label": "邱县", "value": "130430" }, { "label": "鸡泽县", "value": "130431" }, { "label": "广平县", "value": "130432" }, { "label": "馆陶县", "value": "130433" }, { "label": "魏县", "value": "130434" }, { "label": "曲周县", "value": "130435" }, { "label": "邯郸经济技术开发区", "value": "130471" }, { "label": "邯郸冀南新区", "value": "130473" }, { "label": "武安市", "value": "130481" }], [{ "label": "桥东区", "value": "130502" }, { "label": "桥西区", "value": "130503" }, { "label": "邢台县", "value": "130521" }, { "label": "临城县", "value": "130522" }, { "label": "内丘县", "value": "130523" }, { "label": "柏乡县", "value": "130524" }, { "label": "隆尧县", "value": "130525" }, { "label": "任县", "value": "130526" }, { "label": "南和县", "value": "130527" }, { "label": "宁晋县", "value": "130528" }, { "label": "巨鹿县", "value": "130529" }, { "label": "新河县", "value": "130530" }, { "label": "广宗县", "value": "130531" }, { "label": "平乡县", "value": "130532" }, { "label": "威县", "value": "130533" }, { "label": "清河县", "value": "130534" }, { "label": "临西县", "value": "130535" }, { "label": "河北邢台经济开发区", "value": "130571" }, { "label": "南宫市", "value": "130581" }, { "label": "沙河市", "value": "130582" }], [{ "label": "竞秀区", "value": "130602" }, { "label": "莲池区", "value": "130606" }, { "label": "满城区", "value": "130607" }, { "label": "清苑区", "value": "130608" }, { "label": "徐水区", "value": "130609" }, { "label": "涞水县", "value": "130623" }, { "label": "阜平县", "value": "130624" }, { "label": "定兴县", "value": "130626" }, { "label": "唐县", "value": "130627" }, { "label": "高阳县", "value": "130628" }, { "label": "容城县", "value": "130629" }, { "label": "涞源县", "value": "130630" }, { "label": "望都县", "value": "130631" }, { "label": "安新县", "value": "130632" }, { "label": "易县", "value": "130633" }, { "label": "曲阳县", "value": "130634" }, { "label": "蠡县", "value": "130635" }, { "label": "顺平县", "value": "130636" }, { "label": "博野县", "value": "130637" }, { "label": "雄县", "value": "130638" }, { "label": "保定高新技术产业开发区", "value": "130671" }, { "label": "保定白沟新城", "value": "130672" }, { "label": "涿州市", "value": "130681" }, { "label": "定州市", "value": "130682" }, { "label": "安国市", "value": "130683" }, { "label": "高碑店市", "value": "130684" }], [{ "label": "桥东区", "value": "130702" }, { "label": "桥西区", "value": "130703" }, { "label": "宣化区", "value": "130705" }, { "label": "下花园区", "value": "130706" }, { "label": "万全区", "value": "130708" }, { "label": "崇礼区", "value": "130709" }, { "label": "张北县", "value": "130722" }, { "label": "康保县", "value": "130723" }, { "label": "沽源县", "value": "130724" }, { "label": "尚义县", "value": "130725" }, { "label": "蔚县", "value": "130726" }, { "label": "阳原县", "value": "130727" }, { "label": "怀安县", "value": "130728" }, { "label": "怀来县", "value": "130730" }, { "label": "涿鹿县", "value": "130731" }, { "label": "赤城县", "value": "130732" }, { "label": "张家口市高新技术产业开发区", "value": "130771" }, { "label": "张家口市察北管理区", "value": "130772" }, { "label": "张家口市塞北管理区", "value": "130773" }], [{ "label": "双桥区", "value": "130802" }, { "label": "双滦区", "value": "130803" }, { "label": "鹰手营子矿区", "value": "130804" }, { "label": "承德县", "value": "130821" }, { "label": "兴隆县", "value": "130822" }, { "label": "滦平县", "value": "130824" }, { "label": "隆化县", "value": "130825" }, { "label": "丰宁满族自治县", "value": "130826" }, { "label": "宽城满族自治县", "value": "130827" }, { "label": "围场满族蒙古族自治县", "value": "130828" }, { "label": "承德高新技术产业开发区", "value": "130871" }, { "label": "平泉市", "value": "130881" }], [{ "label": "新华区", "value": "130902" }, { "label": "运河区", "value": "130903" }, { "label": "沧县", "value": "130921" }, { "label": "青县", "value": "130922" }, { "label": "东光县", "value": "130923" }, { "label": "海兴县", "value": "130924" }, { "label": "盐山县", "value": "130925" }, { "label": "肃宁县", "value": "130926" }, { "label": "南皮县", "value": "130927" }, { "label": "吴桥县", "value": "130928" }, { "label": "献县", "value": "130929" }, { "label": "孟村回族自治县", "value": "130930" }, { "label": "河北沧州经济开发区", "value": "130971" }, { "label": "沧州高新技术产业开发区", "value": "130972" }, { "label": "沧州渤海新区", "value": "130973" }, { "label": "泊头市", "value": "130981" }, { "label": "任丘市", "value": "130982" }, { "label": "黄骅市", "value": "130983" }, { "label": "河间市", "value": "130984" }], [{ "label": "安次区", "value": "131002" }, { "label": "广阳区", "value": "131003" }, { "label": "固安县", "value": "131022" }, { "label": "永清县", "value": "131023" }, { "label": "香河县", "value": "131024" }, { "label": "大城县", "value": "131025" }, { "label": "文安县", "value": "131026" }, { "label": "大厂回族自治县", "value": "131028" }, { "label": "廊坊经济技术开发区", "value": "131071" }, { "label": "霸州市", "value": "131081" }, { "label": "三河市", "value": "131082" }], [{ "label": "桃城区", "value": "131102" }, { "label": "冀州区", "value": "131103" }, { "label": "枣强县", "value": "131121" }, { "label": "武邑县", "value": "131122" }, { "label": "武强县", "value": "131123" }, { "label": "饶阳县", "value": "131124" }, { "label": "安平县", "value": "131125" }, { "label": "故城县", "value": "131126" }, { "label": "景县", "value": "131127" }, { "label": "阜城县", "value": "131128" }, { "label": "河北衡水经济开发区", "value": "131171" }, { "label": "衡水滨湖新区", "value": "131172" }, { "label": "深州市", "value": "131182" }]], [[{ "label": "小店区", "value": "140105" }, { "label": "迎泽区", "value": "140106" }, { "label": "杏花岭区", "value": "140107" }, { "label": "尖草坪区", "value": "140108" }, { "label": "万柏林区", "value": "140109" }, { "label": "晋源区", "value": "140110" }, { "label": "清徐县", "value": "140121" }, { "label": "阳曲县", "value": "140122" }, { "label": "娄烦县", "value": "140123" }, { "label": "山西转型综合改革示范区", "value": "140171" }, { "label": "古交市", "value": "140181" }], [{ "label": "城区", "value": "140202" }, { "label": "矿区", "value": "140203" }, { "label": "南郊区", "value": "140211" }, { "label": "新荣区", "value": "140212" }, { "label": "阳高县", "value": "140221" }, { "label": "天镇县", "value": "140222" }, { "label": "广灵县", "value": "140223" }, { "label": "灵丘县", "value": "140224" }, { "label": "浑源县", "value": "140225" }, { "label": "左云县", "value": "140226" }, { "label": "大同县", "value": "140227" }, { "label": "山西大同经济开发区", "value": "140271" }], [{ "label": "城区", "value": "140302" }, { "label": "矿区", "value": "140303" }, { "label": "郊区", "value": "140311" }, { "label": "平定县", "value": "140321" }, { "label": "盂县", "value": "140322" }, { "label": "山西阳泉经济开发区", "value": "140371" }], [{ "label": "城区", "value": "140402" }, { "label": "郊区", "value": "140411" }, { "label": "长治县", "value": "140421" }, { "label": "襄垣县", "value": "140423" }, { "label": "屯留县", "value": "140424" }, { "label": "平顺县", "value": "140425" }, { "label": "黎城县", "value": "140426" }, { "label": "壶关县", "value": "140427" }, { "label": "长子县", "value": "140428" }, { "label": "武乡县", "value": "140429" }, { "label": "沁县", "value": "140430" }, { "label": "沁源县", "value": "140431" }, { "label": "山西长治高新技术产业园区", "value": "140471" }, { "label": "潞城市", "value": "140481" }], [{ "label": "城区", "value": "140502" }, { "label": "沁水县", "value": "140521" }, { "label": "阳城县", "value": "140522" }, { "label": "陵川县", "value": "140524" }, { "label": "泽州县", "value": "140525" }, { "label": "高平市", "value": "140581" }], [{ "label": "朔城区", "value": "140602" }, { "label": "平鲁区", "value": "140603" }, { "label": "山阴县", "value": "140621" }, { "label": "应县", "value": "140622" }, { "label": "右玉县", "value": "140623" }, { "label": "怀仁县", "value": "140624" }, { "label": "山西朔州经济开发区", "value": "140671" }], [{ "label": "榆次区", "value": "140702" }, { "label": "榆社县", "value": "140721" }, { "label": "左权县", "value": "140722" }, { "label": "和顺县", "value": "140723" }, { "label": "昔阳县", "value": "140724" }, { "label": "寿阳县", "value": "140725" }, { "label": "太谷县", "value": "140726" }, { "label": "祁县", "value": "140727" }, { "label": "平遥县", "value": "140728" }, { "label": "灵石县", "value": "140729" }, { "label": "介休市", "value": "140781" }], [{ "label": "盐湖区", "value": "140802" }, { "label": "临猗县", "value": "140821" }, { "label": "万荣县", "value": "140822" }, { "label": "闻喜县", "value": "140823" }, { "label": "稷山县", "value": "140824" }, { "label": "新绛县", "value": "140825" }, { "label": "绛县", "value": "140826" }, { "label": "垣曲县", "value": "140827" }, { "label": "夏县", "value": "140828" }, { "label": "平陆县", "value": "140829" }, { "label": "芮城县", "value": "140830" }, { "label": "永济市", "value": "140881" }, { "label": "河津市", "value": "140882" }], [{ "label": "忻府区", "value": "140902" }, { "label": "定襄县", "value": "140921" }, { "label": "五台县", "value": "140922" }, { "label": "代县", "value": "140923" }, { "label": "繁峙县", "value": "140924" }, { "label": "宁武县", "value": "140925" }, { "label": "静乐县", "value": "140926" }, { "label": "神池县", "value": "140927" }, { "label": "五寨县", "value": "140928" }, { "label": "岢岚县", "value": "140929" }, { "label": "河曲县", "value": "140930" }, { "label": "保德县", "value": "140931" }, { "label": "偏关县", "value": "140932" }, { "label": "五台山风景名胜区", "value": "140971" }, { "label": "原平市", "value": "140981" }], [{ "label": "尧都区", "value": "141002" }, { "label": "曲沃县", "value": "141021" }, { "label": "翼城县", "value": "141022" }, { "label": "襄汾县", "value": "141023" }, { "label": "洪洞县", "value": "141024" }, { "label": "古县", "value": "141025" }, { "label": "安泽县", "value": "141026" }, { "label": "浮山县", "value": "141027" }, { "label": "吉县", "value": "141028" }, { "label": "乡宁县", "value": "141029" }, { "label": "大宁县", "value": "141030" }, { "label": "隰县", "value": "141031" }, { "label": "永和县", "value": "141032" }, { "label": "蒲县", "value": "141033" }, { "label": "汾西县", "value": "141034" }, { "label": "侯马市", "value": "141081" }, { "label": "霍州市", "value": "141082" }], [{ "label": "离石区", "value": "141102" }, { "label": "文水县", "value": "141121" }, { "label": "交城县", "value": "141122" }, { "label": "兴县", "value": "141123" }, { "label": "临县", "value": "141124" }, { "label": "柳林县", "value": "141125" }, { "label": "石楼县", "value": "141126" }, { "label": "岚县", "value": "141127" }, { "label": "方山县", "value": "141128" }, { "label": "中阳县", "value": "141129" }, { "label": "交口县", "value": "141130" }, { "label": "孝义市", "value": "141181" }, { "label": "汾阳市", "value": "141182" }]], [[{ "label": "新城区", "value": "150102" }, { "label": "回民区", "value": "150103" }, { "label": "玉泉区", "value": "150104" }, { "label": "赛罕区", "value": "150105" }, { "label": "土默特左旗", "value": "150121" }, { "label": "托克托县", "value": "150122" }, { "label": "和林格尔县", "value": "150123" }, { "label": "清水河县", "value": "150124" }, { "label": "武川县", "value": "150125" }, { "label": "呼和浩特金海工业园区", "value": "150171" }, { "label": "呼和浩特经济技术开发区", "value": "150172" }], [{ "label": "东河区", "value": "150202" }, { "label": "昆都仑区", "value": "150203" }, { "label": "青山区", "value": "150204" }, { "label": "石拐区", "value": "150205" }, { "label": "白云鄂博矿区", "value": "150206" }, { "label": "九原区", "value": "150207" }, { "label": "土默特右旗", "value": "150221" }, { "label": "固阳县", "value": "150222" }, { "label": "达尔罕茂明安联合旗", "value": "150223" }, { "label": "包头稀土高新技术产业开发区", "value": "150271" }], [{ "label": "海勃湾区", "value": "150302" }, { "label": "海南区", "value": "150303" }, { "label": "乌达区", "value": "150304" }], [{ "label": "红山区", "value": "150402" }, { "label": "元宝山区", "value": "150403" }, { "label": "松山区", "value": "150404" }, { "label": "阿鲁科尔沁旗", "value": "150421" }, { "label": "巴林左旗", "value": "150422" }, { "label": "巴林右旗", "value": "150423" }, { "label": "林西县", "value": "150424" }, { "label": "克什克腾旗", "value": "150425" }, { "label": "翁牛特旗", "value": "150426" }, { "label": "喀喇沁旗", "value": "150428" }, { "label": "宁城县", "value": "150429" }, { "label": "敖汉旗", "value": "150430" }], [{ "label": "科尔沁区", "value": "150502" }, { "label": "科尔沁左翼中旗", "value": "150521" }, { "label": "科尔沁左翼后旗", "value": "150522" }, { "label": "开鲁县", "value": "150523" }, { "label": "库伦旗", "value": "150524" }, { "label": "奈曼旗", "value": "150525" }, { "label": "扎鲁特旗", "value": "150526" }, { "label": "通辽经济技术开发区", "value": "150571" }, { "label": "霍林郭勒市", "value": "150581" }], [{ "label": "东胜区", "value": "150602" }, { "label": "康巴什区", "value": "150603" }, { "label": "达拉特旗", "value": "150621" }, { "label": "准格尔旗", "value": "150622" }, { "label": "鄂托克前旗", "value": "150623" }, { "label": "鄂托克旗", "value": "150624" }, { "label": "杭锦旗", "value": "150625" }, { "label": "乌审旗", "value": "150626" }, { "label": "伊金霍洛旗", "value": "150627" }], [{ "label": "海拉尔区", "value": "150702" }, { "label": "扎赉诺尔区", "value": "150703" }, { "label": "阿荣旗", "value": "150721" }, { "label": "莫力达瓦达斡尔族自治旗", "value": "150722" }, { "label": "鄂伦春自治旗", "value": "150723" }, { "label": "鄂温克族自治旗", "value": "150724" }, { "label": "陈巴尔虎旗", "value": "150725" }, { "label": "新巴尔虎左旗", "value": "150726" }, { "label": "新巴尔虎右旗", "value": "150727" }, { "label": "满洲里市", "value": "150781" }, { "label": "牙克石市", "value": "150782" }, { "label": "扎兰屯市", "value": "150783" }, { "label": "额尔古纳市", "value": "150784" }, { "label": "根河市", "value": "150785" }], [{ "label": "临河区", "value": "150802" }, { "label": "五原县", "value": "150821" }, { "label": "磴口县", "value": "150822" }, { "label": "乌拉特前旗", "value": "150823" }, { "label": "乌拉特中旗", "value": "150824" }, { "label": "乌拉特后旗", "value": "150825" }, { "label": "杭锦后旗", "value": "150826" }], [{ "label": "集宁区", "value": "150902" }, { "label": "卓资县", "value": "150921" }, { "label": "化德县", "value": "150922" }, { "label": "商都县", "value": "150923" }, { "label": "兴和县", "value": "150924" }, { "label": "凉城县", "value": "150925" }, { "label": "察哈尔右翼前旗", "value": "150926" }, { "label": "察哈尔右翼中旗", "value": "150927" }, { "label": "察哈尔右翼后旗", "value": "150928" }, { "label": "四子王旗", "value": "150929" }, { "label": "丰镇市", "value": "150981" }], [{ "label": "乌兰浩特市", "value": "152201" }, { "label": "阿尔山市", "value": "152202" }, { "label": "科尔沁右翼前旗", "value": "152221" }, { "label": "科尔沁右翼中旗", "value": "152222" }, { "label": "扎赉特旗", "value": "152223" }, { "label": "突泉县", "value": "152224" }], [{ "label": "二连浩特市", "value": "152501" }, { "label": "锡林浩特市", "value": "152502" }, { "label": "阿巴嘎旗", "value": "152522" }, { "label": "苏尼特左旗", "value": "152523" }, { "label": "苏尼特右旗", "value": "152524" }, { "label": "东乌珠穆沁旗", "value": "152525" }, { "label": "西乌珠穆沁旗", "value": "152526" }, { "label": "太仆寺旗", "value": "152527" }, { "label": "镶黄旗", "value": "152528" }, { "label": "正镶白旗", "value": "152529" }, { "label": "正蓝旗", "value": "152530" }, { "label": "多伦县", "value": "152531" }, { "label": "乌拉盖管委会", "value": "152571" }], [{ "label": "阿拉善左旗", "value": "152921" }, { "label": "阿拉善右旗", "value": "152922" }, { "label": "额济纳旗", "value": "152923" }, { "label": "内蒙古阿拉善经济开发区", "value": "152971" }]], [[{ "label": "和平区", "value": "210102" }, { "label": "沈河区", "value": "210103" }, { "label": "大东区", "value": "210104" }, { "label": "皇姑区", "value": "210105" }, { "label": "铁西区", "value": "210106" }, { "label": "苏家屯区", "value": "210111" }, { "label": "浑南区", "value": "210112" }, { "label": "沈北新区", "value": "210113" }, { "label": "于洪区", "value": "210114" }, { "label": "辽中区", "value": "210115" }, { "label": "康平县", "value": "210123" }, { "label": "法库县", "value": "210124" }, { "label": "新民市", "value": "210181" }], [{ "label": "中山区", "value": "210202" }, { "label": "西岗区", "value": "210203" }, { "label": "沙河口区", "value": "210204" }, { "label": "甘井子区", "value": "210211" }, { "label": "旅顺口区", "value": "210212" }, { "label": "金州区", "value": "210213" }, { "label": "普兰店区", "value": "210214" }, { "label": "长海县", "value": "210224" }, { "label": "瓦房店市", "value": "210281" }, { "label": "庄河市", "value": "210283" }], [{ "label": "铁东区", "value": "210302" }, { "label": "铁西区", "value": "210303" }, { "label": "立山区", "value": "210304" }, { "label": "千山区", "value": "210311" }, { "label": "台安县", "value": "210321" }, { "label": "岫岩满族自治县", "value": "210323" }, { "label": "海城市", "value": "210381" }], [{ "label": "新抚区", "value": "210402" }, { "label": "东洲区", "value": "210403" }, { "label": "望花区", "value": "210404" }, { "label": "顺城区", "value": "210411" }, { "label": "抚顺县", "value": "210421" }, { "label": "新宾满族自治县", "value": "210422" }, { "label": "清原满族自治县", "value": "210423" }], [{ "label": "平山区", "value": "210502" }, { "label": "溪湖区", "value": "210503" }, { "label": "明山区", "value": "210504" }, { "label": "南芬区", "value": "210505" }, { "label": "本溪满族自治县", "value": "210521" }, { "label": "桓仁满族自治县", "value": "210522" }], [{ "label": "元宝区", "value": "210602" }, { "label": "振兴区", "value": "210603" }, { "label": "振安区", "value": "210604" }, { "label": "宽甸满族自治县", "value": "210624" }, { "label": "东港市", "value": "210681" }, { "label": "凤城市", "value": "210682" }], [{ "label": "古塔区", "value": "210702" }, { "label": "凌河区", "value": "210703" }, { "label": "太和区", "value": "210711" }, { "label": "黑山县", "value": "210726" }, { "label": "义县", "value": "210727" }, { "label": "凌海市", "value": "210781" }, { "label": "北镇市", "value": "210782" }], [{ "label": "站前区", "value": "210802" }, { "label": "西市区", "value": "210803" }, { "label": "鲅鱼圈区", "value": "210804" }, { "label": "老边区", "value": "210811" }, { "label": "盖州市", "value": "210881" }, { "label": "大石桥市", "value": "210882" }], [{ "label": "海州区", "value": "210902" }, { "label": "新邱区", "value": "210903" }, { "label": "太平区", "value": "210904" }, { "label": "清河门区", "value": "210905" }, { "label": "细河区", "value": "210911" }, { "label": "阜新蒙古族自治县", "value": "210921" }, { "label": "彰武县", "value": "210922" }], [{ "label": "白塔区", "value": "211002" }, { "label": "文圣区", "value": "211003" }, { "label": "宏伟区", "value": "211004" }, { "label": "弓长岭区", "value": "211005" }, { "label": "太子河区", "value": "211011" }, { "label": "辽阳县", "value": "211021" }, { "label": "灯塔市", "value": "211081" }], [{ "label": "双台子区", "value": "211102" }, { "label": "兴隆台区", "value": "211103" }, { "label": "大洼区", "value": "211104" }, { "label": "盘山县", "value": "211122" }], [{ "label": "银州区", "value": "211202" }, { "label": "清河区", "value": "211204" }, { "label": "铁岭县", "value": "211221" }, { "label": "西丰县", "value": "211223" }, { "label": "昌图县", "value": "211224" }, { "label": "调兵山市", "value": "211281" }, { "label": "开原市", "value": "211282" }], [{ "label": "双塔区", "value": "211302" }, { "label": "龙城区", "value": "211303" }, { "label": "朝阳县", "value": "211321" }, { "label": "建平县", "value": "211322" }, { "label": "喀喇沁左翼蒙古族自治县", "value": "211324" }, { "label": "北票市", "value": "211381" }, { "label": "凌源市", "value": "211382" }], [{ "label": "连山区", "value": "211402" }, { "label": "龙港区", "value": "211403" }, { "label": "南票区", "value": "211404" }, { "label": "绥中县", "value": "211421" }, { "label": "建昌县", "value": "211422" }, { "label": "兴城市", "value": "211481" }]], [[{ "label": "南关区", "value": "220102" }, { "label": "宽城区", "value": "220103" }, { "label": "朝阳区", "value": "220104" }, { "label": "二道区", "value": "220105" }, { "label": "绿园区", "value": "220106" }, { "label": "双阳区", "value": "220112" }, { "label": "九台区", "value": "220113" }, { "label": "农安县", "value": "220122" }, { "label": "长春经济技术开发区", "value": "220171" }, { "label": "长春净月高新技术产业开发区", "value": "220172" }, { "label": "长春高新技术产业开发区", "value": "220173" }, { "label": "长春汽车经济技术开发区", "value": "220174" }, { "label": "榆树市", "value": "220182" }, { "label": "德惠市", "value": "220183" }], [{ "label": "昌邑区", "value": "220202" }, { "label": "龙潭区", "value": "220203" }, { "label": "船营区", "value": "220204" }, { "label": "丰满区", "value": "220211" }, { "label": "永吉县", "value": "220221" }, { "label": "吉林经济开发区", "value": "220271" }, { "label": "吉林高新技术产业开发区", "value": "220272" }, { "label": "吉林中国新加坡食品区", "value": "220273" }, { "label": "蛟河市", "value": "220281" }, { "label": "桦甸市", "value": "220282" }, { "label": "舒兰市", "value": "220283" }, { "label": "磐石市", "value": "220284" }], [{ "label": "铁西区", "value": "220302" }, { "label": "铁东区", "value": "220303" }, { "label": "梨树县", "value": "220322" }, { "label": "伊通满族自治县", "value": "220323" }, { "label": "公主岭市", "value": "220381" }, { "label": "双辽市", "value": "220382" }], [{ "label": "龙山区", "value": "220402" }, { "label": "西安区", "value": "220403" }, { "label": "东丰县", "value": "220421" }, { "label": "东辽县", "value": "220422" }], [{ "label": "东昌区", "value": "220502" }, { "label": "二道江区", "value": "220503" }, { "label": "通化县", "value": "220521" }, { "label": "辉南县", "value": "220523" }, { "label": "柳河县", "value": "220524" }, { "label": "梅河口市", "value": "220581" }, { "label": "集安市", "value": "220582" }], [{ "label": "浑江区", "value": "220602" }, { "label": "江源区", "value": "220605" }, { "label": "抚松县", "value": "220621" }, { "label": "靖宇县", "value": "220622" }, { "label": "长白朝鲜族自治县", "value": "220623" }, { "label": "临江市", "value": "220681" }], [{ "label": "宁江区", "value": "220702" }, { "label": "前郭尔罗斯蒙古族自治县", "value": "220721" }, { "label": "长岭县", "value": "220722" }, { "label": "乾安县", "value": "220723" }, { "label": "吉林松原经济开发区", "value": "220771" }, { "label": "扶余市", "value": "220781" }], [{ "label": "洮北区", "value": "220802" }, { "label": "镇赉县", "value": "220821" }, { "label": "通榆县", "value": "220822" }, { "label": "吉林白城经济开发区", "value": "220871" }, { "label": "洮南市", "value": "220881" }, { "label": "大安市", "value": "220882" }], [{ "label": "延吉市", "value": "222401" }, { "label": "图们市", "value": "222402" }, { "label": "敦化市", "value": "222403" }, { "label": "珲春市", "value": "222404" }, { "label": "龙井市", "value": "222405" }, { "label": "和龙市", "value": "222406" }, { "label": "汪清县", "value": "222424" }, { "label": "安图县", "value": "222426" }]], [[{ "label": "道里区", "value": "230102" }, { "label": "南岗区", "value": "230103" }, { "label": "道外区", "value": "230104" }, { "label": "平房区", "value": "230108" }, { "label": "松北区", "value": "230109" }, { "label": "香坊区", "value": "230110" }, { "label": "呼兰区", "value": "230111" }, { "label": "阿城区", "value": "230112" }, { "label": "双城区", "value": "230113" }, { "label": "依兰县", "value": "230123" }, { "label": "方正县", "value": "230124" }, { "label": "宾县", "value": "230125" }, { "label": "巴彦县", "value": "230126" }, { "label": "木兰县", "value": "230127" }, { "label": "通河县", "value": "230128" }, { "label": "延寿县", "value": "230129" }, { "label": "尚志市", "value": "230183" }, { "label": "五常市", "value": "230184" }], [{ "label": "龙沙区", "value": "230202" }, { "label": "建华区", "value": "230203" }, { "label": "铁锋区", "value": "230204" }, { "label": "昂昂溪区", "value": "230205" }, { "label": "富拉尔基区", "value": "230206" }, { "label": "碾子山区", "value": "230207" }, { "label": "梅里斯达斡尔族区", "value": "230208" }, { "label": "龙江县", "value": "230221" }, { "label": "依安县", "value": "230223" }, { "label": "泰来县", "value": "230224" }, { "label": "甘南县", "value": "230225" }, { "label": "富裕县", "value": "230227" }, { "label": "克山县", "value": "230229" }, { "label": "克东县", "value": "230230" }, { "label": "拜泉县", "value": "230231" }, { "label": "讷河市", "value": "230281" }], [{ "label": "鸡冠区", "value": "230302" }, { "label": "恒山区", "value": "230303" }, { "label": "滴道区", "value": "230304" }, { "label": "梨树区", "value": "230305" }, { "label": "城子河区", "value": "230306" }, { "label": "麻山区", "value": "230307" }, { "label": "鸡东县", "value": "230321" }, { "label": "虎林市", "value": "230381" }, { "label": "密山市", "value": "230382" }], [{ "label": "向阳区", "value": "230402" }, { "label": "工农区", "value": "230403" }, { "label": "南山区", "value": "230404" }, { "label": "兴安区", "value": "230405" }, { "label": "东山区", "value": "230406" }, { "label": "兴山区", "value": "230407" }, { "label": "萝北县", "value": "230421" }, { "label": "绥滨县", "value": "230422" }], [{ "label": "尖山区", "value": "230502" }, { "label": "岭东区", "value": "230503" }, { "label": "四方台区", "value": "230505" }, { "label": "宝山区", "value": "230506" }, { "label": "集贤县", "value": "230521" }, { "label": "友谊县", "value": "230522" }, { "label": "宝清县", "value": "230523" }, { "label": "饶河县", "value": "230524" }], [{ "label": "萨尔图区", "value": "230602" }, { "label": "龙凤区", "value": "230603" }, { "label": "让胡路区", "value": "230604" }, { "label": "红岗区", "value": "230605" }, { "label": "大同区", "value": "230606" }, { "label": "肇州县", "value": "230621" }, { "label": "肇源县", "value": "230622" }, { "label": "林甸县", "value": "230623" }, { "label": "杜尔伯特蒙古族自治县", "value": "230624" }, { "label": "大庆高新技术产业开发区", "value": "230671" }], [{ "label": "伊春区", "value": "230702" }, { "label": "南岔区", "value": "230703" }, { "label": "友好区", "value": "230704" }, { "label": "西林区", "value": "230705" }, { "label": "翠峦区", "value": "230706" }, { "label": "新青区", "value": "230707" }, { "label": "美溪区", "value": "230708" }, { "label": "金山屯区", "value": "230709" }, { "label": "五营区", "value": "230710" }, { "label": "乌马河区", "value": "230711" }, { "label": "汤旺河区", "value": "230712" }, { "label": "带岭区", "value": "230713" }, { "label": "乌伊岭区", "value": "230714" }, { "label": "红星区", "value": "230715" }, { "label": "上甘岭区", "value": "230716" }, { "label": "嘉荫县", "value": "230722" }, { "label": "铁力市", "value": "230781" }], [{ "label": "向阳区", "value": "230803" }, { "label": "前进区", "value": "230804" }, { "label": "东风区", "value": "230805" }, { "label": "郊区", "value": "230811" }, { "label": "桦南县", "value": "230822" }, { "label": "桦川县", "value": "230826" }, { "label": "汤原县", "value": "230828" }, { "label": "同江市", "value": "230881" }, { "label": "富锦市", "value": "230882" }, { "label": "抚远市", "value": "230883" }], [{ "label": "新兴区", "value": "230902" }, { "label": "桃山区", "value": "230903" }, { "label": "茄子河区", "value": "230904" }, { "label": "勃利县", "value": "230921" }], [{ "label": "东安区", "value": "231002" }, { "label": "阳明区", "value": "231003" }, { "label": "爱民区", "value": "231004" }, { "label": "西安区", "value": "231005" }, { "label": "林口县", "value": "231025" }, { "label": "牡丹江经济技术开发区", "value": "231071" }, { "label": "绥芬河市", "value": "231081" }, { "label": "海林市", "value": "231083" }, { "label": "宁安市", "value": "231084" }, { "label": "穆棱市", "value": "231085" }, { "label": "东宁市", "value": "231086" }], [{ "label": "爱辉区", "value": "231102" }, { "label": "嫩江县", "value": "231121" }, { "label": "逊克县", "value": "231123" }, { "label": "孙吴县", "value": "231124" }, { "label": "北安市", "value": "231181" }, { "label": "五大连池市", "value": "231182" }], [{ "label": "北林区", "value": "231202" }, { "label": "望奎县", "value": "231221" }, { "label": "兰西县", "value": "231222" }, { "label": "青冈县", "value": "231223" }, { "label": "庆安县", "value": "231224" }, { "label": "明水县", "value": "231225" }, { "label": "绥棱县", "value": "231226" }, { "label": "安达市", "value": "231281" }, { "label": "肇东市", "value": "231282" }, { "label": "海伦市", "value": "231283" }], [{ "label": "加格达奇区", "value": "232701" }, { "label": "松岭区", "value": "232702" }, { "label": "新林区", "value": "232703" }, { "label": "呼中区", "value": "232704" }, { "label": "呼玛县", "value": "232721" }, { "label": "塔河县", "value": "232722" }, { "label": "漠河县", "value": "232723" }]], [[{ "label": "黄浦区", "value": "310101" }, { "label": "徐汇区", "value": "310104" }, { "label": "长宁区", "value": "310105" }, { "label": "静安区", "value": "310106" }, { "label": "普陀区", "value": "310107" }, { "label": "虹口区", "value": "310109" }, { "label": "杨浦区", "value": "310110" }, { "label": "闵行区", "value": "310112" }, { "label": "宝山区", "value": "310113" }, { "label": "嘉定区", "value": "310114" }, { "label": "浦东新区", "value": "310115" }, { "label": "金山区", "value": "310116" }, { "label": "松江区", "value": "310117" }, { "label": "青浦区", "value": "310118" }, { "label": "奉贤区", "value": "310120" }, { "label": "崇明区", "value": "310151" }]], [[{ "label": "玄武区", "value": "320102" }, { "label": "秦淮区", "value": "320104" }, { "label": "建邺区", "value": "320105" }, { "label": "鼓楼区", "value": "320106" }, { "label": "浦口区", "value": "320111" }, { "label": "栖霞区", "value": "320113" }, { "label": "雨花台区", "value": "320114" }, { "label": "江宁区", "value": "320115" }, { "label": "六合区", "value": "320116" }, { "label": "溧水区", "value": "320117" }, { "label": "高淳区", "value": "320118" }], [{ "label": "锡山区", "value": "320205" }, { "label": "惠山区", "value": "320206" }, { "label": "滨湖区", "value": "320211" }, { "label": "梁溪区", "value": "320213" }, { "label": "新吴区", "value": "320214" }, { "label": "江阴市", "value": "320281" }, { "label": "宜兴市", "value": "320282" }], [{ "label": "鼓楼区", "value": "320302" }, { "label": "云龙区", "value": "320303" }, { "label": "贾汪区", "value": "320305" }, { "label": "泉山区", "value": "320311" }, { "label": "铜山区", "value": "320312" }, { "label": "丰县", "value": "320321" }, { "label": "沛县", "value": "320322" }, { "label": "睢宁县", "value": "320324" }, { "label": "徐州经济技术开发区", "value": "320371" }, { "label": "新沂市", "value": "320381" }, { "label": "邳州市", "value": "320382" }], [{ "label": "天宁区", "value": "320402" }, { "label": "钟楼区", "value": "320404" }, { "label": "新北区", "value": "320411" }, { "label": "武进区", "value": "320412" }, { "label": "金坛区", "value": "320413" }, { "label": "溧阳市", "value": "320481" }], [{ "label": "虎丘区", "value": "320505" }, { "label": "吴中区", "value": "320506" }, { "label": "相城区", "value": "320507" }, { "label": "姑苏区", "value": "320508" }, { "label": "吴江区", "value": "320509" }, { "label": "苏州工业园区", "value": "320571" }, { "label": "常熟市", "value": "320581" }, { "label": "张家港市", "value": "320582" }, { "label": "昆山市", "value": "320583" }, { "label": "太仓市", "value": "320585" }], [{ "label": "崇川区", "value": "320602" }, { "label": "港闸区", "value": "320611" }, { "label": "通州区", "value": "320612" }, { "label": "海安县", "value": "320621" }, { "label": "如东县", "value": "320623" }, { "label": "南通经济技术开发区", "value": "320671" }, { "label": "启东市", "value": "320681" }, { "label": "如皋市", "value": "320682" }, { "label": "海门市", "value": "320684" }], [{ "label": "连云区", "value": "320703" }, { "label": "海州区", "value": "320706" }, { "label": "赣榆区", "value": "320707" }, { "label": "东海县", "value": "320722" }, { "label": "灌云县", "value": "320723" }, { "label": "灌南县", "value": "320724" }, { "label": "连云港经济技术开发区", "value": "320771" }, { "label": "连云港高新技术产业开发区", "value": "320772" }], [{ "label": "淮安区", "value": "320803" }, { "label": "淮阴区", "value": "320804" }, { "label": "清江浦区", "value": "320812" }, { "label": "洪泽区", "value": "320813" }, { "label": "涟水县", "value": "320826" }, { "label": "盱眙县", "value": "320830" }, { "label": "金湖县", "value": "320831" }, { "label": "淮安经济技术开发区", "value": "320871" }], [{ "label": "亭湖区", "value": "320902" }, { "label": "盐都区", "value": "320903" }, { "label": "大丰区", "value": "320904" }, { "label": "响水县", "value": "320921" }, { "label": "滨海县", "value": "320922" }, { "label": "阜宁县", "value": "320923" }, { "label": "射阳县", "value": "320924" }, { "label": "建湖县", "value": "320925" }, { "label": "盐城经济技术开发区", "value": "320971" }, { "label": "东台市", "value": "320981" }], [{ "label": "广陵区", "value": "321002" }, { "label": "邗江区", "value": "321003" }, { "label": "江都区", "value": "321012" }, { "label": "宝应县", "value": "321023" }, { "label": "扬州经济技术开发区", "value": "321071" }, { "label": "仪征市", "value": "321081" }, { "label": "高邮市", "value": "321084" }], [{ "label": "京口区", "value": "321102" }, { "label": "润州区", "value": "321111" }, { "label": "丹徒区", "value": "321112" }, { "label": "镇江新区", "value": "321171" }, { "label": "丹阳市", "value": "321181" }, { "label": "扬中市", "value": "321182" }, { "label": "句容市", "value": "321183" }], [{ "label": "海陵区", "value": "321202" }, { "label": "高港区", "value": "321203" }, { "label": "姜堰区", "value": "321204" }, { "label": "泰州医药高新技术产业开发区", "value": "321271" }, { "label": "兴化市", "value": "321281" }, { "label": "靖江市", "value": "321282" }, { "label": "泰兴市", "value": "321283" }], [{ "label": "宿城区", "value": "321302" }, { "label": "宿豫区", "value": "321311" }, { "label": "沭阳县", "value": "321322" }, { "label": "泗阳县", "value": "321323" }, { "label": "泗洪县", "value": "321324" }, { "label": "宿迁经济技术开发区", "value": "321371" }]], [[{ "label": "上城区", "value": "330102" }, { "label": "下城区", "value": "330103" }, { "label": "江干区", "value": "330104" }, { "label": "拱墅区", "value": "330105" }, { "label": "西湖区", "value": "330106" }, { "label": "滨江区", "value": "330108" }, { "label": "萧山区", "value": "330109" }, { "label": "余杭区", "value": "330110" }, { "label": "富阳区", "value": "330111" }, { "label": "临安区", "value": "330112" }, { "label": "桐庐县", "value": "330122" }, { "label": "淳安县", "value": "330127" }, { "label": "建德市", "value": "330182" }], [{ "label": "海曙区", "value": "330203" }, { "label": "江北区", "value": "330205" }, { "label": "北仑区", "value": "330206" }, { "label": "镇海区", "value": "330211" }, { "label": "鄞州区", "value": "330212" }, { "label": "奉化区", "value": "330213" }, { "label": "象山县", "value": "330225" }, { "label": "宁海县", "value": "330226" }, { "label": "余姚市", "value": "330281" }, { "label": "慈溪市", "value": "330282" }], [{ "label": "鹿城区", "value": "330302" }, { "label": "龙湾区", "value": "330303" }, { "label": "瓯海区", "value": "330304" }, { "label": "洞头区", "value": "330305" }, { "label": "永嘉县", "value": "330324" }, { "label": "平阳县", "value": "330326" }, { "label": "苍南县", "value": "330327" }, { "label": "文成县", "value": "330328" }, { "label": "泰顺县", "value": "330329" }, { "label": "温州经济技术开发区", "value": "330371" }, { "label": "瑞安市", "value": "330381" }, { "label": "乐清市", "value": "330382" }], [{ "label": "南湖区", "value": "330402" }, { "label": "秀洲区", "value": "330411" }, { "label": "嘉善县", "value": "330421" }, { "label": "海盐县", "value": "330424" }, { "label": "海宁市", "value": "330481" }, { "label": "平湖市", "value": "330482" }, { "label": "桐乡市", "value": "330483" }], [{ "label": "吴兴区", "value": "330502" }, { "label": "南浔区", "value": "330503" }, { "label": "德清县", "value": "330521" }, { "label": "长兴县", "value": "330522" }, { "label": "安吉县", "value": "330523" }], [{ "label": "越城区", "value": "330602" }, { "label": "柯桥区", "value": "330603" }, { "label": "上虞区", "value": "330604" }, { "label": "新昌县", "value": "330624" }, { "label": "诸暨市", "value": "330681" }, { "label": "嵊州市", "value": "330683" }], [{ "label": "婺城区", "value": "330702" }, { "label": "金东区", "value": "330703" }, { "label": "武义县", "value": "330723" }, { "label": "浦江县", "value": "330726" }, { "label": "磐安县", "value": "330727" }, { "label": "兰溪市", "value": "330781" }, { "label": "义乌市", "value": "330782" }, { "label": "东阳市", "value": "330783" }, { "label": "永康市", "value": "330784" }], [{ "label": "柯城区", "value": "330802" }, { "label": "衢江区", "value": "330803" }, { "label": "常山县", "value": "330822" }, { "label": "开化县", "value": "330824" }, { "label": "龙游县", "value": "330825" }, { "label": "江山市", "value": "330881" }], [{ "label": "定海区", "value": "330902" }, { "label": "普陀区", "value": "330903" }, { "label": "岱山县", "value": "330921" }, { "label": "嵊泗县", "value": "330922" }], [{ "label": "椒江区", "value": "331002" }, { "label": "黄岩区", "value": "331003" }, { "label": "路桥区", "value": "331004" }, { "label": "三门县", "value": "331022" }, { "label": "天台县", "value": "331023" }, { "label": "仙居县", "value": "331024" }, { "label": "温岭市", "value": "331081" }, { "label": "临海市", "value": "331082" }, { "label": "玉环市", "value": "331083" }], [{ "label": "莲都区", "value": "331102" }, { "label": "青田县", "value": "331121" }, { "label": "缙云县", "value": "331122" }, { "label": "遂昌县", "value": "331123" }, { "label": "松阳县", "value": "331124" }, { "label": "云和县", "value": "331125" }, { "label": "庆元县", "value": "331126" }, { "label": "景宁畲族自治县", "value": "331127" }, { "label": "龙泉市", "value": "331181" }]], [[{ "label": "瑶海区", "value": "340102" }, { "label": "庐阳区", "value": "340103" }, { "label": "蜀山区", "value": "340104" }, { "label": "包河区", "value": "340111" }, { "label": "长丰县", "value": "340121" }, { "label": "肥东县", "value": "340122" }, { "label": "肥西县", "value": "340123" }, { "label": "庐江县", "value": "340124" }, { "label": "合肥高新技术产业开发区", "value": "340171" }, { "label": "合肥经济技术开发区", "value": "340172" }, { "label": "合肥新站高新技术产业开发区", "value": "340173" }, { "label": "巢湖市", "value": "340181" }], [{ "label": "镜湖区", "value": "340202" }, { "label": "弋江区", "value": "340203" }, { "label": "鸠江区", "value": "340207" }, { "label": "三山区", "value": "340208" }, { "label": "芜湖县", "value": "340221" }, { "label": "繁昌县", "value": "340222" }, { "label": "南陵县", "value": "340223" }, { "label": "无为县", "value": "340225" }, { "label": "芜湖经济技术开发区", "value": "340271" }, { "label": "安徽芜湖长江大桥经济开发区", "value": "340272" }], [{ "label": "龙子湖区", "value": "340302" }, { "label": "蚌山区", "value": "340303" }, { "label": "禹会区", "value": "340304" }, { "label": "淮上区", "value": "340311" }, { "label": "怀远县", "value": "340321" }, { "label": "五河县", "value": "340322" }, { "label": "固镇县", "value": "340323" }, { "label": "蚌埠市高新技术开发区", "value": "340371" }, { "label": "蚌埠市经济开发区", "value": "340372" }], [{ "label": "大通区", "value": "340402" }, { "label": "田家庵区", "value": "340403" }, { "label": "谢家集区", "value": "340404" }, { "label": "八公山区", "value": "340405" }, { "label": "潘集区", "value": "340406" }, { "label": "凤台县", "value": "340421" }, { "label": "寿县", "value": "340422" }], [{ "label": "花山区", "value": "340503" }, { "label": "雨山区", "value": "340504" }, { "label": "博望区", "value": "340506" }, { "label": "当涂县", "value": "340521" }, { "label": "含山县", "value": "340522" }, { "label": "和县", "value": "340523" }], [{ "label": "杜集区", "value": "340602" }, { "label": "相山区", "value": "340603" }, { "label": "烈山区", "value": "340604" }, { "label": "濉溪县", "value": "340621" }], [{ "label": "铜官区", "value": "340705" }, { "label": "义安区", "value": "340706" }, { "label": "郊区", "value": "340711" }, { "label": "枞阳县", "value": "340722" }], [{ "label": "迎江区", "value": "340802" }, { "label": "大观区", "value": "340803" }, { "label": "宜秀区", "value": "340811" }, { "label": "怀宁县", "value": "340822" }, { "label": "潜山县", "value": "340824" }, { "label": "太湖县", "value": "340825" }, { "label": "宿松县", "value": "340826" }, { "label": "望江县", "value": "340827" }, { "label": "岳西县", "value": "340828" }, { "label": "安徽安庆经济开发区", "value": "340871" }, { "label": "桐城市", "value": "340881" }], [{ "label": "屯溪区", "value": "341002" }, { "label": "黄山区", "value": "341003" }, { "label": "徽州区", "value": "341004" }, { "label": "歙县", "value": "341021" }, { "label": "休宁县", "value": "341022" }, { "label": "黟县", "value": "341023" }, { "label": "祁门县", "value": "341024" }], [{ "label": "琅琊区", "value": "341102" }, { "label": "南谯区", "value": "341103" }, { "label": "来安县", "value": "341122" }, { "label": "全椒县", "value": "341124" }, { "label": "定远县", "value": "341125" }, { "label": "凤阳县", "value": "341126" }, { "label": "苏滁现代产业园", "value": "341171" }, { "label": "滁州经济技术开发区", "value": "341172" }, { "label": "天长市", "value": "341181" }, { "label": "明光市", "value": "341182" }], [{ "label": "颍州区", "value": "341202" }, { "label": "颍东区", "value": "341203" }, { "label": "颍泉区", "value": "341204" }, { "label": "临泉县", "value": "341221" }, { "label": "太和县", "value": "341222" }, { "label": "阜南县", "value": "341225" }, { "label": "颍上县", "value": "341226" }, { "label": "阜阳合肥现代产业园区", "value": "341271" }, { "label": "阜阳经济技术开发区", "value": "341272" }, { "label": "界首市", "value": "341282" }], [{ "label": "埇桥区", "value": "341302" }, { "label": "砀山县", "value": "341321" }, { "label": "萧县", "value": "341322" }, { "label": "灵璧县", "value": "341323" }, { "label": "泗县", "value": "341324" }, { "label": "宿州马鞍山现代产业园区", "value": "341371" }, { "label": "宿州经济技术开发区", "value": "341372" }], [{ "label": "金安区", "value": "341502" }, { "label": "裕安区", "value": "341503" }, { "label": "叶集区", "value": "341504" }, { "label": "霍邱县", "value": "341522" }, { "label": "舒城县", "value": "341523" }, { "label": "金寨县", "value": "341524" }, { "label": "霍山县", "value": "341525" }], [{ "label": "谯城区", "value": "341602" }, { "label": "涡阳县", "value": "341621" }, { "label": "蒙城县", "value": "341622" }, { "label": "利辛县", "value": "341623" }], [{ "label": "贵池区", "value": "341702" }, { "label": "东至县", "value": "341721" }, { "label": "石台县", "value": "341722" }, { "label": "青阳县", "value": "341723" }], [{ "label": "宣州区", "value": "341802" }, { "label": "郎溪县", "value": "341821" }, { "label": "广德县", "value": "341822" }, { "label": "泾县", "value": "341823" }, { "label": "绩溪县", "value": "341824" }, { "label": "旌德县", "value": "341825" }, { "label": "宣城市经济开发区", "value": "341871" }, { "label": "宁国市", "value": "341881" }]], [[{ "label": "鼓楼区", "value": "350102" }, { "label": "台江区", "value": "350103" }, { "label": "仓山区", "value": "350104" }, { "label": "马尾区", "value": "350105" }, { "label": "晋安区", "value": "350111" }, { "label": "闽侯县", "value": "350121" }, { "label": "连江县", "value": "350122" }, { "label": "罗源县", "value": "350123" }, { "label": "闽清县", "value": "350124" }, { "label": "永泰县", "value": "350125" }, { "label": "平潭县", "value": "350128" }, { "label": "福清市", "value": "350181" }, { "label": "长乐市", "value": "350182" }], [{ "label": "思明区", "value": "350203" }, { "label": "海沧区", "value": "350205" }, { "label": "湖里区", "value": "350206" }, { "label": "集美区", "value": "350211" }, { "label": "同安区", "value": "350212" }, { "label": "翔安区", "value": "350213" }], [{ "label": "城厢区", "value": "350302" }, { "label": "涵江区", "value": "350303" }, { "label": "荔城区", "value": "350304" }, { "label": "秀屿区", "value": "350305" }, { "label": "仙游县", "value": "350322" }], [{ "label": "梅列区", "value": "350402" }, { "label": "三元区", "value": "350403" }, { "label": "明溪县", "value": "350421" }, { "label": "清流县", "value": "350423" }, { "label": "宁化县", "value": "350424" }, { "label": "大田县", "value": "350425" }, { "label": "尤溪县", "value": "350426" }, { "label": "沙县", "value": "350427" }, { "label": "将乐县", "value": "350428" }, { "label": "泰宁县", "value": "350429" }, { "label": "建宁县", "value": "350430" }, { "label": "永安市", "value": "350481" }], [{ "label": "鲤城区", "value": "350502" }, { "label": "丰泽区", "value": "350503" }, { "label": "洛江区", "value": "350504" }, { "label": "泉港区", "value": "350505" }, { "label": "惠安县", "value": "350521" }, { "label": "安溪县", "value": "350524" }, { "label": "永春县", "value": "350525" }, { "label": "德化县", "value": "350526" }, { "label": "金门县", "value": "350527" }, { "label": "石狮市", "value": "350581" }, { "label": "晋江市", "value": "350582" }, { "label": "南安市", "value": "350583" }], [{ "label": "芗城区", "value": "350602" }, { "label": "龙文区", "value": "350603" }, { "label": "云霄县", "value": "350622" }, { "label": "漳浦县", "value": "350623" }, { "label": "诏安县", "value": "350624" }, { "label": "长泰县", "value": "350625" }, { "label": "东山县", "value": "350626" }, { "label": "南靖县", "value": "350627" }, { "label": "平和县", "value": "350628" }, { "label": "华安县", "value": "350629" }, { "label": "龙海市", "value": "350681" }], [{ "label": "延平区", "value": "350702" }, { "label": "建阳区", "value": "350703" }, { "label": "顺昌县", "value": "350721" }, { "label": "浦城县", "value": "350722" }, { "label": "光泽县", "value": "350723" }, { "label": "松溪县", "value": "350724" }, { "label": "政和县", "value": "350725" }, { "label": "邵武市", "value": "350781" }, { "label": "武夷山市", "value": "350782" }, { "label": "建瓯市", "value": "350783" }], [{ "label": "新罗区", "value": "350802" }, { "label": "永定区", "value": "350803" }, { "label": "长汀县", "value": "350821" }, { "label": "上杭县", "value": "350823" }, { "label": "武平县", "value": "350824" }, { "label": "连城县", "value": "350825" }, { "label": "漳平市", "value": "350881" }], [{ "label": "蕉城区", "value": "350902" }, { "label": "霞浦县", "value": "350921" }, { "label": "古田县", "value": "350922" }, { "label": "屏南县", "value": "350923" }, { "label": "寿宁县", "value": "350924" }, { "label": "周宁县", "value": "350925" }, { "label": "柘荣县", "value": "350926" }, { "label": "福安市", "value": "350981" }, { "label": "福鼎市", "value": "350982" }]], [[{ "label": "东湖区", "value": "360102" }, { "label": "西湖区", "value": "360103" }, { "label": "青云谱区", "value": "360104" }, { "label": "湾里区", "value": "360105" }, { "label": "青山湖区", "value": "360111" }, { "label": "新建区", "value": "360112" }, { "label": "南昌县", "value": "360121" }, { "label": "安义县", "value": "360123" }, { "label": "进贤县", "value": "360124" }], [{ "label": "昌江区", "value": "360202" }, { "label": "珠山区", "value": "360203" }, { "label": "浮梁县", "value": "360222" }, { "label": "乐平市", "value": "360281" }], [{ "label": "安源区", "value": "360302" }, { "label": "湘东区", "value": "360313" }, { "label": "莲花县", "value": "360321" }, { "label": "上栗县", "value": "360322" }, { "label": "芦溪县", "value": "360323" }], [{ "label": "濂溪区", "value": "360402" }, { "label": "浔阳区", "value": "360403" }, { "label": "柴桑区", "value": "360404" }, { "label": "武宁县", "value": "360423" }, { "label": "修水县", "value": "360424" }, { "label": "永修县", "value": "360425" }, { "label": "德安县", "value": "360426" }, { "label": "都昌县", "value": "360428" }, { "label": "湖口县", "value": "360429" }, { "label": "彭泽县", "value": "360430" }, { "label": "瑞昌市", "value": "360481" }, { "label": "共青城市", "value": "360482" }, { "label": "庐山市", "value": "360483" }], [{ "label": "渝水区", "value": "360502" }, { "label": "分宜县", "value": "360521" }], [{ "label": "月湖区", "value": "360602" }, { "label": "余江县", "value": "360622" }, { "label": "贵溪市", "value": "360681" }], [{ "label": "章贡区", "value": "360702" }, { "label": "南康区", "value": "360703" }, { "label": "赣县区", "value": "360704" }, { "label": "信丰县", "value": "360722" }, { "label": "大余县", "value": "360723" }, { "label": "上犹县", "value": "360724" }, { "label": "崇义县", "value": "360725" }, { "label": "安远县", "value": "360726" }, { "label": "龙南县", "value": "360727" }, { "label": "定南县", "value": "360728" }, { "label": "全南县", "value": "360729" }, { "label": "宁都县", "value": "360730" }, { "label": "于都县", "value": "360731" }, { "label": "兴国县", "value": "360732" }, { "label": "会昌县", "value": "360733" }, { "label": "寻乌县", "value": "360734" }, { "label": "石城县", "value": "360735" }, { "label": "瑞金市", "value": "360781" }], [{ "label": "吉州区", "value": "360802" }, { "label": "青原区", "value": "360803" }, { "label": "吉安县", "value": "360821" }, { "label": "吉水县", "value": "360822" }, { "label": "峡江县", "value": "360823" }, { "label": "新干县", "value": "360824" }, { "label": "永丰县", "value": "360825" }, { "label": "泰和县", "value": "360826" }, { "label": "遂川县", "value": "360827" }, { "label": "万安县", "value": "360828" }, { "label": "安福县", "value": "360829" }, { "label": "永新县", "value": "360830" }, { "label": "井冈山市", "value": "360881" }], [{ "label": "袁州区", "value": "360902" }, { "label": "奉新县", "value": "360921" }, { "label": "万载县", "value": "360922" }, { "label": "上高县", "value": "360923" }, { "label": "宜丰县", "value": "360924" }, { "label": "靖安县", "value": "360925" }, { "label": "铜鼓县", "value": "360926" }, { "label": "丰城市", "value": "360981" }, { "label": "樟树市", "value": "360982" }, { "label": "高安市", "value": "360983" }], [{ "label": "临川区", "value": "361002" }, { "label": "东乡区", "value": "361003" }, { "label": "南城县", "value": "361021" }, { "label": "黎川县", "value": "361022" }, { "label": "南丰县", "value": "361023" }, { "label": "崇仁县", "value": "361024" }, { "label": "乐安县", "value": "361025" }, { "label": "宜黄县", "value": "361026" }, { "label": "金溪县", "value": "361027" }, { "label": "资溪县", "value": "361028" }, { "label": "广昌县", "value": "361030" }], [{ "label": "信州区", "value": "361102" }, { "label": "广丰区", "value": "361103" }, { "label": "上饶县", "value": "361121" }, { "label": "玉山县", "value": "361123" }, { "label": "铅山县", "value": "361124" }, { "label": "横峰县", "value": "361125" }, { "label": "弋阳县", "value": "361126" }, { "label": "余干县", "value": "361127" }, { "label": "鄱阳县", "value": "361128" }, { "label": "万年县", "value": "361129" }, { "label": "婺源县", "value": "361130" }, { "label": "德兴市", "value": "361181" }]], [[{ "label": "历下区", "value": "370102" }, { "label": "市中区", "value": "370103" }, { "label": "槐荫区", "value": "370104" }, { "label": "天桥区", "value": "370105" }, { "label": "历城区", "value": "370112" }, { "label": "长清区", "value": "370113" }, { "label": "章丘区", "value": "370114" }, { "label": "平阴县", "value": "370124" }, { "label": "济阳县", "value": "370125" }, { "label": "商河县", "value": "370126" }, { "label": "济南高新技术产业开发区", "value": "370171" }], [{ "label": "市南区", "value": "370202" }, { "label": "市北区", "value": "370203" }, { "label": "黄岛区", "value": "370211" }, { "label": "崂山区", "value": "370212" }, { "label": "李沧区", "value": "370213" }, { "label": "城阳区", "value": "370214" }, { "label": "即墨区", "value": "370215" }, { "label": "青岛高新技术产业开发区", "value": "370271" }, { "label": "胶州市", "value": "370281" }, { "label": "平度市", "value": "370283" }, { "label": "莱西市", "value": "370285" }], [{ "label": "淄川区", "value": "370302" }, { "label": "张店区", "value": "370303" }, { "label": "博山区", "value": "370304" }, { "label": "临淄区", "value": "370305" }, { "label": "周村区", "value": "370306" }, { "label": "桓台县", "value": "370321" }, { "label": "高青县", "value": "370322" }, { "label": "沂源县", "value": "370323" }], [{ "label": "市中区", "value": "370402" }, { "label": "薛城区", "value": "370403" }, { "label": "峄城区", "value": "370404" }, { "label": "台儿庄区", "value": "370405" }, { "label": "山亭区", "value": "370406" }, { "label": "滕州市", "value": "370481" }], [{ "label": "东营区", "value": "370502" }, { "label": "河口区", "value": "370503" }, { "label": "垦利区", "value": "370505" }, { "label": "利津县", "value": "370522" }, { "label": "广饶县", "value": "370523" }, { "label": "东营经济技术开发区", "value": "370571" }, { "label": "东营港经济开发区", "value": "370572" }], [{ "label": "芝罘区", "value": "370602" }, { "label": "福山区", "value": "370611" }, { "label": "牟平区", "value": "370612" }, { "label": "莱山区", "value": "370613" }, { "label": "长岛县", "value": "370634" }, { "label": "烟台高新技术产业开发区", "value": "370671" }, { "label": "烟台经济技术开发区", "value": "370672" }, { "label": "龙口市", "value": "370681" }, { "label": "莱阳市", "value": "370682" }, { "label": "莱州市", "value": "370683" }, { "label": "蓬莱市", "value": "370684" }, { "label": "招远市", "value": "370685" }, { "label": "栖霞市", "value": "370686" }, { "label": "海阳市", "value": "370687" }], [{ "label": "潍城区", "value": "370702" }, { "label": "寒亭区", "value": "370703" }, { "label": "坊子区", "value": "370704" }, { "label": "奎文区", "value": "370705" }, { "label": "临朐县", "value": "370724" }, { "label": "昌乐县", "value": "370725" }, { "label": "潍坊滨海经济技术开发区", "value": "370772" }, { "label": "青州市", "value": "370781" }, { "label": "诸城市", "value": "370782" }, { "label": "寿光市", "value": "370783" }, { "label": "安丘市", "value": "370784" }, { "label": "高密市", "value": "370785" }, { "label": "昌邑市", "value": "370786" }], [{ "label": "任城区", "value": "370811" }, { "label": "兖州区", "value": "370812" }, { "label": "微山县", "value": "370826" }, { "label": "鱼台县", "value": "370827" }, { "label": "金乡县", "value": "370828" }, { "label": "嘉祥县", "value": "370829" }, { "label": "汶上县", "value": "370830" }, { "label": "泗水县", "value": "370831" }, { "label": "梁山县", "value": "370832" }, { "label": "济宁高新技术产业开发区", "value": "370871" }, { "label": "曲阜市", "value": "370881" }, { "label": "邹城市", "value": "370883" }], [{ "label": "泰山区", "value": "370902" }, { "label": "岱岳区", "value": "370911" }, { "label": "宁阳县", "value": "370921" }, { "label": "东平县", "value": "370923" }, { "label": "新泰市", "value": "370982" }, { "label": "肥城市", "value": "370983" }], [{ "label": "环翠区", "value": "371002" }, { "label": "文登区", "value": "371003" }, { "label": "威海火炬高技术产业开发区", "value": "371071" }, { "label": "威海经济技术开发区", "value": "371072" }, { "label": "威海临港经济技术开发区", "value": "371073" }, { "label": "荣成市", "value": "371082" }, { "label": "乳山市", "value": "371083" }], [{ "label": "东港区", "value": "371102" }, { "label": "岚山区", "value": "371103" }, { "label": "五莲县", "value": "371121" }, { "label": "莒县", "value": "371122" }, { "label": "日照经济技术开发区", "value": "371171" }, { "label": "日照国际海洋城", "value": "371172" }], [{ "label": "莱城区", "value": "371202" }, { "label": "钢城区", "value": "371203" }], [{ "label": "兰山区", "value": "371302" }, { "label": "罗庄区", "value": "371311" }, { "label": "河东区", "value": "371312" }, { "label": "沂南县", "value": "371321" }, { "label": "郯城县", "value": "371322" }, { "label": "沂水县", "value": "371323" }, { "label": "兰陵县", "value": "371324" }, { "label": "费县", "value": "371325" }, { "label": "平邑县", "value": "371326" }, { "label": "莒南县", "value": "371327" }, { "label": "蒙阴县", "value": "371328" }, { "label": "临沭县", "value": "371329" }, { "label": "临沂高新技术产业开发区", "value": "371371" }, { "label": "临沂经济技术开发区", "value": "371372" }, { "label": "临沂临港经济开发区", "value": "371373" }], [{ "label": "德城区", "value": "371402" }, { "label": "陵城区", "value": "371403" }, { "label": "宁津县", "value": "371422" }, { "label": "庆云县", "value": "371423" }, { "label": "临邑县", "value": "371424" }, { "label": "齐河县", "value": "371425" }, { "label": "平原县", "value": "371426" }, { "label": "夏津县", "value": "371427" }, { "label": "武城县", "value": "371428" }, { "label": "德州经济技术开发区", "value": "371471" }, { "label": "德州运河经济开发区", "value": "371472" }, { "label": "乐陵市", "value": "371481" }, { "label": "禹城市", "value": "371482" }], [{ "label": "东昌府区", "value": "371502" }, { "label": "阳谷县", "value": "371521" }, { "label": "莘县", "value": "371522" }, { "label": "茌平县", "value": "371523" }, { "label": "东阿县", "value": "371524" }, { "label": "冠县", "value": "371525" }, { "label": "高唐县", "value": "371526" }, { "label": "临清市", "value": "371581" }], [{ "label": "滨城区", "value": "371602" }, { "label": "沾化区", "value": "371603" }, { "label": "惠民县", "value": "371621" }, { "label": "阳信县", "value": "371622" }, { "label": "无棣县", "value": "371623" }, { "label": "博兴县", "value": "371625" }, { "label": "邹平县", "value": "371626" }], [{ "label": "牡丹区", "value": "371702" }, { "label": "定陶区", "value": "371703" }, { "label": "曹县", "value": "371721" }, { "label": "单县", "value": "371722" }, { "label": "成武县", "value": "371723" }, { "label": "巨野县", "value": "371724" }, { "label": "郓城县", "value": "371725" }, { "label": "鄄城县", "value": "371726" }, { "label": "东明县", "value": "371728" }, { "label": "菏泽经济技术开发区", "value": "371771" }, { "label": "菏泽高新技术开发区", "value": "371772" }]], [[{ "label": "中原区", "value": "410102" }, { "label": "二七区", "value": "410103" }, { "label": "管城回族区", "value": "410104" }, { "label": "金水区", "value": "410105" }, { "label": "上街区", "value": "410106" }, { "label": "惠济区", "value": "410108" }, { "label": "中牟县", "value": "410122" }, { "label": "郑州经济技术开发区", "value": "410171" }, { "label": "郑州高新技术产业开发区", "value": "410172" }, { "label": "郑州航空港经济综合实验区", "value": "410173" }, { "label": "巩义市", "value": "410181" }, { "label": "荥阳市", "value": "410182" }, { "label": "新密市", "value": "410183" }, { "label": "新郑市", "value": "410184" }, { "label": "登封市", "value": "410185" }], [{ "label": "龙亭区", "value": "410202" }, { "label": "顺河回族区", "value": "410203" }, { "label": "鼓楼区", "value": "410204" }, { "label": "禹王台区", "value": "410205" }, { "label": "祥符区", "value": "410212" }, { "label": "杞县", "value": "410221" }, { "label": "通许县", "value": "410222" }, { "label": "尉氏县", "value": "410223" }, { "label": "兰考县", "value": "410225" }], [{ "label": "老城区", "value": "410302" }, { "label": "西工区", "value": "410303" }, { "label": "瀍河回族区", "value": "410304" }, { "label": "涧西区", "value": "410305" }, { "label": "吉利区", "value": "410306" }, { "label": "洛龙区", "value": "410311" }, { "label": "孟津县", "value": "410322" }, { "label": "新安县", "value": "410323" }, { "label": "栾川县", "value": "410324" }, { "label": "嵩县", "value": "410325" }, { "label": "汝阳县", "value": "410326" }, { "label": "宜阳县", "value": "410327" }, { "label": "洛宁县", "value": "410328" }, { "label": "伊川县", "value": "410329" }, { "label": "洛阳高新技术产业开发区", "value": "410371" }, { "label": "偃师市", "value": "410381" }], [{ "label": "新华区", "value": "410402" }, { "label": "卫东区", "value": "410403" }, { "label": "石龙区", "value": "410404" }, { "label": "湛河区", "value": "410411" }, { "label": "宝丰县", "value": "410421" }, { "label": "叶县", "value": "410422" }, { "label": "鲁山县", "value": "410423" }, { "label": "郏县", "value": "410425" }, { "label": "平顶山高新技术产业开发区", "value": "410471" }, { "label": "平顶山市新城区", "value": "410472" }, { "label": "舞钢市", "value": "410481" }, { "label": "汝州市", "value": "410482" }], [{ "label": "文峰区", "value": "410502" }, { "label": "北关区", "value": "410503" }, { "label": "殷都区", "value": "410505" }, { "label": "龙安区", "value": "410506" }, { "label": "安阳县", "value": "410522" }, { "label": "汤阴县", "value": "410523" }, { "label": "滑县", "value": "410526" }, { "label": "内黄县", "value": "410527" }, { "label": "安阳高新技术产业开发区", "value": "410571" }, { "label": "林州市", "value": "410581" }], [{ "label": "鹤山区", "value": "410602" }, { "label": "山城区", "value": "410603" }, { "label": "淇滨区", "value": "410611" }, { "label": "浚县", "value": "410621" }, { "label": "淇县", "value": "410622" }, { "label": "鹤壁经济技术开发区", "value": "410671" }], [{ "label": "红旗区", "value": "410702" }, { "label": "卫滨区", "value": "410703" }, { "label": "凤泉区", "value": "410704" }, { "label": "牧野区", "value": "410711" }, { "label": "新乡县", "value": "410721" }, { "label": "获嘉县", "value": "410724" }, { "label": "原阳县", "value": "410725" }, { "label": "延津县", "value": "410726" }, { "label": "封丘县", "value": "410727" }, { "label": "长垣县", "value": "410728" }, { "label": "新乡高新技术产业开发区", "value": "410771" }, { "label": "新乡经济技术开发区", "value": "410772" }, { "label": "新乡市平原城乡一体化示范区", "value": "410773" }, { "label": "卫辉市", "value": "410781" }, { "label": "辉县市", "value": "410782" }], [{ "label": "解放区", "value": "410802" }, { "label": "中站区", "value": "410803" }, { "label": "马村区", "value": "410804" }, { "label": "山阳区", "value": "410811" }, { "label": "修武县", "value": "410821" }, { "label": "博爱县", "value": "410822" }, { "label": "武陟县", "value": "410823" }, { "label": "温县", "value": "410825" }, { "label": "焦作城乡一体化示范区", "value": "410871" }, { "label": "沁阳市", "value": "410882" }, { "label": "孟州市", "value": "410883" }], [{ "label": "华龙区", "value": "410902" }, { "label": "清丰县", "value": "410922" }, { "label": "南乐县", "value": "410923" }, { "label": "范县", "value": "410926" }, { "label": "台前县", "value": "410927" }, { "label": "濮阳县", "value": "410928" }, { "label": "河南濮阳工业园区", "value": "410971" }, { "label": "濮阳经济技术开发区", "value": "410972" }], [{ "label": "魏都区", "value": "411002" }, { "label": "建安区", "value": "411003" }, { "label": "鄢陵县", "value": "411024" }, { "label": "襄城县", "value": "411025" }, { "label": "许昌经济技术开发区", "value": "411071" }, { "label": "禹州市", "value": "411081" }, { "label": "长葛市", "value": "411082" }], [{ "label": "源汇区", "value": "411102" }, { "label": "郾城区", "value": "411103" }, { "label": "召陵区", "value": "411104" }, { "label": "舞阳县", "value": "411121" }, { "label": "临颍县", "value": "411122" }, { "label": "漯河经济技术开发区", "value": "411171" }], [{ "label": "湖滨区", "value": "411202" }, { "label": "陕州区", "value": "411203" }, { "label": "渑池县", "value": "411221" }, { "label": "卢氏县", "value": "411224" }, { "label": "河南三门峡经济开发区", "value": "411271" }, { "label": "义马市", "value": "411281" }, { "label": "灵宝市", "value": "411282" }], [{ "label": "宛城区", "value": "411302" }, { "label": "卧龙区", "value": "411303" }, { "label": "南召县", "value": "411321" }, { "label": "方城县", "value": "411322" }, { "label": "西峡县", "value": "411323" }, { "label": "镇平县", "value": "411324" }, { "label": "内乡县", "value": "411325" }, { "label": "淅川县", "value": "411326" }, { "label": "社旗县", "value": "411327" }, { "label": "唐河县", "value": "411328" }, { "label": "新野县", "value": "411329" }, { "label": "桐柏县", "value": "411330" }, { "label": "南阳高新技术产业开发区", "value": "411371" }, { "label": "南阳市城乡一体化示范区", "value": "411372" }, { "label": "邓州市", "value": "411381" }], [{ "label": "梁园区", "value": "411402" }, { "label": "睢阳区", "value": "411403" }, { "label": "民权县", "value": "411421" }, { "label": "睢县", "value": "411422" }, { "label": "宁陵县", "value": "411423" }, { "label": "柘城县", "value": "411424" }, { "label": "虞城县", "value": "411425" }, { "label": "夏邑县", "value": "411426" }, { "label": "豫东综合物流产业聚集区", "value": "411471" }, { "label": "河南商丘经济开发区", "value": "411472" }, { "label": "永城市", "value": "411481" }], [{ "label": "浉河区", "value": "411502" }, { "label": "平桥区", "value": "411503" }, { "label": "罗山县", "value": "411521" }, { "label": "光山县", "value": "411522" }, { "label": "新县", "value": "411523" }, { "label": "商城县", "value": "411524" }, { "label": "固始县", "value": "411525" }, { "label": "潢川县", "value": "411526" }, { "label": "淮滨县", "value": "411527" }, { "label": "息县", "value": "411528" }, { "label": "信阳高新技术产业开发区", "value": "411571" }], [{ "label": "川汇区", "value": "411602" }, { "label": "扶沟县", "value": "411621" }, { "label": "西华县", "value": "411622" }, { "label": "商水县", "value": "411623" }, { "label": "沈丘县", "value": "411624" }, { "label": "郸城县", "value": "411625" }, { "label": "淮阳县", "value": "411626" }, { "label": "太康县", "value": "411627" }, { "label": "鹿邑县", "value": "411628" }, { "label": "河南周口经济开发区", "value": "411671" }, { "label": "项城市", "value": "411681" }], [{ "label": "驿城区", "value": "411702" }, { "label": "西平县", "value": "411721" }, { "label": "上蔡县", "value": "411722" }, { "label": "平舆县", "value": "411723" }, { "label": "正阳县", "value": "411724" }, { "label": "确山县", "value": "411725" }, { "label": "泌阳县", "value": "411726" }, { "label": "汝南县", "value": "411727" }, { "label": "遂平县", "value": "411728" }, { "label": "新蔡县", "value": "411729" }, { "label": "河南驻马店经济开发区", "value": "411771" }], [{ "label": "济源市", "value": "419001" }]], [[{ "label": "江岸区", "value": "420102" }, { "label": "江汉区", "value": "420103" }, { "label": "硚口区", "value": "420104" }, { "label": "汉阳区", "value": "420105" }, { "label": "武昌区", "value": "420106" }, { "label": "青山区", "value": "420107" }, { "label": "洪山区", "value": "420111" }, { "label": "东西湖区", "value": "420112" }, { "label": "汉南区", "value": "420113" }, { "label": "蔡甸区", "value": "420114" }, { "label": "江夏区", "value": "420115" }, { "label": "黄陂区", "value": "420116" }, { "label": "新洲区", "value": "420117" }], [{ "label": "黄石港区", "value": "420202" }, { "label": "西塞山区", "value": "420203" }, { "label": "下陆区", "value": "420204" }, { "label": "铁山区", "value": "420205" }, { "label": "阳新县", "value": "420222" }, { "label": "大冶市", "value": "420281" }], [{ "label": "茅箭区", "value": "420302" }, { "label": "张湾区", "value": "420303" }, { "label": "郧阳区", "value": "420304" }, { "label": "郧西县", "value": "420322" }, { "label": "竹山县", "value": "420323" }, { "label": "竹溪县", "value": "420324" }, { "label": "房县", "value": "420325" }, { "label": "丹江口市", "value": "420381" }], [{ "label": "西陵区", "value": "420502" }, { "label": "伍家岗区", "value": "420503" }, { "label": "点军区", "value": "420504" }, { "label": "猇亭区", "value": "420505" }, { "label": "夷陵区", "value": "420506" }, { "label": "远安县", "value": "420525" }, { "label": "兴山县", "value": "420526" }, { "label": "秭归县", "value": "420527" }, { "label": "长阳土家族自治县", "value": "420528" }, { "label": "五峰土家族自治县", "value": "420529" }, { "label": "宜都市", "value": "420581" }, { "label": "当阳市", "value": "420582" }, { "label": "枝江市", "value": "420583" }], [{ "label": "襄城区", "value": "420602" }, { "label": "樊城区", "value": "420606" }, { "label": "襄州区", "value": "420607" }, { "label": "南漳县", "value": "420624" }, { "label": "谷城县", "value": "420625" }, { "label": "保康县", "value": "420626" }, { "label": "老河口市", "value": "420682" }, { "label": "枣阳市", "value": "420683" }, { "label": "宜城市", "value": "420684" }], [{ "label": "梁子湖区", "value": "420702" }, { "label": "华容区", "value": "420703" }, { "label": "鄂城区", "value": "420704" }], [{ "label": "东宝区", "value": "420802" }, { "label": "掇刀区", "value": "420804" }, { "label": "京山县", "value": "420821" }, { "label": "沙洋县", "value": "420822" }, { "label": "钟祥市", "value": "420881" }], [{ "label": "孝南区", "value": "420902" }, { "label": "孝昌县", "value": "420921" }, { "label": "大悟县", "value": "420922" }, { "label": "云梦县", "value": "420923" }, { "label": "应城市", "value": "420981" }, { "label": "安陆市", "value": "420982" }, { "label": "汉川市", "value": "420984" }], [{ "label": "沙市区", "value": "421002" }, { "label": "荆州区", "value": "421003" }, { "label": "公安县", "value": "421022" }, { "label": "监利县", "value": "421023" }, { "label": "江陵县", "value": "421024" }, { "label": "荆州经济技术开发区", "value": "421071" }, { "label": "石首市", "value": "421081" }, { "label": "洪湖市", "value": "421083" }, { "label": "松滋市", "value": "421087" }], [{ "label": "黄州区", "value": "421102" }, { "label": "团风县", "value": "421121" }, { "label": "红安县", "value": "421122" }, { "label": "罗田县", "value": "421123" }, { "label": "英山县", "value": "421124" }, { "label": "浠水县", "value": "421125" }, { "label": "蕲春县", "value": "421126" }, { "label": "黄梅县", "value": "421127" }, { "label": "龙感湖管理区", "value": "421171" }, { "label": "麻城市", "value": "421181" }, { "label": "武穴市", "value": "421182" }], [{ "label": "咸安区", "value": "421202" }, { "label": "嘉鱼县", "value": "421221" }, { "label": "通城县", "value": "421222" }, { "label": "崇阳县", "value": "421223" }, { "label": "通山县", "value": "421224" }, { "label": "赤壁市", "value": "421281" }], [{ "label": "曾都区", "value": "421303" }, { "label": "随县", "value": "421321" }, { "label": "广水市", "value": "421381" }], [{ "label": "恩施市", "value": "422801" }, { "label": "利川市", "value": "422802" }, { "label": "建始县", "value": "422822" }, { "label": "巴东县", "value": "422823" }, { "label": "宣恩县", "value": "422825" }, { "label": "咸丰县", "value": "422826" }, { "label": "来凤县", "value": "422827" }, { "label": "鹤峰县", "value": "422828" }], [{ "label": "仙桃市", "value": "429004" }, { "label": "潜江市", "value": "429005" }, { "label": "天门市", "value": "429006" }, { "label": "神农架林区", "value": "429021" }]], [[{ "label": "芙蓉区", "value": "430102" }, { "label": "天心区", "value": "430103" }, { "label": "岳麓区", "value": "430104" }, { "label": "开福区", "value": "430105" }, { "label": "雨花区", "value": "430111" }, { "label": "望城区", "value": "430112" }, { "label": "长沙县", "value": "430121" }, { "label": "浏阳市", "value": "430181" }, { "label": "宁乡市", "value": "430182" }], [{ "label": "荷塘区", "value": "430202" }, { "label": "芦淞区", "value": "430203" }, { "label": "石峰区", "value": "430204" }, { "label": "天元区", "value": "430211" }, { "label": "株洲县", "value": "430221" }, { "label": "攸县", "value": "430223" }, { "label": "茶陵县", "value": "430224" }, { "label": "炎陵县", "value": "430225" }, { "label": "云龙示范区", "value": "430271" }, { "label": "醴陵市", "value": "430281" }], [{ "label": "雨湖区", "value": "430302" }, { "label": "岳塘区", "value": "430304" }, { "label": "湘潭县", "value": "430321" }, { "label": "湖南湘潭高新技术产业园区", "value": "430371" }, { "label": "湘潭昭山示范区", "value": "430372" }, { "label": "湘潭九华示范区", "value": "430373" }, { "label": "湘乡市", "value": "430381" }, { "label": "韶山市", "value": "430382" }], [{ "label": "珠晖区", "value": "430405" }, { "label": "雁峰区", "value": "430406" }, { "label": "石鼓区", "value": "430407" }, { "label": "蒸湘区", "value": "430408" }, { "label": "南岳区", "value": "430412" }, { "label": "衡阳县", "value": "430421" }, { "label": "衡南县", "value": "430422" }, { "label": "衡山县", "value": "430423" }, { "label": "衡东县", "value": "430424" }, { "label": "祁东县", "value": "430426" }, { "label": "衡阳综合保税区", "value": "430471" }, { "label": "湖南衡阳高新技术产业园区", "value": "430472" }, { "label": "湖南衡阳松木经济开发区", "value": "430473" }, { "label": "耒阳市", "value": "430481" }, { "label": "常宁市", "value": "430482" }], [{ "label": "双清区", "value": "430502" }, { "label": "大祥区", "value": "430503" }, { "label": "北塔区", "value": "430511" }, { "label": "邵东县", "value": "430521" }, { "label": "新邵县", "value": "430522" }, { "label": "邵阳县", "value": "430523" }, { "label": "隆回县", "value": "430524" }, { "label": "洞口县", "value": "430525" }, { "label": "绥宁县", "value": "430527" }, { "label": "新宁县", "value": "430528" }, { "label": "城步苗族自治县", "value": "430529" }, { "label": "武冈市", "value": "430581" }], [{ "label": "岳阳楼区", "value": "430602" }, { "label": "云溪区", "value": "430603" }, { "label": "君山区", "value": "430611" }, { "label": "岳阳县", "value": "430621" }, { "label": "华容县", "value": "430623" }, { "label": "湘阴县", "value": "430624" }, { "label": "平江县", "value": "430626" }, { "label": "岳阳市屈原管理区", "value": "430671" }, { "label": "汨罗市", "value": "430681" }, { "label": "临湘市", "value": "430682" }], [{ "label": "武陵区", "value": "430702" }, { "label": "鼎城区", "value": "430703" }, { "label": "安乡县", "value": "430721" }, { "label": "汉寿县", "value": "430722" }, { "label": "澧县", "value": "430723" }, { "label": "临澧县", "value": "430724" }, { "label": "桃源县", "value": "430725" }, { "label": "石门县", "value": "430726" }, { "label": "常德市西洞庭管理区", "value": "430771" }, { "label": "津市市", "value": "430781" }], [{ "label": "永定区", "value": "430802" }, { "label": "武陵源区", "value": "430811" }, { "label": "慈利县", "value": "430821" }, { "label": "桑植县", "value": "430822" }], [{ "label": "资阳区", "value": "430902" }, { "label": "赫山区", "value": "430903" }, { "label": "南县", "value": "430921" }, { "label": "桃江县", "value": "430922" }, { "label": "安化县", "value": "430923" }, { "label": "益阳市大通湖管理区", "value": "430971" }, { "label": "湖南益阳高新技术产业园区", "value": "430972" }, { "label": "沅江市", "value": "430981" }], [{ "label": "北湖区", "value": "431002" }, { "label": "苏仙区", "value": "431003" }, { "label": "桂阳县", "value": "431021" }, { "label": "宜章县", "value": "431022" }, { "label": "永兴县", "value": "431023" }, { "label": "嘉禾县", "value": "431024" }, { "label": "临武县", "value": "431025" }, { "label": "汝城县", "value": "431026" }, { "label": "桂东县", "value": "431027" }, { "label": "安仁县", "value": "431028" }, { "label": "资兴市", "value": "431081" }], [{ "label": "零陵区", "value": "431102" }, { "label": "冷水滩区", "value": "431103" }, { "label": "祁阳县", "value": "431121" }, { "label": "东安县", "value": "431122" }, { "label": "双牌县", "value": "431123" }, { "label": "道县", "value": "431124" }, { "label": "江永县", "value": "431125" }, { "label": "宁远县", "value": "431126" }, { "label": "蓝山县", "value": "431127" }, { "label": "新田县", "value": "431128" }, { "label": "江华瑶族自治县", "value": "431129" }, { "label": "永州经济技术开发区", "value": "431171" }, { "label": "永州市金洞管理区", "value": "431172" }, { "label": "永州市回龙圩管理区", "value": "431173" }], [{ "label": "鹤城区", "value": "431202" }, { "label": "中方县", "value": "431221" }, { "label": "沅陵县", "value": "431222" }, { "label": "辰溪县", "value": "431223" }, { "label": "溆浦县", "value": "431224" }, { "label": "会同县", "value": "431225" }, { "label": "麻阳苗族自治县", "value": "431226" }, { "label": "新晃侗族自治县", "value": "431227" }, { "label": "芷江侗族自治县", "value": "431228" }, { "label": "靖州苗族侗族自治县", "value": "431229" }, { "label": "通道侗族自治县", "value": "431230" }, { "label": "怀化市洪江管理区", "value": "431271" }, { "label": "洪江市", "value": "431281" }], [{ "label": "娄星区", "value": "431302" }, { "label": "双峰县", "value": "431321" }, { "label": "新化县", "value": "431322" }, { "label": "冷水江市", "value": "431381" }, { "label": "涟源市", "value": "431382" }], [{ "label": "吉首市", "value": "433101" }, { "label": "泸溪县", "value": "433122" }, { "label": "凤凰县", "value": "433123" }, { "label": "花垣县", "value": "433124" }, { "label": "保靖县", "value": "433125" }, { "label": "古丈县", "value": "433126" }, { "label": "永顺县", "value": "433127" }, { "label": "龙山县", "value": "433130" }, { "label": "湖南吉首经济开发区", "value": "433172" }, { "label": "湖南永顺经济开发区", "value": "433173" }]], [[{ "label": "荔湾区", "value": "440103" }, { "label": "越秀区", "value": "440104" }, { "label": "海珠区", "value": "440105" }, { "label": "天河区", "value": "440106" }, { "label": "白云区", "value": "440111" }, { "label": "黄埔区", "value": "440112" }, { "label": "番禺区", "value": "440113" }, { "label": "花都区", "value": "440114" }, { "label": "南沙区", "value": "440115" }, { "label": "从化区", "value": "440117" }, { "label": "增城区", "value": "440118" }], [{ "label": "武江区", "value": "440203" }, { "label": "浈江区", "value": "440204" }, { "label": "曲江区", "value": "440205" }, { "label": "始兴县", "value": "440222" }, { "label": "仁化县", "value": "440224" }, { "label": "翁源县", "value": "440229" }, { "label": "乳源瑶族自治县", "value": "440232" }, { "label": "新丰县", "value": "440233" }, { "label": "乐昌市", "value": "440281" }, { "label": "南雄市", "value": "440282" }], [{ "label": "罗湖区", "value": "440303" }, { "label": "福田区", "value": "440304" }, { "label": "南山区", "value": "440305" }, { "label": "宝安区", "value": "440306" }, { "label": "龙岗区", "value": "440307" }, { "label": "盐田区", "value": "440308" }, { "label": "龙华区", "value": "440309" }, { "label": "坪山区", "value": "440310" }], [{ "label": "香洲区", "value": "440402" }, { "label": "斗门区", "value": "440403" }, { "label": "金湾区", "value": "440404" }], [{ "label": "龙湖区", "value": "440507" }, { "label": "金平区", "value": "440511" }, { "label": "濠江区", "value": "440512" }, { "label": "潮阳区", "value": "440513" }, { "label": "潮南区", "value": "440514" }, { "label": "澄海区", "value": "440515" }, { "label": "南澳县", "value": "440523" }], [{ "label": "禅城区", "value": "440604" }, { "label": "南海区", "value": "440605" }, { "label": "顺德区", "value": "440606" }, { "label": "三水区", "value": "440607" }, { "label": "高明区", "value": "440608" }], [{ "label": "蓬江区", "value": "440703" }, { "label": "江海区", "value": "440704" }, { "label": "新会区", "value": "440705" }, { "label": "台山市", "value": "440781" }, { "label": "开平市", "value": "440783" }, { "label": "鹤山市", "value": "440784" }, { "label": "恩平市", "value": "440785" }], [{ "label": "赤坎区", "value": "440802" }, { "label": "霞山区", "value": "440803" }, { "label": "坡头区", "value": "440804" }, { "label": "麻章区", "value": "440811" }, { "label": "遂溪县", "value": "440823" }, { "label": "徐闻县", "value": "440825" }, { "label": "廉江市", "value": "440881" }, { "label": "雷州市", "value": "440882" }, { "label": "吴川市", "value": "440883" }], [{ "label": "茂南区", "value": "440902" }, { "label": "电白区", "value": "440904" }, { "label": "高州市", "value": "440981" }, { "label": "化州市", "value": "440982" }, { "label": "信宜市", "value": "440983" }], [{ "label": "端州区", "value": "441202" }, { "label": "鼎湖区", "value": "441203" }, { "label": "高要区", "value": "441204" }, { "label": "广宁县", "value": "441223" }, { "label": "怀集县", "value": "441224" }, { "label": "封开县", "value": "441225" }, { "label": "德庆县", "value": "441226" }, { "label": "四会市", "value": "441284" }], [{ "label": "惠城区", "value": "441302" }, { "label": "惠阳区", "value": "441303" }, { "label": "博罗县", "value": "441322" }, { "label": "惠东县", "value": "441323" }, { "label": "龙门县", "value": "441324" }], [{ "label": "梅江区", "value": "441402" }, { "label": "梅县区", "value": "441403" }, { "label": "大埔县", "value": "441422" }, { "label": "丰顺县", "value": "441423" }, { "label": "五华县", "value": "441424" }, { "label": "平远县", "value": "441426" }, { "label": "蕉岭县", "value": "441427" }, { "label": "兴宁市", "value": "441481" }], [{ "label": "城区", "value": "441502" }, { "label": "海丰县", "value": "441521" }, { "label": "陆河县", "value": "441523" }, { "label": "陆丰市", "value": "441581" }], [{ "label": "源城区", "value": "441602" }, { "label": "紫金县", "value": "441621" }, { "label": "龙川县", "value": "441622" }, { "label": "连平县", "value": "441623" }, { "label": "和平县", "value": "441624" }, { "label": "东源县", "value": "441625" }], [{ "label": "江城区", "value": "441702" }, { "label": "阳东区", "value": "441704" }, { "label": "阳西县", "value": "441721" }, { "label": "阳春市", "value": "441781" }], [{ "label": "清城区", "value": "441802" }, { "label": "清新区", "value": "441803" }, { "label": "佛冈县", "value": "441821" }, { "label": "阳山县", "value": "441823" }, { "label": "连山壮族瑶族自治县", "value": "441825" }, { "label": "连南瑶族自治县", "value": "441826" }, { "label": "英德市", "value": "441881" }, { "label": "连州市", "value": "441882" }], [{ "label": "东莞市", "value": "441900" }], [{ "label": "中山市", "value": "442000" }], [{ "label": "湘桥区", "value": "445102" }, { "label": "潮安区", "value": "445103" }, { "label": "饶平县", "value": "445122" }], [{ "label": "榕城区", "value": "445202" }, { "label": "揭东区", "value": "445203" }, { "label": "揭西县", "value": "445222" }, { "label": "惠来县", "value": "445224" }, { "label": "普宁市", "value": "445281" }], [{ "label": "云城区", "value": "445302" }, { "label": "云安区", "value": "445303" }, { "label": "新兴县", "value": "445321" }, { "label": "郁南县", "value": "445322" }, { "label": "罗定市", "value": "445381" }]], [[{ "label": "兴宁区", "value": "450102" }, { "label": "青秀区", "value": "450103" }, { "label": "江南区", "value": "450105" }, { "label": "西乡塘区", "value": "450107" }, { "label": "良庆区", "value": "450108" }, { "label": "邕宁区", "value": "450109" }, { "label": "武鸣区", "value": "450110" }, { "label": "隆安县", "value": "450123" }, { "label": "马山县", "value": "450124" }, { "label": "上林县", "value": "450125" }, { "label": "宾阳县", "value": "450126" }, { "label": "横县", "value": "450127" }], [{ "label": "城中区", "value": "450202" }, { "label": "鱼峰区", "value": "450203" }, { "label": "柳南区", "value": "450204" }, { "label": "柳北区", "value": "450205" }, { "label": "柳江区", "value": "450206" }, { "label": "柳城县", "value": "450222" }, { "label": "鹿寨县", "value": "450223" }, { "label": "融安县", "value": "450224" }, { "label": "融水苗族自治县", "value": "450225" }, { "label": "三江侗族自治县", "value": "450226" }], [{ "label": "秀峰区", "value": "450302" }, { "label": "叠彩区", "value": "450303" }, { "label": "象山区", "value": "450304" }, { "label": "七星区", "value": "450305" }, { "label": "雁山区", "value": "450311" }, { "label": "临桂区", "value": "450312" }, { "label": "阳朔县", "value": "450321" }, { "label": "灵川县", "value": "450323" }, { "label": "全州县", "value": "450324" }, { "label": "兴安县", "value": "450325" }, { "label": "永福县", "value": "450326" }, { "label": "灌阳县", "value": "450327" }, { "label": "龙胜各族自治县", "value": "450328" }, { "label": "资源县", "value": "450329" }, { "label": "平乐县", "value": "450330" }, { "label": "荔浦县", "value": "450331" }, { "label": "恭城瑶族自治县", "value": "450332" }], [{ "label": "万秀区", "value": "450403" }, { "label": "长洲区", "value": "450405" }, { "label": "龙圩区", "value": "450406" }, { "label": "苍梧县", "value": "450421" }, { "label": "藤县", "value": "450422" }, { "label": "蒙山县", "value": "450423" }, { "label": "岑溪市", "value": "450481" }], [{ "label": "海城区", "value": "450502" }, { "label": "银海区", "value": "450503" }, { "label": "铁山港区", "value": "450512" }, { "label": "合浦县", "value": "450521" }], [{ "label": "港口区", "value": "450602" }, { "label": "防城区", "value": "450603" }, { "label": "上思县", "value": "450621" }, { "label": "东兴市", "value": "450681" }], [{ "label": "钦南区", "value": "450702" }, { "label": "钦北区", "value": "450703" }, { "label": "灵山县", "value": "450721" }, { "label": "浦北县", "value": "450722" }], [{ "label": "港北区", "value": "450802" }, { "label": "港南区", "value": "450803" }, { "label": "覃塘区", "value": "450804" }, { "label": "平南县", "value": "450821" }, { "label": "桂平市", "value": "450881" }], [{ "label": "玉州区", "value": "450902" }, { "label": "福绵区", "value": "450903" }, { "label": "容县", "value": "450921" }, { "label": "陆川县", "value": "450922" }, { "label": "博白县", "value": "450923" }, { "label": "兴业县", "value": "450924" }, { "label": "北流市", "value": "450981" }], [{ "label": "右江区", "value": "451002" }, { "label": "田阳县", "value": "451021" }, { "label": "田东县", "value": "451022" }, { "label": "平果县", "value": "451023" }, { "label": "德保县", "value": "451024" }, { "label": "那坡县", "value": "451026" }, { "label": "凌云县", "value": "451027" }, { "label": "乐业县", "value": "451028" }, { "label": "田林县", "value": "451029" }, { "label": "西林县", "value": "451030" }, { "label": "隆林各族自治县", "value": "451031" }, { "label": "靖西市", "value": "451081" }], [{ "label": "八步区", "value": "451102" }, { "label": "平桂区", "value": "451103" }, { "label": "昭平县", "value": "451121" }, { "label": "钟山县", "value": "451122" }, { "label": "富川瑶族自治县", "value": "451123" }], [{ "label": "金城江区", "value": "451202" }, { "label": "宜州区", "value": "451203" }, { "label": "南丹县", "value": "451221" }, { "label": "天峨县", "value": "451222" }, { "label": "凤山县", "value": "451223" }, { "label": "东兰县", "value": "451224" }, { "label": "罗城仫佬族自治县", "value": "451225" }, { "label": "环江毛南族自治县", "value": "451226" }, { "label": "巴马瑶族自治县", "value": "451227" }, { "label": "都安瑶族自治县", "value": "451228" }, { "label": "大化瑶族自治县", "value": "451229" }], [{ "label": "兴宾区", "value": "451302" }, { "label": "忻城县", "value": "451321" }, { "label": "象州县", "value": "451322" }, { "label": "武宣县", "value": "451323" }, { "label": "金秀瑶族自治县", "value": "451324" }, { "label": "合山市", "value": "451381" }], [{ "label": "江州区", "value": "451402" }, { "label": "扶绥县", "value": "451421" }, { "label": "宁明县", "value": "451422" }, { "label": "龙州县", "value": "451423" }, { "label": "大新县", "value": "451424" }, { "label": "天等县", "value": "451425" }, { "label": "凭祥市", "value": "451481" }]], [[{ "label": "秀英区", "value": "460105" }, { "label": "龙华区", "value": "460106" }, { "label": "琼山区", "value": "460107" }, { "label": "美兰区", "value": "460108" }], [{ "label": "海棠区", "value": "460202" }, { "label": "吉阳区", "value": "460203" }, { "label": "天涯区", "value": "460204" }, { "label": "崖州区", "value": "460205" }], [{ "label": "西沙群岛", "value": "460321" }, { "label": "南沙群岛", "value": "460322" }, { "label": "中沙群岛的岛礁及其海域", "value": "460323" }], [{ "label": "儋州市", "value": "460400" }], [{ "label": "五指山市", "value": "469001" }, { "label": "琼海市", "value": "469002" }, { "label": "文昌市", "value": "469005" }, { "label": "万宁市", "value": "469006" }, { "label": "东方市", "value": "469007" }, { "label": "定安县", "value": "469021" }, { "label": "屯昌县", "value": "469022" }, { "label": "澄迈县", "value": "469023" }, { "label": "临高县", "value": "469024" }, { "label": "白沙黎族自治县", "value": "469025" }, { "label": "昌江黎族自治县", "value": "469026" }, { "label": "乐东黎族自治县", "value": "469027" }, { "label": "陵水黎族自治县", "value": "469028" }, { "label": "保亭黎族苗族自治县", "value": "469029" }, { "label": "琼中黎族苗族自治县", "value": "469030" }]], [[{ "label": "万州区", "value": "500101" }, { "label": "涪陵区", "value": "500102" }, { "label": "渝中区", "value": "500103" }, { "label": "大渡口区", "value": "500104" }, { "label": "江北区", "value": "500105" }, { "label": "沙坪坝区", "value": "500106" }, { "label": "九龙坡区", "value": "500107" }, { "label": "南岸区", "value": "500108" }, { "label": "北碚区", "value": "500109" }, { "label": "綦江区", "value": "500110" }, { "label": "大足区", "value": "500111" }, { "label": "渝北区", "value": "500112" }, { "label": "巴南区", "value": "500113" }, { "label": "黔江区", "value": "500114" }, { "label": "长寿区", "value": "500115" }, { "label": "江津区", "value": "500116" }, { "label": "合川区", "value": "500117" }, { "label": "永川区", "value": "500118" }, { "label": "南川区", "value": "500119" }, { "label": "璧山区", "value": "500120" }, { "label": "铜梁区", "value": "500151" }, { "label": "潼南区", "value": "500152" }, { "label": "荣昌区", "value": "500153" }, { "label": "开州区", "value": "500154" }, { "label": "梁平区", "value": "500155" }, { "label": "武隆区", "value": "500156" }], [{ "label": "城口县", "value": "500229" }, { "label": "丰都县", "value": "500230" }, { "label": "垫江县", "value": "500231" }, { "label": "忠县", "value": "500233" }, { "label": "云阳县", "value": "500235" }, { "label": "奉节县", "value": "500236" }, { "label": "巫山县", "value": "500237" }, { "label": "巫溪县", "value": "500238" }, { "label": "石柱土家族自治县", "value": "500240" }, { "label": "秀山土家族苗族自治县", "value": "500241" }, { "label": "酉阳土家族苗族自治县", "value": "500242" }, { "label": "彭水苗族土家族自治县", "value": "500243" }]], [[{ "label": "锦江区", "value": "510104" }, { "label": "青羊区", "value": "510105" }, { "label": "金牛区", "value": "510106" }, { "label": "武侯区", "value": "510107" }, { "label": "成华区", "value": "510108" }, { "label": "龙泉驿区", "value": "510112" }, { "label": "青白江区", "value": "510113" }, { "label": "新都区", "value": "510114" }, { "label": "温江区", "value": "510115" }, { "label": "双流区", "value": "510116" }, { "label": "郫都区", "value": "510117" }, { "label": "金堂县", "value": "510121" }, { "label": "大邑县", "value": "510129" }, { "label": "蒲江县", "value": "510131" }, { "label": "新津县", "value": "510132" }, { "label": "都江堰市", "value": "510181" }, { "label": "彭州市", "value": "510182" }, { "label": "邛崃市", "value": "510183" }, { "label": "崇州市", "value": "510184" }, { "label": "简阳市", "value": "510185" }], [{ "label": "自流井区", "value": "510302" }, { "label": "贡井区", "value": "510303" }, { "label": "大安区", "value": "510304" }, { "label": "沿滩区", "value": "510311" }, { "label": "荣县", "value": "510321" }, { "label": "富顺县", "value": "510322" }], [{ "label": "东区", "value": "510402" }, { "label": "西区", "value": "510403" }, { "label": "仁和区", "value": "510411" }, { "label": "米易县", "value": "510421" }, { "label": "盐边县", "value": "510422" }], [{ "label": "江阳区", "value": "510502" }, { "label": "纳溪区", "value": "510503" }, { "label": "龙马潭区", "value": "510504" }, { "label": "泸县", "value": "510521" }, { "label": "合江县", "value": "510522" }, { "label": "叙永县", "value": "510524" }, { "label": "古蔺县", "value": "510525" }], [{ "label": "旌阳区", "value": "510603" }, { "label": "罗江区", "value": "510604" }, { "label": "中江县", "value": "510623" }, { "label": "广汉市", "value": "510681" }, { "label": "什邡市", "value": "510682" }, { "label": "绵竹市", "value": "510683" }], [{ "label": "涪城区", "value": "510703" }, { "label": "游仙区", "value": "510704" }, { "label": "安州区", "value": "510705" }, { "label": "三台县", "value": "510722" }, { "label": "盐亭县", "value": "510723" }, { "label": "梓潼县", "value": "510725" }, { "label": "北川羌族自治县", "value": "510726" }, { "label": "平武县", "value": "510727" }, { "label": "江油市", "value": "510781" }], [{ "label": "利州区", "value": "510802" }, { "label": "昭化区", "value": "510811" }, { "label": "朝天区", "value": "510812" }, { "label": "旺苍县", "value": "510821" }, { "label": "青川县", "value": "510822" }, { "label": "剑阁县", "value": "510823" }, { "label": "苍溪县", "value": "510824" }], [{ "label": "船山区", "value": "510903" }, { "label": "安居区", "value": "510904" }, { "label": "蓬溪县", "value": "510921" }, { "label": "射洪县", "value": "510922" }, { "label": "大英县", "value": "510923" }], [{ "label": "市中区", "value": "511002" }, { "label": "东兴区", "value": "511011" }, { "label": "威远县", "value": "511024" }, { "label": "资中县", "value": "511025" }, { "label": "内江经济开发区", "value": "511071" }, { "label": "隆昌市", "value": "511083" }], [{ "label": "市中区", "value": "511102" }, { "label": "沙湾区", "value": "511111" }, { "label": "五通桥区", "value": "511112" }, { "label": "金口河区", "value": "511113" }, { "label": "犍为县", "value": "511123" }, { "label": "井研县", "value": "511124" }, { "label": "夹江县", "value": "511126" }, { "label": "沐川县", "value": "511129" }, { "label": "峨边彝族自治县", "value": "511132" }, { "label": "马边彝族自治县", "value": "511133" }, { "label": "峨眉山市", "value": "511181" }], [{ "label": "顺庆区", "value": "511302" }, { "label": "高坪区", "value": "511303" }, { "label": "嘉陵区", "value": "511304" }, { "label": "南部县", "value": "511321" }, { "label": "营山县", "value": "511322" }, { "label": "蓬安县", "value": "511323" }, { "label": "仪陇县", "value": "511324" }, { "label": "西充县", "value": "511325" }, { "label": "阆中市", "value": "511381" }], [{ "label": "东坡区", "value": "511402" }, { "label": "彭山区", "value": "511403" }, { "label": "仁寿县", "value": "511421" }, { "label": "洪雅县", "value": "511423" }, { "label": "丹棱县", "value": "511424" }, { "label": "青神县", "value": "511425" }], [{ "label": "翠屏区", "value": "511502" }, { "label": "南溪区", "value": "511503" }, { "label": "宜宾县", "value": "511521" }, { "label": "江安县", "value": "511523" }, { "label": "长宁县", "value": "511524" }, { "label": "高县", "value": "511525" }, { "label": "珙县", "value": "511526" }, { "label": "筠连县", "value": "511527" }, { "label": "兴文县", "value": "511528" }, { "label": "屏山县", "value": "511529" }], [{ "label": "广安区", "value": "511602" }, { "label": "前锋区", "value": "511603" }, { "label": "岳池县", "value": "511621" }, { "label": "武胜县", "value": "511622" }, { "label": "邻水县", "value": "511623" }, { "label": "华蓥市", "value": "511681" }], [{ "label": "通川区", "value": "511702" }, { "label": "达川区", "value": "511703" }, { "label": "宣汉县", "value": "511722" }, { "label": "开江县", "value": "511723" }, { "label": "大竹县", "value": "511724" }, { "label": "渠县", "value": "511725" }, { "label": "达州经济开发区", "value": "511771" }, { "label": "万源市", "value": "511781" }], [{ "label": "雨城区", "value": "511802" }, { "label": "名山区", "value": "511803" }, { "label": "荥经县", "value": "511822" }, { "label": "汉源县", "value": "511823" }, { "label": "石棉县", "value": "511824" }, { "label": "天全县", "value": "511825" }, { "label": "芦山县", "value": "511826" }, { "label": "宝兴县", "value": "511827" }], [{ "label": "巴州区", "value": "511902" }, { "label": "恩阳区", "value": "511903" }, { "label": "通江县", "value": "511921" }, { "label": "南江县", "value": "511922" }, { "label": "平昌县", "value": "511923" }, { "label": "巴中经济开发区", "value": "511971" }], [{ "label": "雁江区", "value": "512002" }, { "label": "安岳县", "value": "512021" }, { "label": "乐至县", "value": "512022" }], [{ "label": "马尔康市", "value": "513201" }, { "label": "汶川县", "value": "513221" }, { "label": "理县", "value": "513222" }, { "label": "茂县", "value": "513223" }, { "label": "松潘县", "value": "513224" }, { "label": "九寨沟县", "value": "513225" }, { "label": "金川县", "value": "513226" }, { "label": "小金县", "value": "513227" }, { "label": "黑水县", "value": "513228" }, { "label": "壤塘县", "value": "513230" }, { "label": "阿坝县", "value": "513231" }, { "label": "若尔盖县", "value": "513232" }, { "label": "红原县", "value": "513233" }], [{ "label": "康定市", "value": "513301" }, { "label": "泸定县", "value": "513322" }, { "label": "丹巴县", "value": "513323" }, { "label": "九龙县", "value": "513324" }, { "label": "雅江县", "value": "513325" }, { "label": "道孚县", "value": "513326" }, { "label": "炉霍县", "value": "513327" }, { "label": "甘孜县", "value": "513328" }, { "label": "新龙县", "value": "513329" }, { "label": "德格县", "value": "513330" }, { "label": "白玉县", "value": "513331" }, { "label": "石渠县", "value": "513332" }, { "label": "色达县", "value": "513333" }, { "label": "理塘县", "value": "513334" }, { "label": "巴塘县", "value": "513335" }, { "label": "乡城县", "value": "513336" }, { "label": "稻城县", "value": "513337" }, { "label": "得荣县", "value": "513338" }], [{ "label": "西昌市", "value": "513401" }, { "label": "木里藏族自治县", "value": "513422" }, { "label": "盐源县", "value": "513423" }, { "label": "德昌县", "value": "513424" }, { "label": "会理县", "value": "513425" }, { "label": "会东县", "value": "513426" }, { "label": "宁南县", "value": "513427" }, { "label": "普格县", "value": "513428" }, { "label": "布拖县", "value": "513429" }, { "label": "金阳县", "value": "513430" }, { "label": "昭觉县", "value": "513431" }, { "label": "喜德县", "value": "513432" }, { "label": "冕宁县", "value": "513433" }, { "label": "越西县", "value": "513434" }, { "label": "甘洛县", "value": "513435" }, { "label": "美姑县", "value": "513436" }, { "label": "雷波县", "value": "513437" }]], [[{ "label": "南明区", "value": "520102" }, { "label": "云岩区", "value": "520103" }, { "label": "花溪区", "value": "520111" }, { "label": "乌当区", "value": "520112" }, { "label": "白云区", "value": "520113" }, { "label": "观山湖区", "value": "520115" }, { "label": "开阳县", "value": "520121" }, { "label": "息烽县", "value": "520122" }, { "label": "修文县", "value": "520123" }, { "label": "清镇市", "value": "520181" }], [{ "label": "钟山区", "value": "520201" }, { "label": "六枝特区", "value": "520203" }, { "label": "水城县", "value": "520221" }, { "label": "盘州市", "value": "520281" }], [{ "label": "红花岗区", "value": "520302" }, { "label": "汇川区", "value": "520303" }, { "label": "播州区", "value": "520304" }, { "label": "桐梓县", "value": "520322" }, { "label": "绥阳县", "value": "520323" }, { "label": "正安县", "value": "520324" }, { "label": "道真仡佬族苗族自治县", "value": "520325" }, { "label": "务川仡佬族苗族自治县", "value": "520326" }, { "label": "凤冈县", "value": "520327" }, { "label": "湄潭县", "value": "520328" }, { "label": "余庆县", "value": "520329" }, { "label": "习水县", "value": "520330" }, { "label": "赤水市", "value": "520381" }, { "label": "仁怀市", "value": "520382" }], [{ "label": "西秀区", "value": "520402" }, { "label": "平坝区", "value": "520403" }, { "label": "普定县", "value": "520422" }, { "label": "镇宁布依族苗族自治县", "value": "520423" }, { "label": "关岭布依族苗族自治县", "value": "520424" }, { "label": "紫云苗族布依族自治县", "value": "520425" }], [{ "label": "七星关区", "value": "520502" }, { "label": "大方县", "value": "520521" }, { "label": "黔西县", "value": "520522" }, { "label": "金沙县", "value": "520523" }, { "label": "织金县", "value": "520524" }, { "label": "纳雍县", "value": "520525" }, { "label": "威宁彝族回族苗族自治县", "value": "520526" }, { "label": "赫章县", "value": "520527" }], [{ "label": "碧江区", "value": "520602" }, { "label": "万山区", "value": "520603" }, { "label": "江口县", "value": "520621" }, { "label": "玉屏侗族自治县", "value": "520622" }, { "label": "石阡县", "value": "520623" }, { "label": "思南县", "value": "520624" }, { "label": "印江土家族苗族自治县", "value": "520625" }, { "label": "德江县", "value": "520626" }, { "label": "沿河土家族自治县", "value": "520627" }, { "label": "松桃苗族自治县", "value": "520628" }], [{ "label": "兴义市", "value": "522301" }, { "label": "兴仁县", "value": "522322" }, { "label": "普安县", "value": "522323" }, { "label": "晴隆县", "value": "522324" }, { "label": "贞丰县", "value": "522325" }, { "label": "望谟县", "value": "522326" }, { "label": "册亨县", "value": "522327" }, { "label": "安龙县", "value": "522328" }], [{ "label": "凯里市", "value": "522601" }, { "label": "黄平县", "value": "522622" }, { "label": "施秉县", "value": "522623" }, { "label": "三穗县", "value": "522624" }, { "label": "镇远县", "value": "522625" }, { "label": "岑巩县", "value": "522626" }, { "label": "天柱县", "value": "522627" }, { "label": "锦屏县", "value": "522628" }, { "label": "剑河县", "value": "522629" }, { "label": "台江县", "value": "522630" }, { "label": "黎平县", "value": "522631" }, { "label": "榕江县", "value": "522632" }, { "label": "从江县", "value": "522633" }, { "label": "雷山县", "value": "522634" }, { "label": "麻江县", "value": "522635" }, { "label": "丹寨县", "value": "522636" }], [{ "label": "都匀市", "value": "522701" }, { "label": "福泉市", "value": "522702" }, { "label": "荔波县", "value": "522722" }, { "label": "贵定县", "value": "522723" }, { "label": "瓮安县", "value": "522725" }, { "label": "独山县", "value": "522726" }, { "label": "平塘县", "value": "522727" }, { "label": "罗甸县", "value": "522728" }, { "label": "长顺县", "value": "522729" }, { "label": "龙里县", "value": "522730" }, { "label": "惠水县", "value": "522731" }, { "label": "三都水族自治县", "value": "522732" }]], [[{ "label": "五华区", "value": "530102" }, { "label": "盘龙区", "value": "530103" }, { "label": "官渡区", "value": "530111" }, { "label": "西山区", "value": "530112" }, { "label": "东川区", "value": "530113" }, { "label": "呈贡区", "value": "530114" }, { "label": "晋宁区", "value": "530115" }, { "label": "富民县", "value": "530124" }, { "label": "宜良县", "value": "530125" }, { "label": "石林彝族自治县", "value": "530126" }, { "label": "嵩明县", "value": "530127" }, { "label": "禄劝彝族苗族自治县", "value": "530128" }, { "label": "寻甸回族彝族自治县", "value": "530129" }, { "label": "安宁市", "value": "530181" }], [{ "label": "麒麟区", "value": "530302" }, { "label": "沾益区", "value": "530303" }, { "label": "马龙县", "value": "530321" }, { "label": "陆良县", "value": "530322" }, { "label": "师宗县", "value": "530323" }, { "label": "罗平县", "value": "530324" }, { "label": "富源县", "value": "530325" }, { "label": "会泽县", "value": "530326" }, { "label": "宣威市", "value": "530381" }], [{ "label": "红塔区", "value": "530402" }, { "label": "江川区", "value": "530403" }, { "label": "澄江县", "value": "530422" }, { "label": "通海县", "value": "530423" }, { "label": "华宁县", "value": "530424" }, { "label": "易门县", "value": "530425" }, { "label": "峨山彝族自治县", "value": "530426" }, { "label": "新平彝族傣族自治县", "value": "530427" }, { "label": "元江哈尼族彝族傣族自治县", "value": "530428" }], [{ "label": "隆阳区", "value": "530502" }, { "label": "施甸县", "value": "530521" }, { "label": "龙陵县", "value": "530523" }, { "label": "昌宁县", "value": "530524" }, { "label": "腾冲市", "value": "530581" }], [{ "label": "昭阳区", "value": "530602" }, { "label": "鲁甸县", "value": "530621" }, { "label": "巧家县", "value": "530622" }, { "label": "盐津县", "value": "530623" }, { "label": "大关县", "value": "530624" }, { "label": "永善县", "value": "530625" }, { "label": "绥江县", "value": "530626" }, { "label": "镇雄县", "value": "530627" }, { "label": "彝良县", "value": "530628" }, { "label": "威信县", "value": "530629" }, { "label": "水富县", "value": "530630" }], [{ "label": "古城区", "value": "530702" }, { "label": "玉龙纳西族自治县", "value": "530721" }, { "label": "永胜县", "value": "530722" }, { "label": "华坪县", "value": "530723" }, { "label": "宁蒗彝族自治县", "value": "530724" }], [{ "label": "思茅区", "value": "530802" }, { "label": "宁洱哈尼族彝族自治县", "value": "530821" }, { "label": "墨江哈尼族自治县", "value": "530822" }, { "label": "景东彝族自治县", "value": "530823" }, { "label": "景谷傣族彝族自治县", "value": "530824" }, { "label": "镇沅彝族哈尼族拉祜族自治县", "value": "530825" }, { "label": "江城哈尼族彝族自治县", "value": "530826" }, { "label": "孟连傣族拉祜族佤族自治县", "value": "530827" }, { "label": "澜沧拉祜族自治县", "value": "530828" }, { "label": "西盟佤族自治县", "value": "530829" }], [{ "label": "临翔区", "value": "530902" }, { "label": "凤庆县", "value": "530921" }, { "label": "云县", "value": "530922" }, { "label": "永德县", "value": "530923" }, { "label": "镇康县", "value": "530924" }, { "label": "双江拉祜族佤族布朗族傣族自治县", "value": "530925" }, { "label": "耿马傣族佤族自治县", "value": "530926" }, { "label": "沧源佤族自治县", "value": "530927" }], [{ "label": "楚雄市", "value": "532301" }, { "label": "双柏县", "value": "532322" }, { "label": "牟定县", "value": "532323" }, { "label": "南华县", "value": "532324" }, { "label": "姚安县", "value": "532325" }, { "label": "大姚县", "value": "532326" }, { "label": "永仁县", "value": "532327" }, { "label": "元谋县", "value": "532328" }, { "label": "武定县", "value": "532329" }, { "label": "禄丰县", "value": "532331" }], [{ "label": "个旧市", "value": "532501" }, { "label": "开远市", "value": "532502" }, { "label": "蒙自市", "value": "532503" }, { "label": "弥勒市", "value": "532504" }, { "label": "屏边苗族自治县", "value": "532523" }, { "label": "建水县", "value": "532524" }, { "label": "石屏县", "value": "532525" }, { "label": "泸西县", "value": "532527" }, { "label": "元阳县", "value": "532528" }, { "label": "红河县", "value": "532529" }, { "label": "金平苗族瑶族傣族自治县", "value": "532530" }, { "label": "绿春县", "value": "532531" }, { "label": "河口瑶族自治县", "value": "532532" }], [{ "label": "文山市", "value": "532601" }, { "label": "砚山县", "value": "532622" }, { "label": "西畴县", "value": "532623" }, { "label": "麻栗坡县", "value": "532624" }, { "label": "马关县", "value": "532625" }, { "label": "丘北县", "value": "532626" }, { "label": "广南县", "value": "532627" }, { "label": "富宁县", "value": "532628" }], [{ "label": "景洪市", "value": "532801" }, { "label": "勐海县", "value": "532822" }, { "label": "勐腊县", "value": "532823" }], [{ "label": "大理市", "value": "532901" }, { "label": "漾濞彝族自治县", "value": "532922" }, { "label": "祥云县", "value": "532923" }, { "label": "宾川县", "value": "532924" }, { "label": "弥渡县", "value": "532925" }, { "label": "南涧彝族自治县", "value": "532926" }, { "label": "巍山彝族回族自治县", "value": "532927" }, { "label": "永平县", "value": "532928" }, { "label": "云龙县", "value": "532929" }, { "label": "洱源县", "value": "532930" }, { "label": "剑川县", "value": "532931" }, { "label": "鹤庆县", "value": "532932" }], [{ "label": "瑞丽市", "value": "533102" }, { "label": "芒市", "value": "533103" }, { "label": "梁河县", "value": "533122" }, { "label": "盈江县", "value": "533123" }, { "label": "陇川县", "value": "533124" }], [{ "label": "泸水市", "value": "533301" }, { "label": "福贡县", "value": "533323" }, { "label": "贡山独龙族怒族自治县", "value": "533324" }, { "label": "兰坪白族普米族自治县", "value": "533325" }], [{ "label": "香格里拉市", "value": "533401" }, { "label": "德钦县", "value": "533422" }, { "label": "维西傈僳族自治县", "value": "533423" }]], [[{ "label": "城关区", "value": "540102" }, { "label": "堆龙德庆区", "value": "540103" }, { "label": "林周县", "value": "540121" }, { "label": "当雄县", "value": "540122" }, { "label": "尼木县", "value": "540123" }, { "label": "曲水县", "value": "540124" }, { "label": "达孜县", "value": "540126" }, { "label": "墨竹工卡县", "value": "540127" }, { "label": "格尔木藏青工业园区", "value": "540171" }, { "label": "拉萨经济技术开发区", "value": "540172" }, { "label": "西藏文化旅游创意园区", "value": "540173" }, { "label": "达孜工业园区", "value": "540174" }], [{ "label": "桑珠孜区", "value": "540202" }, { "label": "南木林县", "value": "540221" }, { "label": "江孜县", "value": "540222" }, { "label": "定日县", "value": "540223" }, { "label": "萨迦县", "value": "540224" }, { "label": "拉孜县", "value": "540225" }, { "label": "昂仁县", "value": "540226" }, { "label": "谢通门县", "value": "540227" }, { "label": "白朗县", "value": "540228" }, { "label": "仁布县", "value": "540229" }, { "label": "康马县", "value": "540230" }, { "label": "定结县", "value": "540231" }, { "label": "仲巴县", "value": "540232" }, { "label": "亚东县", "value": "540233" }, { "label": "吉隆县", "value": "540234" }, { "label": "聂拉木县", "value": "540235" }, { "label": "萨嘎县", "value": "540236" }, { "label": "岗巴县", "value": "540237" }], [{ "label": "卡若区", "value": "540302" }, { "label": "江达县", "value": "540321" }, { "label": "贡觉县", "value": "540322" }, { "label": "类乌齐县", "value": "540323" }, { "label": "丁青县", "value": "540324" }, { "label": "察雅县", "value": "540325" }, { "label": "八宿县", "value": "540326" }, { "label": "左贡县", "value": "540327" }, { "label": "芒康县", "value": "540328" }, { "label": "洛隆县", "value": "540329" }, { "label": "边坝县", "value": "540330" }], [{ "label": "巴宜区", "value": "540402" }, { "label": "工布江达县", "value": "540421" }, { "label": "米林县", "value": "540422" }, { "label": "墨脱县", "value": "540423" }, { "label": "波密县", "value": "540424" }, { "label": "察隅县", "value": "540425" }, { "label": "朗县", "value": "540426" }], [{ "label": "乃东区", "value": "540502" }, { "label": "扎囊县", "value": "540521" }, { "label": "贡嘎县", "value": "540522" }, { "label": "桑日县", "value": "540523" }, { "label": "琼结县", "value": "540524" }, { "label": "曲松县", "value": "540525" }, { "label": "措美县", "value": "540526" }, { "label": "洛扎县", "value": "540527" }, { "label": "加查县", "value": "540528" }, { "label": "隆子县", "value": "540529" }, { "label": "错那县", "value": "540530" }, { "label": "浪卡子县", "value": "540531" }], [{ "label": "那曲县", "value": "542421" }, { "label": "嘉黎县", "value": "542422" }, { "label": "比如县", "value": "542423" }, { "label": "聂荣县", "value": "542424" }, { "label": "安多县", "value": "542425" }, { "label": "申扎县", "value": "542426" }, { "label": "索县", "value": "542427" }, { "label": "班戈县", "value": "542428" }, { "label": "巴青县", "value": "542429" }, { "label": "尼玛县", "value": "542430" }, { "label": "双湖县", "value": "542431" }], [{ "label": "普兰县", "value": "542521" }, { "label": "札达县", "value": "542522" }, { "label": "噶尔县", "value": "542523" }, { "label": "日土县", "value": "542524" }, { "label": "革吉县", "value": "542525" }, { "label": "改则县", "value": "542526" }, { "label": "措勤县", "value": "542527" }]], [[{ "label": "新城区", "value": "610102" }, { "label": "碑林区", "value": "610103" }, { "label": "莲湖区", "value": "610104" }, { "label": "灞桥区", "value": "610111" }, { "label": "未央区", "value": "610112" }, { "label": "雁塔区", "value": "610113" }, { "label": "阎良区", "value": "610114" }, { "label": "临潼区", "value": "610115" }, { "label": "长安区", "value": "610116" }, { "label": "高陵区", "value": "610117" }, { "label": "鄠邑区", "value": "610118" }, { "label": "蓝田县", "value": "610122" }, { "label": "周至县", "value": "610124" }], [{ "label": "王益区", "value": "610202" }, { "label": "印台区", "value": "610203" }, { "label": "耀州区", "value": "610204" }, { "label": "宜君县", "value": "610222" }], [{ "label": "渭滨区", "value": "610302" }, { "label": "金台区", "value": "610303" }, { "label": "陈仓区", "value": "610304" }, { "label": "凤翔县", "value": "610322" }, { "label": "岐山县", "value": "610323" }, { "label": "扶风县", "value": "610324" }, { "label": "眉县", "value": "610326" }, { "label": "陇县", "value": "610327" }, { "label": "千阳县", "value": "610328" }, { "label": "麟游县", "value": "610329" }, { "label": "凤县", "value": "610330" }, { "label": "太白县", "value": "610331" }], [{ "label": "秦都区", "value": "610402" }, { "label": "杨陵区", "value": "610403" }, { "label": "渭城区", "value": "610404" }, { "label": "三原县", "value": "610422" }, { "label": "泾阳县", "value": "610423" }, { "label": "乾县", "value": "610424" }, { "label": "礼泉县", "value": "610425" }, { "label": "永寿县", "value": "610426" }, { "label": "彬县", "value": "610427" }, { "label": "长武县", "value": "610428" }, { "label": "旬邑县", "value": "610429" }, { "label": "淳化县", "value": "610430" }, { "label": "武功县", "value": "610431" }, { "label": "兴平市", "value": "610481" }], [{ "label": "临渭区", "value": "610502" }, { "label": "华州区", "value": "610503" }, { "label": "潼关县", "value": "610522" }, { "label": "大荔县", "value": "610523" }, { "label": "合阳县", "value": "610524" }, { "label": "澄城县", "value": "610525" }, { "label": "蒲城县", "value": "610526" }, { "label": "白水县", "value": "610527" }, { "label": "富平县", "value": "610528" }, { "label": "韩城市", "value": "610581" }, { "label": "华阴市", "value": "610582" }], [{ "label": "宝塔区", "value": "610602" }, { "label": "安塞区", "value": "610603" }, { "label": "延长县", "value": "610621" }, { "label": "延川县", "value": "610622" }, { "label": "子长县", "value": "610623" }, { "label": "志丹县", "value": "610625" }, { "label": "吴起县", "value": "610626" }, { "label": "甘泉县", "value": "610627" }, { "label": "富县", "value": "610628" }, { "label": "洛川县", "value": "610629" }, { "label": "宜川县", "value": "610630" }, { "label": "黄龙县", "value": "610631" }, { "label": "黄陵县", "value": "610632" }], [{ "label": "汉台区", "value": "610702" }, { "label": "南郑区", "value": "610703" }, { "label": "城固县", "value": "610722" }, { "label": "洋县", "value": "610723" }, { "label": "西乡县", "value": "610724" }, { "label": "勉县", "value": "610725" }, { "label": "宁强县", "value": "610726" }, { "label": "略阳县", "value": "610727" }, { "label": "镇巴县", "value": "610728" }, { "label": "留坝县", "value": "610729" }, { "label": "佛坪县", "value": "610730" }], [{ "label": "榆阳区", "value": "610802" }, { "label": "横山区", "value": "610803" }, { "label": "府谷县", "value": "610822" }, { "label": "靖边县", "value": "610824" }, { "label": "定边县", "value": "610825" }, { "label": "绥德县", "value": "610826" }, { "label": "米脂县", "value": "610827" }, { "label": "佳县", "value": "610828" }, { "label": "吴堡县", "value": "610829" }, { "label": "清涧县", "value": "610830" }, { "label": "子洲县", "value": "610831" }, { "label": "神木市", "value": "610881" }], [{ "label": "汉滨区", "value": "610902" }, { "label": "汉阴县", "value": "610921" }, { "label": "石泉县", "value": "610922" }, { "label": "宁陕县", "value": "610923" }, { "label": "紫阳县", "value": "610924" }, { "label": "岚皋县", "value": "610925" }, { "label": "平利县", "value": "610926" }, { "label": "镇坪县", "value": "610927" }, { "label": "旬阳县", "value": "610928" }, { "label": "白河县", "value": "610929" }], [{ "label": "商州区", "value": "611002" }, { "label": "洛南县", "value": "611021" }, { "label": "丹凤县", "value": "611022" }, { "label": "商南县", "value": "611023" }, { "label": "山阳县", "value": "611024" }, { "label": "镇安县", "value": "611025" }, { "label": "柞水县", "value": "611026" }]], [[{ "label": "城关区", "value": "620102" }, { "label": "七里河区", "value": "620103" }, { "label": "西固区", "value": "620104" }, { "label": "安宁区", "value": "620105" }, { "label": "红古区", "value": "620111" }, { "label": "永登县", "value": "620121" }, { "label": "皋兰县", "value": "620122" }, { "label": "榆中县", "value": "620123" }, { "label": "兰州新区", "value": "620171" }], [{ "label": "嘉峪关市", "value": "620201" }], [{ "label": "金川区", "value": "620302" }, { "label": "永昌县", "value": "620321" }], [{ "label": "白银区", "value": "620402" }, { "label": "平川区", "value": "620403" }, { "label": "靖远县", "value": "620421" }, { "label": "会宁县", "value": "620422" }, { "label": "景泰县", "value": "620423" }], [{ "label": "秦州区", "value": "620502" }, { "label": "麦积区", "value": "620503" }, { "label": "清水县", "value": "620521" }, { "label": "秦安县", "value": "620522" }, { "label": "甘谷县", "value": "620523" }, { "label": "武山县", "value": "620524" }, { "label": "张家川回族自治县", "value": "620525" }], [{ "label": "凉州区", "value": "620602" }, { "label": "民勤县", "value": "620621" }, { "label": "古浪县", "value": "620622" }, { "label": "天祝藏族自治县", "value": "620623" }], [{ "label": "甘州区", "value": "620702" }, { "label": "肃南裕固族自治县", "value": "620721" }, { "label": "民乐县", "value": "620722" }, { "label": "临泽县", "value": "620723" }, { "label": "高台县", "value": "620724" }, { "label": "山丹县", "value": "620725" }], [{ "label": "崆峒区", "value": "620802" }, { "label": "泾川县", "value": "620821" }, { "label": "灵台县", "value": "620822" }, { "label": "崇信县", "value": "620823" }, { "label": "华亭县", "value": "620824" }, { "label": "庄浪县", "value": "620825" }, { "label": "静宁县", "value": "620826" }, { "label": "平凉工业园区", "value": "620871" }], [{ "label": "肃州区", "value": "620902" }, { "label": "金塔县", "value": "620921" }, { "label": "瓜州县", "value": "620922" }, { "label": "肃北蒙古族自治县", "value": "620923" }, { "label": "阿克塞哈萨克族自治县", "value": "620924" }, { "label": "玉门市", "value": "620981" }, { "label": "敦煌市", "value": "620982" }], [{ "label": "西峰区", "value": "621002" }, { "label": "庆城县", "value": "621021" }, { "label": "环县", "value": "621022" }, { "label": "华池县", "value": "621023" }, { "label": "合水县", "value": "621024" }, { "label": "正宁县", "value": "621025" }, { "label": "宁县", "value": "621026" }, { "label": "镇原县", "value": "621027" }], [{ "label": "安定区", "value": "621102" }, { "label": "通渭县", "value": "621121" }, { "label": "陇西县", "value": "621122" }, { "label": "渭源县", "value": "621123" }, { "label": "临洮县", "value": "621124" }, { "label": "漳县", "value": "621125" }, { "label": "岷县", "value": "621126" }], [{ "label": "武都区", "value": "621202" }, { "label": "成县", "value": "621221" }, { "label": "文县", "value": "621222" }, { "label": "宕昌县", "value": "621223" }, { "label": "康县", "value": "621224" }, { "label": "西和县", "value": "621225" }, { "label": "礼县", "value": "621226" }, { "label": "徽县", "value": "621227" }, { "label": "两当县", "value": "621228" }], [{ "label": "临夏市", "value": "622901" }, { "label": "临夏县", "value": "622921" }, { "label": "康乐县", "value": "622922" }, { "label": "永靖县", "value": "622923" }, { "label": "广河县", "value": "622924" }, { "label": "和政县", "value": "622925" }, { "label": "东乡族自治县", "value": "622926" }, { "label": "积石山保安族东乡族撒拉族自治县", "value": "622927" }], [{ "label": "合作市", "value": "623001" }, { "label": "临潭县", "value": "623021" }, { "label": "卓尼县", "value": "623022" }, { "label": "舟曲县", "value": "623023" }, { "label": "迭部县", "value": "623024" }, { "label": "玛曲县", "value": "623025" }, { "label": "碌曲县", "value": "623026" }, { "label": "夏河县", "value": "623027" }]], [[{ "label": "城东区", "value": "630102" }, { "label": "城中区", "value": "630103" }, { "label": "城西区", "value": "630104" }, { "label": "城北区", "value": "630105" }, { "label": "大通回族土族自治县", "value": "630121" }, { "label": "湟中县", "value": "630122" }, { "label": "湟源县", "value": "630123" }], [{ "label": "乐都区", "value": "630202" }, { "label": "平安区", "value": "630203" }, { "label": "民和回族土族自治县", "value": "630222" }, { "label": "互助土族自治县", "value": "630223" }, { "label": "化隆回族自治县", "value": "630224" }, { "label": "循化撒拉族自治县", "value": "630225" }], [{ "label": "门源回族自治县", "value": "632221" }, { "label": "祁连县", "value": "632222" }, { "label": "海晏县", "value": "632223" }, { "label": "刚察县", "value": "632224" }], [{ "label": "同仁县", "value": "632321" }, { "label": "尖扎县", "value": "632322" }, { "label": "泽库县", "value": "632323" }, { "label": "河南蒙古族自治县", "value": "632324" }], [{ "label": "共和县", "value": "632521" }, { "label": "同德县", "value": "632522" }, { "label": "贵德县", "value": "632523" }, { "label": "兴海县", "value": "632524" }, { "label": "贵南县", "value": "632525" }], [{ "label": "玛沁县", "value": "632621" }, { "label": "班玛县", "value": "632622" }, { "label": "甘德县", "value": "632623" }, { "label": "达日县", "value": "632624" }, { "label": "久治县", "value": "632625" }, { "label": "玛多县", "value": "632626" }], [{ "label": "玉树市", "value": "632701" }, { "label": "杂多县", "value": "632722" }, { "label": "称多县", "value": "632723" }, { "label": "治多县", "value": "632724" }, { "label": "囊谦县", "value": "632725" }, { "label": "曲麻莱县", "value": "632726" }], [{ "label": "格尔木市", "value": "632801" }, { "label": "德令哈市", "value": "632802" }, { "label": "乌兰县", "value": "632821" }, { "label": "都兰县", "value": "632822" }, { "label": "天峻县", "value": "632823" }, { "label": "大柴旦行政委员会", "value": "632857" }, { "label": "冷湖行政委员会", "value": "632858" }, { "label": "茫崖行政委员会", "value": "632859" }]], [[{ "label": "兴庆区", "value": "640104" }, { "label": "西夏区", "value": "640105" }, { "label": "金凤区", "value": "640106" }, { "label": "永宁县", "value": "640121" }, { "label": "贺兰县", "value": "640122" }, { "label": "灵武市", "value": "640181" }], [{ "label": "大武口区", "value": "640202" }, { "label": "惠农区", "value": "640205" }, { "label": "平罗县", "value": "640221" }], [{ "label": "利通区", "value": "640302" }, { "label": "红寺堡区", "value": "640303" }, { "label": "盐池县", "value": "640323" }, { "label": "同心县", "value": "640324" }, { "label": "青铜峡市", "value": "640381" }], [{ "label": "原州区", "value": "640402" }, { "label": "西吉县", "value": "640422" }, { "label": "隆德县", "value": "640423" }, { "label": "泾源县", "value": "640424" }, { "label": "彭阳县", "value": "640425" }], [{ "label": "沙坡头区", "value": "640502" }, { "label": "中宁县", "value": "640521" }, { "label": "海原县", "value": "640522" }]], [[{ "label": "天山区", "value": "650102" }, { "label": "沙依巴克区", "value": "650103" }, { "label": "新市区", "value": "650104" }, { "label": "水磨沟区", "value": "650105" }, { "label": "头屯河区", "value": "650106" }, { "label": "达坂城区", "value": "650107" }, { "label": "米东区", "value": "650109" }, { "label": "乌鲁木齐县", "value": "650121" }, { "label": "乌鲁木齐经济技术开发区", "value": "650171" }, { "label": "乌鲁木齐高新技术产业开发区", "value": "650172" }], [{ "label": "独山子区", "value": "650202" }, { "label": "克拉玛依区", "value": "650203" }, { "label": "白碱滩区", "value": "650204" }, { "label": "乌尔禾区", "value": "650205" }], [{ "label": "高昌区", "value": "650402" }, { "label": "鄯善县", "value": "650421" }, { "label": "托克逊县", "value": "650422" }], [{ "label": "伊州区", "value": "650502" }, { "label": "巴里坤哈萨克自治县", "value": "650521" }, { "label": "伊吾县", "value": "650522" }], [{ "label": "昌吉市", "value": "652301" }, { "label": "阜康市", "value": "652302" }, { "label": "呼图壁县", "value": "652323" }, { "label": "玛纳斯县", "value": "652324" }, { "label": "奇台县", "value": "652325" }, { "label": "吉木萨尔县", "value": "652327" }, { "label": "木垒哈萨克自治县", "value": "652328" }], [{ "label": "博乐市", "value": "652701" }, { "label": "阿拉山口市", "value": "652702" }, { "label": "精河县", "value": "652722" }, { "label": "温泉县", "value": "652723" }], [{ "label": "库尔勒市", "value": "652801" }, { "label": "轮台县", "value": "652822" }, { "label": "尉犁县", "value": "652823" }, { "label": "若羌县", "value": "652824" }, { "label": "且末县", "value": "652825" }, { "label": "焉耆回族自治县", "value": "652826" }, { "label": "和静县", "value": "652827" }, { "label": "和硕县", "value": "652828" }, { "label": "博湖县", "value": "652829" }, { "label": "库尔勒经济技术开发区", "value": "652871" }], [{ "label": "阿克苏市", "value": "652901" }, { "label": "温宿县", "value": "652922" }, { "label": "库车县", "value": "652923" }, { "label": "沙雅县", "value": "652924" }, { "label": "新和县", "value": "652925" }, { "label": "拜城县", "value": "652926" }, { "label": "乌什县", "value": "652927" }, { "label": "阿瓦提县", "value": "652928" }, { "label": "柯坪县", "value": "652929" }], [{ "label": "阿图什市", "value": "653001" }, { "label": "阿克陶县", "value": "653022" }, { "label": "阿合奇县", "value": "653023" }, { "label": "乌恰县", "value": "653024" }], [{ "label": "喀什市", "value": "653101" }, { "label": "疏附县", "value": "653121" }, { "label": "疏勒县", "value": "653122" }, { "label": "英吉沙县", "value": "653123" }, { "label": "泽普县", "value": "653124" }, { "label": "莎车县", "value": "653125" }, { "label": "叶城县", "value": "653126" }, { "label": "麦盖提县", "value": "653127" }, { "label": "岳普湖县", "value": "653128" }, { "label": "伽师县", "value": "653129" }, { "label": "巴楚县", "value": "653130" }, { "label": "塔什库尔干塔吉克自治县", "value": "653131" }], [{ "label": "和田市", "value": "653201" }, { "label": "和田县", "value": "653221" }, { "label": "墨玉县", "value": "653222" }, { "label": "皮山县", "value": "653223" }, { "label": "洛浦县", "value": "653224" }, { "label": "策勒县", "value": "653225" }, { "label": "于田县", "value": "653226" }, { "label": "民丰县", "value": "653227" }], [{ "label": "伊宁市", "value": "654002" }, { "label": "奎屯市", "value": "654003" }, { "label": "霍尔果斯市", "value": "654004" }, { "label": "伊宁县", "value": "654021" }, { "label": "察布查尔锡伯自治县", "value": "654022" }, { "label": "霍城县", "value": "654023" }, { "label": "巩留县", "value": "654024" }, { "label": "新源县", "value": "654025" }, { "label": "昭苏县", "value": "654026" }, { "label": "特克斯县", "value": "654027" }, { "label": "尼勒克县", "value": "654028" }], [{ "label": "塔城市", "value": "654201" }, { "label": "乌苏市", "value": "654202" }, { "label": "额敏县", "value": "654221" }, { "label": "沙湾县", "value": "654223" }, { "label": "托里县", "value": "654224" }, { "label": "裕民县", "value": "654225" }, { "label": "和布克赛尔蒙古自治县", "value": "654226" }], [{ "label": "阿勒泰市", "value": "654301" }, { "label": "布尔津县", "value": "654321" }, { "label": "富蕴县", "value": "654322" }, { "label": "福海县", "value": "654323" }, { "label": "哈巴河县", "value": "654324" }, { "label": "青河县", "value": "654325" }, { "label": "吉木乃县", "value": "654326" }], [{ "label": "石河子市", "value": "659001" }, { "label": "阿拉尔市", "value": "659002" }, { "label": "图木舒克市", "value": "659003" }, { "label": "五家渠市", "value": "659004" }, { "label": "铁门关市", "value": "659006" }]], [[{ "label": "台北", "value": "660101" }], [{ "label": "高雄", "value": "660201" }], [{ "label": "基隆", "value": "660301" }], [{ "label": "台中", "value": "660401" }], [{ "label": "台南", "value": "660501" }], [{ "label": "新竹", "value": "660601" }], [{ "label": "嘉义", "value": "660701" }], [{ "label": "宜兰", "value": "660801" }], [{ "label": "桃园", "value": "660901" }], [{ "label": "苗栗", "value": "661001" }], [{ "label": "彰化", "value": "661101" }], [{ "label": "南投", "value": "661201" }], [{ "label": "云林", "value": "661301" }], [{ "label": "屏东", "value": "661401" }], [{ "label": "台东", "value": "661501" }], [{ "label": "花莲", "value": "661601" }], [{ "label": "澎湖", "value": "661701" }]], [[{ "label": "香港岛", "value": "670101" }], [{ "label": "九龙", "value": "670201" }], [{ "label": "新界", "value": "670301" }]], [[{ "label": "澳门半岛", "value": "680101" }], [{ "label": "氹仔岛", "value": "680201" }], [{ "label": "路环岛", "value": "680301" }], [{ "label": "路氹城", "value": "680401" }]]];var _default = areaData;exports.default = _default;
+module.exports = "data:image/png;base64,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"
+
+/***/ }),
+
+/***/ 864:
+/*!*******************************************!*\
+  !*** E:/HX/flow/static/my/mes_praise.png ***!
+  \*******************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAMAAABg3Am1AAAAAXNSR0IArs4c6QAAAHJQTFRFAAAAQEBAJCRJMDBALCw3Kio1KCg4KCg2JiY5Kio5KSk7KCg5KCg4KCg4KCg5KSk4KCg5Jyk5KCk4Jyk5KCk5KCk5KCo5KSk5KCg5KCk5KCk5KCk5KCo5KCk5KCk5KCk5KCk5KCk5KCk5KCk5KCk5KCk52F9NJwAAACV0Uk5TAAQHEBcYICYoMThHUmBsdniPmpygobK2t8DV2t3f4ezx8vr7/T7hOl0AAAC4SURBVEjH7dW5EoJgDIXR4IIriivu4nLf/xUtrMx/TUjjWHDLzJwZPgoQafe79Wu81xSsEAOjZxDsga2INAZT4D4IgM4JWEgAzIFrNwB6NTCTAFgCh8wD+NyEXM8GqNh18x08huxaaGA9dHYD8ggY6wQPlDrBAzud4IA0wQFpggPSBAdUSYINSIINSIINSmAdAiTBBCzBBCzBBCzBBCzBAjTBAjRBfwTU0gQ5mqAgr+5igbz9Yf7dXnuPOe52JToWAAAAAElFTkSuQmCC"
+
+/***/ }),
+
+/***/ 865:
+/*!********************************************!*\
+  !*** E:/HX/flow/static/my/mes_comment.png ***!
+  \********************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAMAAABg3Am1AAAAAXNSR0IArs4c6QAAAYxQTFRFAAAAAAAAAABVQEBAMzMzKioqJCRJICBAMzMzLi4uJyc7JCQ3MDBALS08Kys5KCg2JiYzJCQ9LCw3Kio1Jyc7JiY5JC43LCw1Kio7JiY8JSw4Kys3KSk6KCg5Jis8Kio5KSk4Jyc7Jis5KCg6Jyc4KSk6KCg5Kio5KSk3KCg6Jys5Jio4KSk7KCg5Jyo6KSk5KSk5KCg6Jys6Jyo5Jyo4Jyo6KSk5KCg4Jyo6Jyo5KSk5Jyk4KCg5KCo4Jyk5KSk5KSk4KCo5KSk4KCg5KCo5KCg5Jyk5Jyk4KSk6KCg5Jyk5KCo6KCk5KCg6KCo5KCk5KCk4Jyk6KCg5KCg5KCk5KCk5KSk5KCg6KSk5KCk5Jyk5KCg5Jyk5KSk6KCk5KCk5KCk5KCg5KCk5KCk5KCk5Jyk5KCk5KCk5KCk5KSk5KCo5KCk5KSk5KCk5KCk5KCk5Jyk6KCk5KCk5KCk5KCk5KCk5KCg5KCk6KCk5KCk5Jyk5KCk5KCk5KCk5KCk5KCk5KCk5KCk5KCk5KCk50sFhPAAAAIN0Uk5TAAEDBAUGBwgKCw0OEBESExQVFxgaGxwdHiIpKiwtLzEyNDY5Oz4/Q0VGSElKTE9QUVNUVVZcXmBhYmNpbG1vcHF0dniBi4+Vlpicn6GkpaanqKqrra6wsba5vL3Cw8XGyMrMzc7P0tTV1tfY3N7g4eLk5ebn6Onr7e7v8vP1+fr7/P5uR0thAAABzUlEQVQYGe3B61uLYQDH8V9UZkiNQlmUUG1yiByyoiI0icqZCjkfWvdTy2qrPd9/3POq67qfPfdclxde9flox79pHJhYyJdK+YWJgSb9XefMJts2ZzpVXfMTQqabVUVfgcDcaFeiri7RNTpHoHBeThkf/Edt2tY26YOfkcMw8OuMLKeXgUFF6i3D3EGFtLyHcq8iJFZhPqYKe+dhNaFKWVhuUoSmZciqQtKHbkXqBj+psCzMymEWsgqJF6FDDh1QjMt2ERbltAj9so3DmJzGYFy219Ajpx54I5sHRyWljEkpkDImpUDKmJSkI7AiWxFikgwYBQwYBQwYSTEoylaGXZIMeAoY8BQw4EmqAV+239AgKe3l0gqkvVxagbSXS0tqgIJs3+CknNrhs2xP4bqcrsKsbCMwKaeHMCJbEjbicti/Ae0K+QhDchiFTwobhJW4Iu3z4KbC6n/CA0W6D0t7VOEycE0RrgD9ijAFpUuq0FeCKUWJLUL5hmw1Q1vwLq5Ih7/AkiytL4APDXJIlKFW23affbwFvG2Uyy1YrVfswLHWUxcy46/WCZTv1MppjQrPT6iKl9h+3D2uqg5Nf13zYT3/ff7ZvdvnWrTjf/kDRRyvpvL7zPwAAAAASUVORK5CYII="
+
+/***/ }),
+
+/***/ 866:
+/*!*****************************************!*\
+  !*** E:/HX/flow/static/my/mes_fans.png ***!
+  \*****************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAMAAABg3Am1AAAAAXNSR0IArs4c6QAAAb9QTFRFAAAAAAAAAABVKioqJCRJICBAMzMzLi4uKipAJyc7JCQ3IiIzMDBALS08Kio1Jyc7JiY5JC43KSk6Kys5JiY5Kio6Kio4KSk7Kio7Jyc7KCg6KSk5KCg4KCg6Jys6Jyo5Jyo4KSk6KCg5Jyo4Jyo6KSk6KSk5Jyo4Jyk4KSk6KCg5KSk4KCg5KCg4KCg6KCo5Jyk6KSk5KCo4Jyk5KCo5KCk4Jyk6Jyk5KCk5KCk4KCg5KCo4KCg5KCo5KCk6KCk5KCk5KCk5KCo5KCk4KCk5KCk5KSk5KCo5KCk5KCk6KCk5KSk5KCo5KCk5KCk5KCk5Jyk6KCg5KCk5KCk5KCk5KCk5KCg5KCk5KCk6KCk5KCk5KCk5Jyk5KCk5KCk5KCk5KCk5KCk5KCk5KCk5KCk5KCk5KCk5KCk5KSo6LS4+LzA/OTpJOjtJTk9cUlNgWVpmWltnbG14bW55bm95dnaAd3iCeHmDeXqEj4+Yk5SclZWdmZmhnZ6ltre8t7i9ubm/urq/v7/ExsbKycnN19jb2Njb2dnc2trd5eXn5ubo6urs8fHy8vLz8/P09PT19fX2+fn6+vr6+/v7/v7+////C1wiiAAAAGd0Uk5TAAIDBgcICgsMDQ4PEBEYGhscHyQoMDc4PUFGUVJTVFVWWFpbXF1jaGlqbHF5f4WHiYqMj5Oam6Kmp6ust7i6u8DBxMfLzNbX2Nnb3N3f4OHi4+Tm5+jp6uvs7e7v8PHy8/X29/j5+tU3dn0AAAHtSURBVBgZ7cH7X0txHMDhT5tYSVjul0aliDSRktxySzIS0tzL9m5tbsu15VpW2Fid7x+sbcfOaef7Uj95+aHnkWX/gHtX+5XQw4vtPrcsyfYeTD07ZHEuPzZ+lyzGD0QTyUwmmYgCfllENRBPqZzUGFAtf+XugxeGMhlxuHcmSPD0fo/o1UI0rQrSMUw3akSrA8aVTYKCJtEJwJSySULQW+ptuArUicZjyCibWQjJvLJOGKwQpweQUTa/ICRZq3qhUZwuwZSy+QoByamHk+LUAePKJgHHJacS+sWpFmJpVZCOQZ3kQUic3H0QN5TJiMP1FZJTCf2i4QPiKZWTGgN8klcPp0TnEBBNTM/NTieiwGHJW3kZGkXHdQS7Ex7J8nTCYIXo7byGKQgEGryl3oYAsEf0tp2loA9Lk2itPsYCw+Td3yta3m5g9NXHmbm5mU8vI1iGWsrEaX0ARl5/V6Zvb0aw9G6QYu7zMPpe2XyIQLd37aYDPUBwsxRphsgXtcDnCDSLiGvfIxhYJwtUhWBCFZmAcJXM2zgAXSVi1wrPDFXEeA6tkrUlDLvFpnwIJpXDJAyXS9ZBuFAilhp4qjSeQK1kld+FrWI5Cm9/FPxUf7yDtjU5bdAilnMsQZdYbrMEN8Vy644demFZ9v/4DfLcbOlT2eYXAAAAAElFTkSuQmCC"
+
+/***/ }),
+
+/***/ 867:
+/*!*********************************************!*\
+  !*** E:/HX/flow/static/my/mes_official.png ***!
+  \*********************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAMAAABg3Am1AAAAAXNSR0IArs4c6QAAAMlQTFRFAAAAAABVKioqMzMzKipAJyc7Jyc2JiY8JCw6KSk3KCg2JiY5Kys3Kio5Kio4KSk7KCg5Jys6Jyo5KSk4KSk6KCg5Jyo4KSk6Jyo6Jyo5Jyk4KSk5KCg5Jyo6Jyk6KSk5KCg5KCg6Jyk6KCo6KCk5KCg6KCo5KCo5KCk5KCk5Jyk4KSk5KCg5Jyk5KCg5KCo4KCk5KCk5KCk5KCk5KCk5KCk5KCk5KCk5KCk5KCk5KCk5KCk5KCk5KCk5KCk5KCk5KCk5KCk5KCk5cuSjaQAAAEJ0Uk5TAAMGCgwNISIjJSYoKjE3OD9UVVdYWVtdYWJpa2xufH1+hYmfoKSlsrO0tba3vL2+0dLT5OXm5+3u8PP4+fr7/P3+J+aqmQAAAPRJREFUSMftlctSwjAYRitW7iAKKqBcCipFROWqSKDkvP9DuYEBmyYUdgz9djn5ziT/IhPLinJkMo2PydKbfDYzoepZV7KO7Gb39x/n7GRe2ddvAfKtEr+4TJU7K6Bl7j8Bw+vNKvcF1IzjCni3t2u7B8I0egeGV7vAHkBX309LZP4/yktkWivUoednLtS1Qh/KflaCvlYYQ8LPEjDSCgJifhYDoRWAkDASzktIwkylM0hqhBdwA1/ha3C/ChRUXACqQf0bD56DNtrg3aq4uMAQ704Rphjzowj338b+w2n9J47Y3Fw4oQSxnfX3wBMWjhXlmPwBswtRkG6hIBEAAAAASUVORK5CYII="
+
+/***/ }),
+
+/***/ 868:
+/*!******************************************!*\
+  !*** E:/HX/flow/static/my/mes_order.png ***!
+  \******************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAMAAABg3Am1AAAAAXNSR0IArs4c6QAAAPNQTFRFAAAAAAAAAAAAQEBAMzMzJCRJKipAJCQ3IiIzMDBAJiYzJCQ9Kio1LCw1Kys5KCg2Jyc3Kio6Kio5KCg5KCg4KSk4KCg6Jys5Jio4KCg4KCg4Jys6Jyo4Jyo6Jyo5KCg5KSk6KCg6KCg5KCg5KCo4KCg4KCg6KCo5Jyk4KCg5KCo4KSk5KCg6Jyk4KCk5Jyk6KCk5KCo5KSk5KCk5KCk6KCk5KCk5KCk5Jyk5KCo5KCk5KCk5KCk5KSk5KCo5KCk5KCo5KCk5KCk5Jyk6KCk5KCk5KCg5KCk6KCk5KCk5KCk5KCk5KCk5KCk5KCk5KCk5KCk5iCXW5QAAAFB0Uk5TAAECBAUHDA4PEBQVGB0kJi4wMT9AREZISU1SVFthYmZqc3h5en+Fh4iLjJCSlaCorrK2ubq7v8DCxNLU1dbX2t3f4OLk6Onr7vHy8/n6+/xJpiZFAAABIUlEQVRIx+2V2VLCQBBFOyC4AIIsIm5xjeKGiERwFxRFknD+/2t8QCSambJiaZWl3KfpO31qkr6TishY4WQsVjsE1KkuGer+ZAONGklVf6KFVq2EAjgFdycd/WhH07su1IL9BfCK6mdd8GA+4FbgQDeNfagEzDZkdUAG2gGzDzEdEIN+wAT0Cak2vwxYjj8Ax/oUcN5H1gt5gmt9/zv8BWA0pdcMQuTQC3mCa/2bsf42YNKs354sTwy9SOHoum5OaYFUuQvA3UpERCRm3gDQLac0gPt2Kc6LElm9H313GgC4Ws9uPQLULgAeNjJrl4MdJdAsGSIS334e9DxtxkXEKDU1gJ0brmcOPXD2pod1zlYAZ3l/NWcfz/rrvD3+Qf+oXgDEhYaL+EQ5MwAAAABJRU5ErkJggg=="
 
 /***/ })
 

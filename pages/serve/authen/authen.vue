@@ -53,7 +53,7 @@
 				</view>
 				<view class="btns">
 					<text @click="go('./kind/kind')">实物鉴定</text>
-					<text @click="go('./aller/aller')">在线鉴定</text>
+					<text @click="go('/pages/leave/classify/classify?type=line')">在线鉴定</text>
 				</view>
 			</view>
 			<view class="er">
@@ -66,10 +66,10 @@
 				</view>
 				<scroll-view scroll-x="true" class="scroll_x">
 					<view class="list">
-						<view class="item" v-for="(item,index) in 6" :key="index">
-							<image src="" mode=""></image>
-							<text>王明</text>
-							<text>已鉴定8320单</text>
+						<view class="item" v-for="(item,index) in allearList" :key="index" @click="go('/pages/serve/authen/aller/detail?id=' + item.id)">
+							<image :src="ImgUrl + item.image" mode=""></image>
+							<text>{{item.name}}</text>
+							<text>已鉴定{{item.nums}}单</text>
 						</view>
 					</view>
 				</scroll-view>
@@ -82,15 +82,38 @@
 	export default {
 		data() {
 			return {
-				
+				allearList: []
 			};
+		},
+		onLoad() {
+			this.getData()
+			this.getAller()
 		},
 		methods:{
 			go(e){
 				uni.navigateTo({
 					url: e
 				})
-			}
+			},
+			getData(){
+				this.request({
+					url: 'service/index/index'
+				}).then(res=>{})
+			},
+			getAller(){
+				this.request({
+					url: 'service/gemmologist/list',
+					data: {
+						token: uni.getStorageSync('userInfo').token,
+						page_index: 1,
+						page_size: 5
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.allearList = res.data.data.list
+					}
+				})
+			},
 		}
 	}
 </script>

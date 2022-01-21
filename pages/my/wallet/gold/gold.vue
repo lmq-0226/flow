@@ -1,17 +1,17 @@
 <template>
 	<view class="content">
 		<view class="top">
-			<text>200</text>
+			<text>{{total}}</text>
 			<text @click="go('/pages/my/integral/integral')">去使用</text>
 		</view>
 		<view class="detail">
 			<text class="title">积分明细</text>
-			<view class="item" v-for="(item,index) in 5" :key="index">
+			<view class="item" v-for="(item,index) in list" :key="index">
 				<view class="">
-					<text>邀请</text>
-					<text>2021-08-09 10:52</text>
+					<text>{{item.memo}}</text>
+					<text>{{date('YmdHis',item.createtime*1000)}}</text>
 				</view>
-				<text>200</text>
+				<text>{{item.score}}</text>
 			</view>
 		</view>
 	</view>
@@ -21,13 +21,35 @@
 	export default {
 		data() {
 			return {
-				
+				list: [],
+				total: 0
 			};
+		},
+		onLoad() {
+			this.getData()
 		},
 		methods:{
 			go(e){
 				uni.navigateTo({
 					url: e
+				})
+			},
+			getData(){
+				this.request({
+					url: 'wanlshop/user/scoreLog',
+					data: {
+						token: uni.getStorageSync('userInfo').token,
+						page: 1
+					}
+				}).then(res=>{
+					// console.log(res)
+					if(res.data.code == 1){
+						this.list = res.data.data.data
+						this.list.forEach(elem=>{
+							console.log(this.date('YmdHis',elem.createtime*1000))
+						})
+						this.total = res.data.data.total
+					}
 				})
 			}
 		}

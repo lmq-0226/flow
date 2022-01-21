@@ -50,6 +50,7 @@ page{
   margin-left: 35rpx;
 }
 .content .user.data-v-0be17cc6 {
+  width: 100%;
   padding: 30rpx 36rpx;
 }
 .content .user .info.data-v-0be17cc6 {

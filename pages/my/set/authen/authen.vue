@@ -69,6 +69,21 @@
 			submit() {
 				this.$refs.uForm.validate(valid => {
 					if (valid) {
+						this.request({
+							url: 'userauth/submit',
+							data: {
+								token: uni.getStorageSync('userInfo').token,
+								name: this.form.name,
+								idcard: this.form.code,
+								front_image: '',
+								back_image: '',
+								info: '',
+								mobile: '',
+								status: 'normal'
+							}
+						}).then(res=>{
+							console.log(res)
+						})
 						console.log('验证通过');
 					} else {
 						console.log('验证失败');

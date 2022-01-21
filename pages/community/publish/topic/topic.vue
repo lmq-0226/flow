@@ -22,7 +22,7 @@
 							<text></text>
 						</view>
 						<view class="items">
-							<view class="item" v-for="(item,index) in 15" :key="index">
+							<view class="item" v-for="(item,index) in 15" :key="index" @click="go('./house')">
 								<image src="" mode=""></image>
 								<view class="">
 									<text>#学生党最爱黑色潮鞋合集</text>
@@ -54,6 +54,11 @@
 		methods:{
 			scrollpage(e){
 				this.scrollTop = e.detail.scrollTop
+			},
+			go(e){
+				uni.navigateTo({
+					url: e
+				})
 			}
 		}
 	}
@@ -68,6 +73,10 @@
 			display: flex;
 			justify-content: flex-start;
 			align-items: center;
+			position: sticky;
+			top: 0;
+			background: #fff;
+			z-index: 999999;
 			image{
 				width: 44rpx;
 				height: 44rpx;
@@ -85,7 +94,7 @@
 			justify-content: space-between;
 			.left {
 				.scroll-Y {
-					height: 100vh;
+					height: calc(100vh - 92rpx);
 					/* #ifdef H5 */
 					height: calc(100vh - 88rpx - 92rpx);
 					/* #endif */
@@ -115,7 +124,7 @@
 				width: calc(100% - 162rpx);
 				.scroll-Y {
 					background: #fff;
-					height: 100vh;
+					height: calc(100vh - 92rpx);
 					/* #ifdef H5 */
 					height: calc(100vh - 88rpx - 92rpx);
 					/* #endif */

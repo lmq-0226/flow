@@ -1,18 +1,18 @@
 <template>
 	<view class="content">
 		<view class="items">
-			<view class="item" v-for="(item,index) in 2" :key="index" @click="status = index">
+			<view class="item" v-for="(item,index) in addressList" :key="index" @click="setDef(item)">
 				<view class="left">
-					<text>江苏省苏州市姑苏区锦沧名苑附近</text>
+					<text>{{item.formatted_address + item.address}}</text>
 					<view class="">
-						<text class="default" v-if="status == index">默认</text>
-						<text>小明 15648923574</text>
+						<text class="default" v-if="item.default == 1">默认</text>
+						<text>{{item.name}} {{item.mobile}}</text>
 					</view>
 				</view>
-				<image src="/static/my/edit.png" mode="" @click.stop="go('./add?type=edit')"></image>
+				<image src="/static/my/edit.png" mode="" @click.stop="go('./add?type=edit&detail=' + JSON.stringify(item))"></image>
 			</view>
 		</view>
-		
+		<u-empty v-if="addressList.length <= 0" text="您还没有添加收货地址" mode="address"></u-empty>
 		<view class="add" @click="go('./add?type=add')">
 			添加新地址
 		</view>
@@ -23,17 +23,56 @@
 	export default {
 		data() {
 			return {
-				status: 0
+				status: 0,
+				addressList: [],
+				type: '',
+				item: {}
 			};
 		},
-		onLoad() {
-			
+		onLoad(option) {
+			this.type = option.type
+			this.item = JSON.parse(option.address)
+		},
+		onBackPress() {
+			if(this.type == 'order'){
+				// 返回上一个页面携带参数
+				var pages = getCurrentPages();
+				var prevPage = pages[pages.length - 2]; //上一个页面
+				// 修改头像和背景图
+				// prevPage.$vm.type = 'order'
+				prevPage.$vm.address_id = this.item.id
+			}
+		},
+		onShow() {
+			this.getData()
 		},
 		methods:{
+			getData(){
+				this.request({
+					url: 'wanlshop/address/getaddress',
+					data: {
+						token: uni.getStorageSync('userInfo').token
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.addressList = res.data.data.data
+					}
+				})
+			},
+			setDef(e){
+				if(this.type == 'order'){
+					this.item = e
+					uni.navigateBack({
+						delta: 1
+					})
+				}
+				
+			},
 			go(e){
 				uni.navigateTo({
 					url: e
 				})
+				
 			}
 		}
 	}

@@ -98,8 +98,8 @@
 .content .list .item .goods view > :nth-child(3) {
   font-size: 22rpx;
   font-family: PingFang SC;
-  font-weight: 500;
-  color: #9094A6;
+  font-weight: bold;
+  color: #FF4243;
 }
 .content .list .item .goods .status {
   position: absolute;

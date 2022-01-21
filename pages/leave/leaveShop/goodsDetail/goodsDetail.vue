@@ -9,16 +9,16 @@
 				<view class="price">
 					<view class="p_left">
 						<text>¥</text>
-						<text>899</text>
+						<text>{{goodsDetail.price}}</text>
 					</view>
 					<text>S级</text>
 				</view>
 				<view class="coupon">
 					<text>原价 ¥2400 / 市场价 ¥1000</text>
-					<text>15人想要</text>
+					<text>{{goodsDetail.like_nums}}人想要</text>
 				</view>
 				<view class="desc">
-					<text>EVISU福神 老虎达摩拼图印花T恤 男款EVISU福神 老虎达摩拼图印花T恤 男款</text>
+					<text>{{goodsDetail.content}}</text>
 				</view>
 			</view>
 			<view class="ident">
@@ -81,7 +81,17 @@
 				<u-loadmore bg-color="#F6F5FA" :status="loadStatus" @loadmore="addRandomData"></u-loadmore>
 			</view>
 		</view>
-		<view class="bottom">
+		<view class="bottom" v-if="userInfo.id == goodsDetail.user_id">
+			<view class="b_left" @click="collect = !collect">
+				<image v-if="collect" src="/static/shop/collect_on.png" mode=""></image>
+				<image v-else src="/static/shop/collect.png" mode=""></image>
+				<text>收藏</text>
+			</view>
+			<view class="ing">
+				<text>{{goodsDetail.status_text}}</text>
+			</view>
+		</view>
+		<view class="bottom" v-else>
 			<view class="b_left" @click="collect = !collect">
 				<image v-if="collect" src="/static/shop/collect_on.png" mode=""></image>
 				<image v-else src="/static/shop/collect.png" mode=""></image>
@@ -90,10 +100,11 @@
 			<view class="b_mid">
 				<text>卖同款</text>
 			</view>
-			<view class="b_right" @click="go('/pages/shop/goodsDetail/confirmOrder/confirmOrder')">
+			<view class="b_right" @click="go('../confirmOrder/confirmOrder?type=1&goods_id=' + goodsDetail.id)">
 				<text>立即购买</text>
 			</view>
 		</view>
+		
 		<!-- 选择规格弹窗 -->
 		<u-popup v-model="popupShow" mode="bottom" border-radius="20"  @touchmove.native.stop.prevent> 
 			<view class="popupCon">
@@ -156,6 +167,7 @@
 		components:{imgsBanner},
 		data() {
 			return {
+				userInfo: uni.getStorageSync('userInfo'),
 				imgList: [
 					require('@/static/pub/bbt.png'),
 					require('@/static/pub/ch.png'),
@@ -256,6 +268,7 @@
 					},
 				],
 				loadStatus: 'loadmore', // 加载更多状态 上拉加载
+				goodsDetail: {}
 			};
 		},
 		onNavigationBarButtonTap(e){
@@ -289,8 +302,9 @@
 				clearTimeout(timer)
 			},500)
 		},
-		onLoad() {
+		onLoad(option) {
 			this.addRandomData()
+			this.getData(option.id)
 		},
 		onPageScroll(e) {
 			this.scrollTop = e.scrollTop
@@ -309,6 +323,22 @@
 			}
 		},
 		methods:{
+			// 闲置商品详情
+			getData(e){
+				this.request({
+					url: 'idle/consign/detail',
+					data: {
+						token: uni.getStorageSync('userInfo').token,
+						id: e
+					}
+				}).then(res=>{
+					console.log(res, '111')
+					if(res.data.code == 1){
+						this.imgList = res.data.data.cdn_images
+						this.goodsDetail = res.data.data
+					}
+				})
+			},
 			changeCut(e){
 				let top = ''
 				if(e == 0){
@@ -560,6 +590,19 @@
 			display: flex;
 			justify-content: space-between;
 			align-items: center;
+			.ing{
+				width: 610rpx;
+				height: 74rpx;
+				background: #8D8D98;
+				border-radius: 6rpx;
+				font-size: 28rpx;
+				font-family: PingFang SC;
+				font-weight: bold;
+				color: #FFFFFF;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+			}
 			.b_left{
 				text-align: center;
 				image{

@@ -1,0 +1,12 @@
+{
+  "navigationBarTitleText": "",
+  "navigationStyle": "custom",
+  "enablePullDownRefresh": false,
+  "usingComponents": {
+    "u-tabs": "/node-modules/uview-ui/components/u-tabs/u-tabs",
+    "u-popup": "/node-modules/uview-ui/components/u-popup/u-popup",
+    "dynamic": "/pages/my/homePage/components/dynamic",
+    "liked": "/pages/my/homePage/components/liked",
+    "shop": "/pages/my/homePage/components/shop"
+  }
+}

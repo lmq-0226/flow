@@ -96,7 +96,7 @@ var components
 try {
   components = {
     uSwitch: function() {
-      return __webpack_require__.e(/*! import() | node-modules/uview-ui/components/u-switch/u-switch */ "node-modules/uview-ui/components/u-switch/u-switch").then(__webpack_require__.bind(null, /*! uview-ui/components/u-switch/u-switch.vue */ 925))
+      return __webpack_require__.e(/*! import() | node-modules/uview-ui/components/u-switch/u-switch */ "node-modules/uview-ui/components/u-switch/u-switch").then(__webpack_require__.bind(null, /*! uview-ui/components/u-switch/u-switch.vue */ 1111))
     }
   }
 } catch (e) {

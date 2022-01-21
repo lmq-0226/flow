@@ -2,8 +2,6 @@
   "navigationBarTitleText": "社区",
   "navigationStyle": "custom",
   "usingComponents": {
-    "community-u-waterfall-left": "/pages/community/community-u-waterfall-left",
-    "community-u-waterfall-right": "/pages/community/community-u-waterfall-right",
     "u-tabs": "/node-modules/uview-ui/components/u-tabs/u-tabs",
     "u-dropdown": "/node-modules/uview-ui/components/u-dropdown/u-dropdown",
     "u-dropdown-item": "/node-modules/uview-ui/components/u-dropdown-item/u-dropdown-item",

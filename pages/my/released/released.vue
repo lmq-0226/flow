@@ -1,59 +1,81 @@
 <template>
 	<view class="content">
-		<view class="tabs">
-			<u-tabs :list="list" :is-scroll="false" :current="current" @change="change" active-color="#FC493D"></u-tabs>
+		<view class="status_bar"></view>
+		<view class="status">
+			<image class="back" src="/static/pub/back.png" mode="" @click="bay"></image>
+			<u-subsection style="width: 80%;" :list="statusList" :current="statusCurrent" active-color="#FF4243" @change="statusCurrent = $event"></u-subsection>
 		</view>
-		<view class="list" v-if="true">
-			<view class="item" v-for="(item,index) in 5" :key="index">
-				<view class="desc">
-					<image src="/static/pub/ch.png" mode=""></image>
-					<view class="">
-						<text>阿迪达斯2021新款运动鞋网面拼接黑色...</text>
-						<text>¥399</text>
-						<text>12人想要</text>
-					</view>
-				</view>
-				<view class="btns">
-					<text>更多</text>
-					<view class="">
-						<text>降价</text>
-						<text>编辑</text>
-						<text @click="go('./goodsDetail/goodsDetail')">详情</text>
-					</view>
-				</view>
-			</view>
-		</view>
-		<u-empty v-else text="暂无数据" mode="data" margin-top="400"></u-empty>
+		<swiper class="swipers"  :current="statusCurrent" @change="statusCurrent = $event.detail.current">
+			<swiper-item>
+				<sale ref="sale" :current="current" :pCut="pCut"></sale>
+			</swiper-item>
+			<swiper-item>
+				<consign ref="consign" :current="current" :pCut="pCut"></consign>
+			</swiper-item>
+		</swiper>
 	</view>
 </template>
 
 <script>
+	import consign from '@/components/publish/consign.vue'
+	import sale from '@/components/publish/sale.vue'
 	export default {
+		components:{
+			consign,
+			sale
+		},
 		data() {
 			return {
-				current: 0,
-				list: [
+				statusList: [
 					{
-						name: '全部'
-					}, {
-						name: '草稿'
-					}, {
-						name: '已下架'
+						name: '拍卖商品'
+					},
+					{
+						name: '寄卖商品'
 					}
 				],
+				statusCurrent: 0,
+				current: 0,
+				status: '',
+				pCut: 0,
+				type: ''
 			};
 		},
-		onLoad() {
-			
+		onLoad(option) {
+			this.type = option.type
+			if(option.type == 'consign'){
+				this.statusCurrent = 1
+			}else{
+				this.statusCurrent = 0
+			}
+			// if(option.current){
+			// if(option.current){
+			// 	this.statusCurrent = option.current
+			// }else{
+			// 	this.statusCurrent = option.statusCurrent // 0拍卖 1寄卖
+			// }
+			this.current = option.current || 0
+			this.pCut = option.current || 0
+			// }
+		},
+		onShow(){
+			let timer = setTimeout(()=>{
+				this.$refs.sale.getData()
+				this.$refs.consign.getData()
+			}, 50)
 		},
 		methods:{
-			change(e){
-				this.current = e
-			},
-			go(e){
-				uni.navigateTo({
-					url: e
-				})
+			bay(){
+				if(this.type != '' && this.current == 1){
+					uni.navigateBack({
+						delta: 1
+					})
+				}else{
+					uni.switchTab({
+						url: '/pages/my/my'
+					})
+				}
+				
 			}
 		}
 	}
@@ -61,83 +83,38 @@
 
 <style lang="scss" scoped>
 	.content{
+		.status{
+			width: 100%;
+			// padding: 0 50rpx;	
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			height: 88rpx;
+			background: #fff;
+			z-index: 999;
+			position: sticky;
+			top: 0;
+			.back{
+				width: 48rpx;
+				height: 48rpx;
+				position: absolute;
+				left: 10rpx;
+			}
+		}
 		.tabs{
 			border-bottom: solid 10rpx #F6F5FA;
 			position: sticky;
-			top: 0;
+			top: 88rpx;
 			background: #fff;
 			z-index: 999;
 		}
-		.list{
-			
-			.item{
-				padding: 0 30rpx;
-				border-bottom: solid 10rpx #F6F5FA;
-				.desc{
-					display: flex;
-					justify-content: flex-start;
-					align-items: center;
-					padding: 28rpx 6rpx;
-					border-bottom: solid 1px #F2F2F6;
-					image{
-						width: 164rpx;
-						height: 164rpx;
-						margin-right: 23rpx;
-					}
-					view{
-						height: 164rpx;
-						display: flex;
-						flex-direction: column;
-						justify-content: space-between;
-						>:nth-child(1){
-							font-size: 26rpx;
-							font-family: PingFang SC;
-							font-weight: bold;
-							color: #000000;
-						}
-						>:nth-child(2){
-							font-size: 24rpx;
-							font-family: PingFang SC;
-							font-weight: bold;
-							color: #FF4243;
-						}
-						>:nth-child(3){
-							font-size: 22rpx;
-							font-family: PingFang SC;
-							font-weight: 500;
-							color: #9094A6;
-						}
-					}
-				}
-				.btns{
-					padding: 13rpx 0rpx;
-					display: flex;
-					justify-content: space-between;
-					align-items: center;
-					>text{
-						font-size: 24rpx;
-						font-family: PingFang SC;
-						font-weight: 500;
-						color: #686879;
-					}
-					view{
-						text{
-							display: inline-block;
-							width: 130rpx;
-							height: 54rpx;
-							border: 1px solid #9393A7;
-							border-radius: 8rpx;
-							text-align: center;
-							line-height: 54rpx;
-							font-size: 24rpx;
-							font-family: PingFang SC;
-							font-weight: 500;
-							color: #686879;
-							margin-left: 20rpx;
-						}
-					}
-				}
-			}
+		.swipers{
+			/* #ifdef H5 */
+			height: calc(100vh - 88rpx);
+			/* #endif */
+			/* #ifdef APP-PLUS */
+			height: calc(100vh - 88rpx - var(--status-bar-height));
+			/* #endif */
 		}
 	}
 </style>

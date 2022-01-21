@@ -1,7 +1,7 @@
 <template>
 	<view class="content">
 		<view class="list">
-			<view class="item">
+			<!-- <view class="item">
 				<view class="title">
 					<view class="">
 						<image src="/static/avatar3.png" mode=""></image>
@@ -22,31 +22,31 @@
 				<view class="bot">
 					<text @click="go('/pages/leave/detail/detail?status=1')">查看详情</text>
 				</view>
-			</view>
-			<view class="item" v-for="(item,index) in list" :key="item.id">
+			</view> -->
+			<view class="item" v-for="(item,index) in list" :key="item.id"  @click="go('/pages/my/sell/detail/detail?order_id=' + item.id)">
 				<view class="title">
 					<view class="">
-						<image src="/static/avatar3.png" mode=""></image>
-						<text>{{item.name}}</text>
+						<image :src="ImgUrl + item.seller.avatar" mode=""></image>
+						<text>{{item.seller.nickname}}</text>
 					</view>
-					<text class="ing">{{item.order_text}}</text>
+					<text class="ing">{{item.state_text}}</text>
 				</view>
 				<view class="goods">
 					<view class="avatar">
-						<image :src="item.goodsImg" mode=""></image>
+						<image :src="ImgUrl + item.idlegoods.image" mode=""></image>
 					</view>
 					<view class="">
-						<text>{{item.desc}}</text>
-						<text>白色 XXL 数量x1</text>
-						<text>¥{{item.price}}</text>
+						<text>{{item.idlegoods.name}}</text>
+						<text></text>
+						<text>¥{{item.idlegoods.price}}</text>
 					</view>
 				</view>
-				<view class="bot" v-if="item.buttons.length > 0">
-					<text v-for="(elem,index) in item.buttons" :key="index" @click="go('./detail/detail?status=' + elem.id)">{{elem.text}}</text>
+				<view class="bot">
+					<text @click.stop="go('/pages/my/sell/deliver/deliver?order_id=' + item.id)">去发货</text>
 				</view>
 			</view>
 		</view>
-		<u-empty v-if="identList.length <= 0" margin-top="400" text="暂无数据" mode="data"></u-empty>
+		<u-empty style="padding-top: 400rpx;" v-if="list.length <= 0" text="暂无数据" mode="list"></u-empty>
 	</view>
 </template>
 
@@ -54,38 +54,37 @@
 	export default {
 		data() {
 			return {
-				identList: [1],
 				list: [
-					{
-						id: 1,
-						name: 'tb455263296',
-						goodsImg: require('@/static/pub/bbt.png'),
-						desc: '居居侠超级无敌棒棒糖',
-						price: 199,
-						order_status: 1, // 1待发货，2待收货，3待评价
-						order_text: '待发货',
-						buttons: [{id: 1,text: '查看详情'}]
-					},
-					{
-						id: 2,
-						name: 'Dyxlhl',
-						goodsImg: require('@/static/pub/ch.png'),
-						desc: '彩虹，又称天弓、天虹、绛等，简称虹',
-						price: 199,
-						order_status: 2, // 1待发货，2待收货，3待评价
-						order_text: '待收货',
-						buttons: [{id: 2,text: '提醒收货'}]
-					},
-					{
-						id: 3,
-						name: 'tb455263296',
-						goodsImg: require('@/static/pub/ttq.png'),
-						desc: '甜甜圈，又称多拿滋、唐纳滋，它是一种用面粉、白砂糖、奶油和鸡蛋混合之后再经过油炸的甜食。',
-						price: 199,
-						order_status: 3, // 1待发货，2待收货，3待评价
-						order_text: '待评价',
-						buttons: [{id: 3,text: '提醒评价'}]
-					}
+					// {
+					// 	id: 1,
+					// 	name: 'tb455263296',
+					// 	goodsImg: require('@/static/pub/bbt.png'),
+					// 	desc: '居居侠超级无敌棒棒糖',
+					// 	price: 199,
+					// 	order_status: 1, // 1待发货，2待收货，3待评价
+					// 	order_text: '待发货',
+					// 	buttons: [{id: 1,text: '查看详情'}]
+					// },
+					// {
+					// 	id: 2,
+					// 	name: 'Dyxlhl',
+					// 	goodsImg: require('@/static/pub/ch.png'),
+					// 	desc: '彩虹，又称天弓、天虹、绛等，简称虹',
+					// 	price: 199,
+					// 	order_status: 2, // 1待发货，2待收货，3待评价
+					// 	order_text: '待收货',
+					// 	buttons: [{id: 2,text: '提醒收货'}]
+					// },
+					// {
+					// 	id: 3,
+					// 	name: 'tb455263296',
+					// 	goodsImg: require('@/static/pub/ttq.png'),
+					// 	desc: '甜甜圈，又称多拿滋、唐纳滋，它是一种用面粉、白砂糖、奶油和鸡蛋混合之后再经过油炸的甜食。',
+					// 	price: 199,
+					// 	order_status: 3, // 1待发货，2待收货，3待评价
+					// 	order_text: '待评价',
+					// 	buttons: [{id: 3,text: '提醒评价'}]
+					// }
 				],
 			};
 		},
@@ -96,9 +95,23 @@
 			return true
 		},
 		onLoad() {
-			
+			this.getData()
 		},
 		methods:{
+			getData(){
+				this.request({
+					url: 'idle/order/sale_order_list',
+					data: {
+						token: uni.getStorageSync('userInfo').token,
+						page_index: 1,
+						page_size: 10
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.list = res.data.data.list
+					}
+				})
+			},
 			go(e){
 				uni.navigateTo({
 					url: e
@@ -156,8 +169,10 @@
 					.avatar{
 						margin-right: 20rpx;
 						image{
-							width: 164rpx;
-							height: 164rpx;
+							width: 180rpx;
+							height: 180rpx;
+							min-width: 180rpx;
+							border-radius: 10rpx;
 						}
 					}
 					view{

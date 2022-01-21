@@ -2,8 +2,6 @@
   "navigationBarTitleText": "",
   "enablePullDownRefresh": false,
   "usingComponents": {
-    "public-u-waterfall-left": "/pages/public/public-u-waterfall-left",
-    "public-u-waterfall-right": "/pages/public/public-u-waterfall-right",
     "u-waterfall": "/node-modules/uview-ui/components/u-waterfall/u-waterfall",
     "u-lazy-load": "/node-modules/uview-ui/components/u-lazy-load/u-lazy-load",
     "u-loadmore": "/node-modules/uview-ui/components/u-loadmore/u-loadmore",

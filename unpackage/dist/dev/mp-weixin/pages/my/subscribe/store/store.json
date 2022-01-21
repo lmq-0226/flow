@@ -3,8 +3,6 @@
   "enablePullDownRefresh": false,
   "navigationStyle": "custom",
   "usingComponents": {
-    "store-u-waterfall-left": "/pages/my/subscribe/store/store-u-waterfall-left",
-    "store-u-waterfall-right": "/pages/my/subscribe/store/store-u-waterfall-right",
     "u-tabs": "/node-modules/uview-ui/components/u-tabs/u-tabs",
     "u-waterfall": "/node-modules/uview-ui/components/u-waterfall/u-waterfall",
     "u-lazy-load": "/node-modules/uview-ui/components/u-lazy-load/u-lazy-load",

@@ -35,7 +35,7 @@
 			<!-- 瀑布流 -->
 			<u-waterfall v-model="flowList" ref="uWaterfall">
 				<template v-slot:left="{leftList}">
-					<view class="demo-warter" v-for="(item, index) in leftList" :key="index" @click="go(item.type == 'video' ? './detail/video' : './detail/detail')">
+					<view class="demo-warter" v-for="(item, index) in leftList" :key="index" @click="go(item.type == 'video' ? './detail/videoList' : './detail/detail')">
 						<image v-if="item.type == 'video'" class="videoPb" src="/static/comm/video_play.png" mode=""></image>
 						<!-- 警告：微信小程序中需要hx2.8.11版本才支持在template中结合其他组件，比如下方的lazy-load组件 -->
 						<u-lazy-load threshold="-450" border-radius="10" :image="item.image" img-mode="widthFix" :index="index"></u-lazy-load>
@@ -55,7 +55,7 @@
 					</view>
 				</template>
 				<template v-slot:right="{rightList}">
-					<view class="demo-warter" v-for="(item, index) in rightList" :key="index" @click="go(item.type == 'video' ? './detail/video' : './detail/detail')">
+					<view class="demo-warter" v-for="(item, index) in rightList" :key="index" @click="go(item.type == 'video' ? './detail/videoList' : './detail/detail')">
 						<image v-if="item.type == 'video'" class="videoPb" src="/static/comm/video_play.png" mode=""></image>
 						<u-lazy-load threshold="-450" border-radius="10" :image="item.image" img-mode="widthFix" :index="index"></u-lazy-load>
 						<view class="demo-title">
@@ -218,10 +218,7 @@
 			},
 			go(e){
 				uni.navigateTo({
-					url: e,
-					complete: (err) => {
-						console.log(err)
-					}
+					url: e
 				})
 			}
 		}
@@ -238,7 +235,7 @@
 			padding: 0 28rpx 20rpx;
 			position: sticky;
 			top: var(--status-bar-height);
-			z-index: 999;
+			z-index: 99999;
 			background-color: #fff;
 			border-bottom: solid 1px #f8f8f8;
 			image{
@@ -268,9 +265,15 @@
 			justify-content: space-between;
 			align-items: center;
 			padding: 0 30rpx;
+			background: #fff;
+			z-index: 777;
+			// position: sticky;
+			// top: 0;
 			.tabs{
 				width: 90%;
 				height: 88rpx;
+				background: #fff;
+				z-index: 888;
 			}
 			.select{
 				// image{
@@ -278,11 +281,22 @@
 				// 	height: 44rpx;
 				// }
 				/deep/ .u-dropdown__content{
+					position: fixed;
+					top: 160rpx !important;
+					height: 100vh !important;
+					/* #ifdef APP-PLUS */
+					top: 200rpx !important;
+					/* #endif */
 					width: 750rpx;
 					right: -30rpx;
 					background-color: #fff;
 				}
 				/deep/ .u-dropdown__content__mask{
+					position: fixed;
+					top: 160rpx !important;
+					/* #ifdef APP-PLUS */
+					top: 200rpx !important;
+					/* #endif */
 					width: 750rpx;
 					right: -30rpx;
 				}

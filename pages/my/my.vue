@@ -7,12 +7,12 @@
 			<image src="/static/my/set.png" mode="" @click="go('./set/set')"></image>
 		</view>
 		<view class="user">
-			<view class="info" @click="go('./homePage/homePage?type=1')">
-				<image :src="userInfo.avatar" mode=""></image>
+			<view class="info" @click.stop="go('./homePage/homePage?type=1')">
+				<image :src="ImgUrl + userInfo.avatar" mode=""></image>
 				<view class="name">
 					<view class="nickname">
 						<text v-if="userInfo.nickname">{{userInfo.nickname}}</text>
-						<text v-else @click="go('/pages/login/login')">去登陆</text>
+						<text v-else @click.stop="go('/pages/login/login')">去登陆</text>
 						<image src="/static/my/right.png" mode=""></image>
 					</view>
 					<text>{{userInfo.bio == '' ? '未设置签名' : userInfo.bio}}</text>
@@ -80,15 +80,15 @@
 				</view>
 				<view class="wRight">
 					<view class="">
-						<text>￥0.00</text>
+						<text>￥{{userInfo.money || '0.00'}}</text>
 						<text>余额</text>
 					</view>
 					<view class="">
-						<text>0</text>
+						<text>{{dynamic.coupon || 0}}</text>
 						<text>优惠券</text>
 					</view>
 					<view class="">
-						<text>0</text>
+						<text>{{userInfo.score || 0}}</text>
 						<text>积分</text>
 					</view>	
 				</view>
@@ -152,20 +152,35 @@
 				],
 				otherList:[
 					{lettle: '积分商城', icon: require('@/static/my/integral.png'),url: './integral/integral'},
-					{lettle: '客服中心', icon: require('@/static/my/service.png'),url: ''},
-					{lettle: '尺码管理', icon: require('@/static/my/size.png'),url: ''},
+					{lettle: '客服中心', icon: require('@/static/my/service.png'),url: '/pages/public/callCenter'},
+					// {lettle: '尺码管理', icon: require('@/static/my/size.png'),url: ''},
 					{lettle: '邀请好友', icon: require('@/static/my/invite.png'),url: 'invite/invite'},
 					{lettle: '意见反馈', icon: require('@/static/my/feedback.png'),url: './feedback/feedback'}
-				]
+				],
+				dynamic: {}
 			};
 		},
 		onLoad() {
 			
 		},
 		onShow() {
+			this.getData()
 			this.userInfo = uni.getStorageSync('userInfo')
 		},
 		methods:{
+			getData(){
+				this.request({
+					url: 'wanlshop/user/refresh',
+					data: {
+						token: uni.getStorageSync('userInfo').token
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.dynamic = res.data.data.statistics.dynamic
+						uni.setStorageSync('userInfo', res.data.data.userinfo)
+					}
+				})
+			},
 			scan(){
 				uni.scanCode({
 					success: (res) => {

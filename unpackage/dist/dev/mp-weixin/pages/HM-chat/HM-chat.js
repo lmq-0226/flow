@@ -96,7 +96,7 @@ var components
 try {
   components = {
     uInput: function() {
-      return Promise.all(/*! import() | node-modules/uview-ui/components/u-input/u-input */[__webpack_require__.e("common/vendor"), __webpack_require__.e("node-modules/uview-ui/components/u-input/u-input")]).then(__webpack_require__.bind(null, /*! uview-ui/components/u-input/u-input.vue */ 855))
+      return Promise.all(/*! import() | node-modules/uview-ui/components/u-input/u-input */[__webpack_require__.e("common/vendor"), __webpack_require__.e("node-modules/uview-ui/components/u-input/u-input")]).then(__webpack_require__.bind(null, /*! uview-ui/components/u-input/u-input.vue */ 1041))
     }
   }
 } catch (e) {
@@ -154,17 +154,6 @@ __webpack_require__.r(__webpack_exports__);
 
 "use strict";
 /* WEBPACK VAR INJECTION */(function(uni) {Object.defineProperty(exports, "__esModule", { value: true });exports.default = void 0; //
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
 //
 //
 //
@@ -852,16 +841,7 @@ var _default =
         "216.png": "AbaRXR.png",
         "217.png": "Aba476.png",
         "218.png": "Abah0x.png",
-        "219.png": "Abdg58.png" },
-
-      //红包相关参数
-      windowsState: '',
-      redenvelopeData: {
-        rid: null, //红包ID
-        from: null,
-        face: null,
-        blessing: null,
-        money: null } };
+        "219.png": "Abdg58.png" } };
 
 
   },
@@ -883,40 +863,9 @@ var _default =
 
   },
   onShow: function onShow() {var _this2 = this;
-    this.scrollTop = 9999999;
-
-    //模板借由本地缓存实现发红包效果，实际应用中请不要使用此方法。
-    //
-    uni.getStorage({
-      key: 'redEnvelopeData',
-      success: function success(res) {
-        console.log(res.data);
-        var nowDate = new Date();
-        var lastid = _this2.msgList[_this2.msgList.length - 1].msg.id;
-        lastid++;
-        var row = {
-          type: "user",
-          msg: {
-            id: lastid,
-            type: "redEnvelope",
-            time: nowDate.getHours() + ":" + nowDate.getMinutes(),
-            userinfo: {
-              uid: 0,
-              username: "大黑哥",
-              face: "/static/img/face.jpg" },
-
-            content: {
-              blessing: res.data.blessing,
-              rid: Math.floor(Math.random() * 1000 + 1),
-              isReceived: false } } };
-
-
-
-        _this2.screenMsg(row);
-        uni.removeStorage({
-          key: 'redEnvelopeData' });
-
-      } });
+    setTimeout(function () {
+      _this2.scrollTop = 9999999;
+    }, 200);
 
   },
   methods: {
@@ -950,9 +899,6 @@ var _default =
             break;
           case 'img':
             this.addImgMsg(msg);
-            break;
-          case 'redEnvelope':
-            this.addRedEnvelopeMsg(msg);
             break;}
 
         console.log('用户消息');
@@ -987,7 +933,7 @@ var _default =
             time: "12:56",
             userinfo: {
               uid: 0,
-              username: "大黑哥",
+              username: "当前用户",
               face: "/static/img/face.jpg" },
 
             content: {
@@ -1003,7 +949,7 @@ var _default =
             time: "12:57",
             userinfo: {
               uid: 1,
-              username: "售后客服008",
+              username: "客服007",
               face: "/static/img/im/face/face_2.jpg" },
 
             content: {
@@ -1019,7 +965,7 @@ var _default =
             time: "12:59",
             userinfo: {
               uid: 1,
-              username: "售后客服008",
+              username: "客服007",
               face: "/static/img/im/face/face_2.jpg" },
 
             content: {
@@ -1036,7 +982,7 @@ var _default =
             time: "13:05",
             userinfo: {
               uid: 0,
-              username: "大黑哥",
+              username: "当前用户",
               face: "/static/img/face.jpg" },
 
             content: {
@@ -1089,7 +1035,7 @@ var _default =
           time: "12:56",
           userinfo: {
             uid: 0,
-            username: "大黑哥",
+            username: "当前用户",
             face: "/static/img/face.jpg" },
 
           content: {
@@ -1105,7 +1051,7 @@ var _default =
           time: "12:57",
           userinfo: {
             uid: 1,
-            username: "售后客服008",
+            username: "客服007",
             face: "/static/img/im/face/face_2.jpg" },
 
           content: {
@@ -1121,7 +1067,7 @@ var _default =
           time: "12:59",
           userinfo: {
             uid: 1,
-            username: "售后客服008",
+            username: "客服007",
             face: "/static/img/im/face/face_2.jpg" },
 
           content: {
@@ -1138,7 +1084,7 @@ var _default =
           time: "13:05",
           userinfo: {
             uid: 0,
-            username: "大黑哥",
+            username: "当前用户",
             face: "/static/img/face.jpg" },
 
           content: {
@@ -1173,7 +1119,7 @@ var _default =
           time: "12:59",
           userinfo: {
             uid: 1,
-            username: "售后客服008",
+            username: "客服007",
             face: "/static/img/im/face/face_2.jpg" },
 
           content: {
@@ -1209,7 +1155,6 @@ var _default =
         this.$nextTick(function () {
           this.scrollAnimation = true;
         });
-
       });
     },
     //处理图片尺寸，如果不处理宽高，新进入页面加载图片时候会闪

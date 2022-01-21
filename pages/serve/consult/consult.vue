@@ -13,19 +13,20 @@
 			></u-tabs>
 		</view>
 		<view class="items">
-			<view class="item" v-for="(item,index) in 10" :key="index" @click="go('./detail')">
+			<view class="item" v-for="(item,index) in dataList" :key="index" @click="go('./detail?id=' + item.id)">
 				<view class="left">
-					<text>NIKE推出全新Sp阿册Jam系列LEBRONXIX“white&dutch blue”</text>
+					<text>{{item.title}}</text>
 					<view class="">
-						<text>甜甜圈</text>
+						<text>{{item.site.title}}</text>
 						<text></text>
-						<text>255人浏览</text>
-						<text>5小时前</text>
+						<text>{{item.views}}人浏览</text>
+						<text>{{date('YmdHis',item.createtime * 1000)}}</text>
 					</view>
 				</view>
-				<image src="/static/pub/ttq.png" mode=""></image>
+				<image :src="ImgUrl + item.site.image" mode="widthFix"></image>
 			</view>
 		</view>
+		<u-empty v-if="dataList.length <= 0" text="暂无数据" mode="list" margin-top="400"></u-empty>
 	</view>
 </template>
 
@@ -52,15 +53,62 @@
 						name: '数码'
 					}
 				],
-				current: 0
+				current: 0,
+				dataList: []
 			};
 		},
 		onLoad() {
-			
+			this.getCate()
 		},
 		methods:{
-			change(index) {
-				this.current = index;
+			getCate(){
+				this.request({
+					url: 'article/index/cate',
+					data: {
+						token: uni.getStorageSync('userInfo').token
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						res.data.data.unshift({
+							id: 0,
+							name: '推荐'
+						})
+						this.list = res.data.data
+						this.getData()
+					}
+				})
+			},
+			getData(){
+				this.request({
+					url: 'article/index/recommend',
+					data: {
+						token: uni.getStorageSync('userInfo').token
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.dataList = res.data.data.list
+					}
+				})
+			},
+			change(e) {
+				this.current = e
+				if(e == 0){
+					this.getData()
+				}else{
+					this.request({
+						url: 'article/index/cate_article',
+						data: {
+							token: uni.getStorageSync('userInfo').token,
+							cate_id: this.list[e].id,
+							page_index: 1,
+							page_size: 10
+						}
+					}).then(res=>{
+						if(res.data.code == 1){
+							this.dataList = res.data.data.list
+						}
+					})
+				}
 			},
 			go(e){
 				uni.navigateTo({
@@ -129,9 +177,9 @@
 				}
 				image{
 					width: 175rpx;
-					height: 125rpx;
+					// height: 125rpx;
 					border-radius: 6rpx;
-					background: #ccc;
+					// background: #ccc;
 				}
 			}
 		}

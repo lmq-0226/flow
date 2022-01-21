@@ -1,0 +1,9 @@
+{
+  "navigationBarTitleText": "",
+  "enablePullDownRefresh": false,
+  "navigationBarBackgroundColor": "#FD414E",
+  "navigationBarTextStyle": "white",
+  "usingComponents": {
+    "u-tabs": "/node-modules/uview-ui/components/u-tabs/u-tabs"
+  }
+}

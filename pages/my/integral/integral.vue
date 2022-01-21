@@ -13,27 +13,27 @@
 			<!-- 瀑布流 -->
 			<u-waterfall v-model="flowList" ref="uWaterfall">
 				<template v-slot:left="{leftList}">
-					<view class="demo-warter" v-for="(item, index) in leftList" :key="index">
+					<view class="demo-warter" v-for="(item, index) in leftList" :key="index" @click="go('./detail/detail?id=' + item.id)">
 						<!-- 警告：微信小程序中需要hx2.8.11版本才支持在template中结合其他组件，比如下方的lazy-load组件 -->
-						<u-lazy-load threshold="-450" border-radius="10" :image="item.image" img-mode="widthFix" :index="index"></u-lazy-load>
+						<u-lazy-load threshold="-450" border-radius="10" :image="ImgUrl + item.thumb" img-mode="widthFix" :index="index"></u-lazy-load>
 						<view class="demo-title">
-							{{item.title}}
+							{{item.name}}
 						</view>
 						<view class="num">
-							<text>¥899</text>
-							<text>156人付款</text>
+							<text>¥{{item.scoreprice}}</text>
+							<text>{{item.usenum}}人兑换</text>
 						</view>
 					</view>
 				</template>
 				<template v-slot:right="{rightList}">
-					<view class="demo-warter" v-for="(item, index) in rightList" :key="index">
-						<u-lazy-load threshold="-450" border-radius="10" :image="item.image" img-mode="widthFix" :index="index"></u-lazy-load>
+					<view class="demo-warter" v-for="(item, index) in rightList" :key="index" @click="go('./detail/detail?id=' + item.id)">
+						<u-lazy-load threshold="-450" border-radius="10" :image="ImgUrl + item.thumb" img-mode="widthFix" :index="index"></u-lazy-load>
 						<view class="demo-title">
-							{{item.title}}
+							{{item.name}}
 						</view>
 						<view class="num">
-							<text>¥899</text>
-							<text>156人付款</text>
+							<text>¥{{item.scoreprice}}</text>
+							<text>{{item.usenum}}人兑换</text>
 						</view>
 					</view>
 				</template>
@@ -50,101 +50,40 @@
 			return {
 				loadStatus: 'loadmore', // 加载更多状态
 				flowList: [],
-				list: [
-					{
-						price: 35,
-						title: '北国风光，千里冰封，万里雪飘',
-						shop: '李白杜甫白居易旗舰店',
-						image: 'http://pic.sc.chinaz.com/Files/pic/pic9/202002/zzpic23327_s.jpg',
-					},
-					{
-						price: 75,
-						title: '望长城内外，惟余莽莽',
-						shop: '李白杜甫白居易旗舰店',
-						image: 'http://pic.sc.chinaz.com/Files/pic/pic9/202002/zzpic23325_s.jpg',
-					},
-					{
-						price: 385,
-						title: '大河上下，顿失滔滔',
-						shop: '李白杜甫白居易旗舰店',
-						image: 'http://pic2.sc.chinaz.com/Files/pic/pic9/202002/hpic2119_s.jpg',
-					},
-					{
-						price: 784,
-						title: '欲与天公试比高',
-						shop: '李白杜甫白居易旗舰店',
-						image: 'http://pic2.sc.chinaz.com/Files/pic/pic9/202002/zzpic23369_s.jpg',
-					},
-					{
-						price: 7891,
-						title: '须晴日，看红装素裹，分外妖娆',
-						shop: '李白杜甫白居易旗舰店',
-						image: 'http://pic2.sc.chinaz.com/Files/pic/pic9/202002/hpic2130_s.jpg',
-					},
-					{
-						price: 2341,
-						shop: '李白杜甫白居易旗舰店',
-						title: '江山如此多娇，引无数英雄竞折腰',
-						image: 'http://pic1.sc.chinaz.com/Files/pic/pic9/202002/zzpic23346_s.jpg',
-					},
-					{
-						price: 661,
-						shop: '李白杜甫白居易旗舰店',
-						title: '惜秦皇汉武，略输文采',
-						image: 'http://pic1.sc.chinaz.com/Files/pic/pic9/202002/zzpic23344_s.jpg',
-					},
-					{
-						price: 1654,
-						title: '唐宗宋祖，稍逊风骚',
-						shop: '李白杜甫白居易旗舰店',
-						image: 'http://pic1.sc.chinaz.com/Files/pic/pic9/202002/zzpic23343_s.jpg',
-					},
-					{
-						price: 1678,
-						title: '一代天骄，成吉思汗',
-						shop: '李白杜甫白居易旗舰店',
-						image: 'http://pic1.sc.chinaz.com/Files/pic/pic9/202002/zzpic23343_s.jpg',
-					},
-					{
-						price: 924,
-						title: '只识弯弓射大雕',
-						shop: '李白杜甫白居易旗舰店',
-						image: 'http://pic1.sc.chinaz.com/Files/pic/pic9/202002/zzpic23343_s.jpg',
-					},
-					{
-						price: 8243,
-						title: '俱往矣，数风流人物，还看今朝',
-						shop: '李白杜甫白居易旗舰店',
-						image: 'http://pic1.sc.chinaz.com/Files/pic/pic9/202002/zzpic23343_s.jpg',
-					},
-				],
+				list: [],
 			}
 		},
 		onLoad() {
-			this.addRandomData()
+			this.getData()
+			// this.addRandomData()
 		},
 		methods: {
-			// 模拟数据请求
-			addRandomData() {	
-				for(let i = 0; i < 10; i++) {
-					// 产生 0 到 this.list.length - 1 的一个整数型随机数  
-					let index = this.$u.random(0, this.list.length - 1);
-					// 先转成字符串再转成对象，避免数组对象引用导致数据混乱
-					let item = JSON.parse(JSON.stringify(this.list[index]))
-					// 唯一码
-					item.id = this.$u.guid();
-					this.flowList.push(item);
-				}
+			getData(){
+				this.request({
+					url: 'integral/index/index',
+					data: {
+						token: uni.getStorageSync('userInfo').token
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.flowList = res.data.data.hotList
+					}
+				})
 			},
+			go(e){
+				uni.navigateTo({
+					url: e
+				})
+			}
 		},
 		// 触底加载更多，切换加载更多loading
 		onReachBottom() {
-			this.loadStatus = 'loading';
-			// 模拟数据加载
-			setTimeout(() => {
-				this.addRandomData();
-				this.loadStatus = 'loadmore';
-			}, 1000)
+			// this.loadStatus = 'loading';
+			// // 模拟数据加载
+			// setTimeout(() => {
+			// 	this.addRandomData();
+			// 	this.loadStatus = 'loadmore';
+			// }, 1000)
 		},
 	}
 </script>

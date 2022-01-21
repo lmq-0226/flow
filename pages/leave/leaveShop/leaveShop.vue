@@ -34,7 +34,7 @@
 			<!-- 瀑布流 -->
 			<u-waterfall v-model="flowList" ref="uWaterfall">
 				<template v-slot:left="{leftList}">
-					<view class="demo-warter" v-for="(item, index) in leftList" :key="index" @click="go('./goodsDetail/goodsDetail')">
+					<view class="demo-warter" v-for="(item, index) in leftList" :key="index" @click="next(item)">
 						<!-- 警告：微信小程序中需要hx2.8.11版本才支持在template中结合其他组件，比如下方的lazy-load组件 -->
 						<u-lazy-load threshold="-450" border-radius="10" :image="item.image" img-mode="widthFix" :index="index"></u-lazy-load>
 						<view class="demo-title">
@@ -51,7 +51,7 @@
 					</view>
 				</template>
 				<template v-slot:right="{rightList}">
-					<view class="demo-warter" v-for="(item, index) in rightList" :key="index" @click="go('./goodsDetail/goodsDetail')">
+					<view class="demo-warter" v-for="(item, index) in rightList" :key="index" @click="next(item)">
 						<u-lazy-load threshold="-450" border-radius="10" :image="item.image" img-mode="widthFix" :index="index"></u-lazy-load>
 						<view class="demo-title">
 							{{item.title}}
@@ -325,6 +325,13 @@
 				uni.navigateTo({
 					url: e
 				})
+			},
+			next(e){
+				if(e.goods_type == 'consign'){
+					this.go('/pages/leave/leaveShop/goodsDetail/goodsDetail?id=' + e.id)
+				}else{
+					this.go('/pages/my/released/goodsDetail/goodsDetail?id=' + e.id)
+				}
 			}
 		}
 	}

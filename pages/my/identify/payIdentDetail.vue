@@ -8,15 +8,15 @@
 					<text>图片鉴别 品类全面 专业严谨</text>
 				</view>
 			</view>
-			<view class="status" v-if="status == 2">
+			<view class="status" v-if="detail.result == 1">
 				<text>待鉴别</text>
 			</view>
 			<view class="" v-else @click="go('./result?status=' + status)">
-				<view class="status" v-if="status == 1">
+				<view class="status" v-if="detail.result == 2">
 					<text>鉴别为真</text>
 					<image src="/static/my/true.png" mode=""></image>
 				</view>
-				<view class="status" v-else-if="status == 0">
+				<view class="status" v-else-if="detail.result == 3">
 					<text>鉴别为假</text>
 					<image src="/static/my/fake.png" mode=""></image>
 				</view>
@@ -39,7 +39,7 @@
 				</view>
 				<view class="middle">
 					<image src="/static/my/car.png" mode=""></image>
-					<text>已发出</text>
+					<text>{{detail.state_text}}</text>
 				</view>
 				<view class="bot">
 					2021-10-15 15:25:24
@@ -48,17 +48,17 @@
 			<view class="item">
 				<view class="lettle">
 					<text>收货地址</text>
-					<view class="" @click="copy('江苏省苏州市相城区南天城路77号高铁新城流象公司鉴定部')">
+					<view class="" @click="copy(platAddress.area + platAddress.address)">
 						<image src="/static/my/copy.png" mode=""></image>
 						<text>复制</text>
 					</view>
 				</view>
 				<view class="middle">
 					<image src="/static/my/location.png" mode=""></image>
-					<text>流象鉴定部  166****1554</text>
+					<text>{{platAddress.receiver}} {{platAddress.photo}}</text>
 				</view>
 				<view class="bot">
-					江苏省苏州市相城区南天城路77号高铁新城流象公司鉴定部
+					<text>{{platAddress.area + platAddress.address}}</text>
 				</view>
 			</view>
 			<view class="item">
@@ -83,7 +83,7 @@
 				<text>2020-10-25 13:25鉴定</text>
 			</view>
 			<view class="imgs">
-				<image v-for="(item,index) in imgs" :key="index" :src="item" mode="widthFix" @click="preview(index)"></image>
+				<image v-for="(item,index) in detail.images.split(',')" :key="index" :src="ImgUrl + item" mode="widthFix" @click="preview(index)"></image>
 			</view>
 		</view>
 	</view>
@@ -94,7 +94,10 @@
 	export default {
 		data() {
 			return {
+				id: '',
 				status: '',
+				detail: {}, // 鉴定详情
+				platAddress: {}, // 平台地址
 				imgs: [
 					require('@/static/pub/bbt.png'),
 					require('@/static/pub/ch.png'),
@@ -105,12 +108,44 @@
 		onLoad(option) {
 			console.log(option, '***')
 			this.status = option.status
+			this.id = option.id
+			this.getDetail()
+			this.getPlatAddress()
 		},
 		methods:{
+			getDetail(){
+				this.request({
+					url: 'service/order/detail',
+					data: {
+						token: uni.getStorageSync('userInfo').token,
+						id: this.id
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.detail = res.data.data
+					}
+				})
+			},
+			getPlatAddress(){
+				this.request({
+					url: 'service/order/platform_address',
+					data: {
+						token: this.token
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.platAddress = res.data.data
+					}
+				})
+			},
 			preview(e){
+				let arr = []
+				this.detail.images.split(',').forEach(elem=>{
+					arr.push(this.ImgUrl + elem)
+				})
 				// 预览图片
 				uni.previewImage({
-					urls: this.imgs,
+					urls: arr,
 					current: e
 				})
 			},

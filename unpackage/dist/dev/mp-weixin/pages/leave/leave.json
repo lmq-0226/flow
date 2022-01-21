@@ -2,8 +2,6 @@
   "navigationBarTitleText": "闲置",
   "navigationStyle": "custom",
   "usingComponents": {
-    "leave-u-waterfall-left": "/pages/leave/leave-u-waterfall-left",
-    "leave-u-waterfall-right": "/pages/leave/leave-u-waterfall-right",
     "u-swiper": "/node-modules/uview-ui/components/u-swiper/u-swiper",
     "u-tabs": "/node-modules/uview-ui/components/u-tabs/u-tabs",
     "u-waterfall": "/node-modules/uview-ui/components/u-waterfall/u-waterfall",

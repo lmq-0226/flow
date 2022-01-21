@@ -156,6 +156,11 @@
   font-weight: 500;
   color: #000000;
 }
+.content .marginTop.data-v-95b24fe4 {
+  margin-top: -30rpx;
+  background: #fff;
+  border-radius: 20rpx 20rpx 0 0;
+}
 .content .detail.data-v-95b24fe4 {
   padding: 20rpx 36rpx;
   border-bottom: 10rpx solid #F6F5FA;

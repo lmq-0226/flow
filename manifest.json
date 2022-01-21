@@ -1,9 +1,9 @@
 {
     "name" : "流象",
     "appid" : "__UNI__8603AD5",
-    "description" : "",
+    "description" : "流象APP",
     "versionName" : "1.0.0",
-    "versionCode" : "100",
+    "versionCode" : 100,
     "transformPx" : false,
     /* 5+App特有相关 */
     "app-plus" : {
@@ -17,38 +17,69 @@
             "delay" : 0
         },
         /* 模块配置 */
-        "modules" : {},
+        "modules" : {
+            "LivePusher" : {},
+            "VideoPlayer" : {},
+            "Payment" : {},
+            "Maps" : {}
+        },
         /* 应用发布信息 */
         "distribute" : {
             /* android打包配置 */
             "android" : {
                 "permissions" : [
-                    "<uses-permission android:name=\"android.permission.CHANGE_NETWORK_STATE\"/>",
-                    "<uses-permission android:name=\"android.permission.MOUNT_UNMOUNT_FILESYSTEMS\"/>",
-                    "<uses-permission android:name=\"android.permission.VIBRATE\"/>",
-                    "<uses-permission android:name=\"android.permission.READ_LOGS\"/>",
-                    "<uses-permission android:name=\"android.permission.ACCESS_WIFI_STATE\"/>",
+                    "<uses-feature android:name=\"android.hardware.camera\"/>",
                     "<uses-feature android:name=\"android.hardware.camera.autofocus\"/>",
                     "<uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\"/>",
+                    "<uses-permission android:name=\"android.permission.ACCESS_WIFI_STATE\"/>",
                     "<uses-permission android:name=\"android.permission.CAMERA\"/>",
-                    "<uses-permission android:name=\"android.permission.GET_ACCOUNTS\"/>",
-                    "<uses-permission android:name=\"android.permission.READ_PHONE_STATE\"/>",
+                    "<uses-permission android:name=\"android.permission.CHANGE_NETWORK_STATE\"/>",
                     "<uses-permission android:name=\"android.permission.CHANGE_WIFI_STATE\"/>",
-                    "<uses-permission android:name=\"android.permission.WAKE_LOCK\"/>",
                     "<uses-permission android:name=\"android.permission.FLASHLIGHT\"/>",
-                    "<uses-feature android:name=\"android.hardware.camera\"/>",
+                    "<uses-permission android:name=\"android.permission.GET_ACCOUNTS\"/>",
+                    "<uses-permission android:name=\"android.permission.MODIFY_AUDIO_SETTINGS\"/>",
+                    "<uses-permission android:name=\"android.permission.MOUNT_UNMOUNT_FILESYSTEMS\"/>",
+                    "<uses-permission android:name=\"android.permission.READ_LOGS\"/>",
+                    "<uses-permission android:name=\"android.permission.READ_PHONE_STATE\"/>",
+                    "<uses-permission android:name=\"android.permission.RECORD_AUDIO\"/>",
+                    "<uses-permission android:name=\"android.permission.VIBRATE\"/>",
+                    "<uses-permission android:name=\"android.permission.WAKE_LOCK\"/>",
                     "<uses-permission android:name=\"android.permission.WRITE_SETTINGS\"/>"
-                ]
+                ],
+                "abiFilters" : [ "armeabi-v7a", "arm64-v8a" ]
             },
             /* ios打包配置 */
-            "ios" : {},
+            "ios" : {
+                "capabilities" : {
+                    "entitlements" : {
+                        "com.apple.developer.associated-domains" : [ "https://app.51liuxiang.com/" ]
+                    }
+                }
+            },
             /* SDK配置 */
             "sdkConfigs" : {
                 "ad" : {},
-                "maps" : {},
+                "maps" : {
+                    "baidu" : {
+                        "appkey_ios" : "f887ef3ff44cb395b38f21f070d886ee",
+                        "appkey_android" : "faea28e5e10063025169a8c599c93221"
+                    }
+                },
                 "share" : {},
                 "push" : {},
-                "speech" : {}
+                "speech" : {},
+                "payment" : {
+                    "weixin" : {
+                        "__platform__" : [ "ios", "android" ],
+                        "appid" : "wx3866b5b1ac2c9ddf",
+                        "UniversalLinks" : "https://app.51liuxiang.com/.well-known/apple-app-site-association"
+                    },
+                    "alipay" : {
+                        "__platform__" : [ "ios", "android" ]
+                    }
+                },
+                "oauth" : {},
+                "geolocation" : {}
             }
         }
     },
@@ -74,5 +105,10 @@
     "uniStatistics" : {
         "enable" : false
     },
-    "vueVersion" : "2"
+    "vueVersion" : "2",
+    "h5" : {
+        "sdkConfigs" : {
+            "maps" : {}
+        }
+    }
 }

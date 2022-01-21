@@ -1,28 +1,31 @@
 <template>
 	<view class="content">
-		<view class="item" v-for="(item,index) in 2" :key="index">
+		<view class="item" v-for="(item,index) in list" :key="index">
 			<view class="top">
 				<view class="top-left">
 					<view class="">
 						<text>￥</text>
-						<text>389</text>
+						<text>{{item.price}}</text>
 					</view>
-					<text>新客优惠券-满15000可用</text>
+					<text>{{item.name}}</text>
 				</view>
 				<view class="top-right">
-					<text>去使用</text>
+					<!-- draw(item.id) -->
+					<text @click="go('/pages/my/subscribe/store/store?id=' + item.shop_id)">立即使用</text>
 				</view>
 			</view>
 			<view class="impose">
 				<u-collapse :head-style="{fontSize: '22rpx',color: '#686879',padding: '30rpx'}">
-					<u-collapse-item title="使用期限：2021-10-14至2021-11-13" :open="false">
+					<u-collapse-item :title="'使用期限:' + (item.pretype == 'appoint' ? ('领取' + item.validity + '天后到期') : (item.startdate + '至' + item.enddate))" :open="false">
 						<view class="list" >
-							<text v-for="(item,index) in 3" :key="index">{{'(' +  index +')'}}</text>
+							<!-- <text v-for="(item,index) in 3" :key="index">{{'(' +  index +')'}}</text> -->
+							<text>{{item.content}}</text>
 						</view>
 					</u-collapse-item>
 				</u-collapse>
 			</view>
 		</view>
+		<u-toast ref="uToast" />
 	</view>
 </template>
 
@@ -34,6 +37,46 @@
 					
 				]
 			};
+		},
+		onLoad() {
+			this.getData()
+		},
+		methods:{
+			getData(){
+				this.request({
+					url: 'wanlshop/coupon/getMyList',
+					method: 'GET',
+					header: {
+						token: uni.getStorageSync('userInfo').token
+					},
+					data: {
+						state: 1,
+						page: 1
+					}
+				}).then(res=>{
+					// console.log(res)
+					if(res.data.code == 1){
+						this.list = res.data.data.data
+					}
+				})
+			},
+			draw(e){
+				this.request({
+					url: 'wanlshop/coupon/receive',
+					data: {
+						token: uni.getStorageSync('userInfo').token,
+						id: e
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.$refs.uToast.show({
+							title: res.data.data.msg,
+							type: 'success'
+						})
+						this.disPopup = false
+					}
+				})
+			}
 		}
 	}
 </script>

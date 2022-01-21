@@ -8,7 +8,7 @@
 					<text>流象APP鉴定报告</text>
 				</view>
 				<view class="result">
-					<text>鉴别为真</text>
+					<text>{{detail.result_text}}</text>
 					<text>鉴定结果根据用户所提供图片得出</text>
 					<image v-if="status == 1" src="/static/my/true.png" mode=""></image>
 					<image v-else-if="status == 0" src="/static/my/fake.png" mode=""></image>
@@ -22,7 +22,7 @@
 		<u-gap height="14" bg-color="#F7F7FB" margin-top="36"></u-gap>
 		<view class="detail">
 			<view class="">
-				<text>LANVIN(浪凡)  服装</text>
+				<text>{{detail.brand_name}}  {{detail.category_name}}</text>
 				<text>2020-10-25 13:25鉴定</text>
 			</view>
 			<image src="" mode="widthFix" v-for="(item,index) in 2" :key="index"></image>
@@ -34,17 +34,33 @@
 	export default {
 		data() {
 			return {
-				status: 1
+				status: 1,
+				id: '',
+				detail: {}
 			};
 		},
 		onNavigationBarButtonTap(e){
 			console.log(e)
 		},
 		onLoad(option) {
+			this.id = option.id
 			this.status = option.status
+			this.getDetail()
 		},
 		methods:{
-			
+			getDetail(){
+				this.request({
+					url: 'service/order/detail',
+					data: {
+						token: uni.getStorageSync('userInfo').token,
+						id: this.id
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.detail = res.data.data
+					}
+				})
+			},
 		}
 	}
 </script>

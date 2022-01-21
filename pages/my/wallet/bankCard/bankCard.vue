@@ -1,18 +1,19 @@
 <template>
 	<view class="content">
 		<view class="cardList">
-			<view class="item">
+			<view class="item" v-for="(item,index) in bankCardList" :key="index" @click="go('./bankCardDetail?detail=' + JSON.stringify(item))">
 				<view class="type">
-					<image src="/static/my/card.png" mode=""></image>
-					<text>中国建设银行</text>
+					<image :src="'/static/bank/' + item.bankCode +'.png'" mode=""></image>
+					<text>{{item.bankName}}</text>
 					<text></text>
-					<text>储蓄卡</text>
+					<text>{{item.cardType == 0 ? '储蓄卡' : ''}}</text>
 				</view>
 				<view class="number">
-					<text>**** **** **** 9528</text>
+					<text>**** **** **** {{item.cardCode.slice(item.cardCode.length - 4)}}</text>
 				</view>
 			</view>
 		</view>
+		<u-empty v-if="bankCardList.length <= 0" text="暂无数据" mode="list"></u-empty>
 		<view class="add" @click="go('./addCard')">
 			<image src="/static/my/add2.png" mode=""></image>
 			<text>添加银行卡</text>
@@ -24,19 +25,42 @@
 	export default {
 		data() {
 			return {
-				
+				bankCardList: []
 			};
 		},
 		onLoad() {
 			console.log(1)
+			
 		},
 		onShow() {
 			console.log(2)
+			this.getBankCard()
+			
 		},
 		methods:{
 			go(e){
 				uni.navigateTo({
 					url: e
+				})
+			},
+			getBankCard(){
+				this.request({
+					url: 'wanlshop/pay/getPayAccount',
+					data: {
+						token: uni.getStorageSync('userInfo').token
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.bankCardList = res.data.data
+						this.bankCardList.forEach(elem=>{
+							uni.getImageInfo({
+								src: '/static/bank/' + elem.bankCode +'.png',
+								success: res => {
+									console.log(res)
+								}
+							});
+						})
+					}
 				})
 			}
 		}
@@ -69,8 +93,11 @@
 					justify-content: flex-start;
 					align-items: center;
 					image{
-						width: 48rpx;
-						height: 48rpx;
+						width: 50rpx;
+						height: 50rpx;
+						background: #fff;
+						padding: 10rpx;
+						border-radius: 50%;
 					}
 					text{
 						margin-left: 15rpx;

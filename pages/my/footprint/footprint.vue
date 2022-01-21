@@ -69,9 +69,21 @@
 			}
 		},
 		onLoad() {
-			
+			this.getData()
 		},
 		methods:{
+			getData(){
+				this.request({
+					url: 'wanlshop/product/footprint',
+					method: 'GET',
+					data: {
+						token: uni.getStorageSync('userInfo').token,
+						type: 'goods'
+					}
+				}).then(res=>{
+					
+				})
+			},
 			// 单选  以下的所有status是每条数据的选中状态
 			Mchoice(e,n){
 				let shop = this.goodsList[e]

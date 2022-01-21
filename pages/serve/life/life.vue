@@ -1,27 +1,27 @@
 <template>
 	<view class="content">
 		<view class="list">
-			<view class="item" v-for="(item,index) in 3" :key="index" @click="go('./store')">
-				<image src="" mode=""></image>
+			<view class="item" v-for="(item,index) in list" :key="index" @click="go('./store?detail=' + JSON.stringify(item))">
+				<image :src="ImgUrl + item.image" mode=""></image>
 				<view class="right">
-					<text class="name">衣服修理店</text>
+					<text class="name">{{item.name}}</text>
 					<view class="middle">
 						<view class="mid_left">
-							<text>人均8~35元</text>
-							<text>09:00-18:00</text>
+							<text>人均{{item.consumption}}元</text>
+							<text>{{item.hours}}</text>
 						</view>
 						<view class="mid_right">
-							<view class="map">
+							<view class="map" @click.stop="openMap(item)">
 								<image src="/static/serve/location.png" mode=""></image>
 								<text>地图</text>
 							</view>
-							<view class="tell" @click.stop="call()">
+							<view class="tell" @click.stop="call(item.phone)">
 								<image src="/static/serve/call.png" mode=""></image>
 								<text>电话</text>
 							</view>
 						</view>
 					</view>
-					<text class="area">相城区高铁新城南天成路77号高融大厦一层</text>
+					<text class="area">{{item.address}}</text>
 				</view>
 			</view>
 		</view>
@@ -32,18 +32,47 @@
 	export default {
 		data() {
 			return {
-				
+				list: []
 			};
 		},
+		onLoad() {
+			this.getData()
+		},
 		methods:{
+			getData(){
+				this.request({
+					url: 'service/index/life_service',
+					data: {
+						token: uni.getStorageSync('userInfo').token
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.list = res.data.data.list
+					}
+				})
+			},
 			go(e){
 				uni.navigateTo({
 					url: e
 				})
 			},
+			openMap(e){
+				
+				uni.openLocation({
+					latitude: parseFloat(e.lat),
+					longitude: parseFloat(e.lng),
+					success: function () {
+						console.log('success')
+					},
+					complete: (all) => {
+						console.log(all)
+					}
+				})
+				
+			},
 			call(e){
 				uni.makePhoneCall({
-				    phoneNumber: '10086' //仅为示例
+				    phoneNumber: e //仅为示例
 				});
 			}
 		}

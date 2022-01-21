@@ -8,7 +8,7 @@
 			<view class="wrap">
 				<view :class="['list',show ? '' : 'active',downShow ? 'height' : '']">
 					<image v-if="downShow" class="btn" :style="{'transform': 'rotate(' + rotate +'deg)'}" src="/static/comm/down.png" mode="" @click="down"></image>
-					<text class="item" v-for="(item,index) in hisList" :key="index">{{item}}</text>
+					<text class="item" v-for="(item,index) in hisList" :key="index" @click="search(item)">{{item}}</text>
 				</view>
 			</view>
 		</view>
@@ -22,14 +22,18 @@
 				</view>
 			</view>
 			<view class="list">
-				<text class="item" v-for="(item,index) in refList" :key="index">{{item}}</text>
+				<text class="item" v-for="(item,index) in refList" :key="index" @click="search(item.keywords)">{{item.keywords}}</text>
 			</view>
+		</view>
+		<view class="">
+			
 		</view>
 		
 	</view>
 </template>
 
 <script>
+	import {throttle,debounce} from '@/utils/throttle.js'
 	export default {
 		data() {
 			return {
@@ -46,6 +50,9 @@
 			};
 		},
 		onNavigationBarSearchInputConfirmed(e){
+			uni.navigateTo({
+				url: '/pages/public/public?search=' + e.text
+			})
 			// 如果重复则跳过
 			if(this.hisList.indexOf(e.text) > -1 || e.text == ''){
 				return
@@ -61,7 +68,7 @@
 				}).exec()
 			},100)
 		},
-		onLoad() {
+		onLoad(option) {
 			setTimeout(()=>{
 				let obj = uni.createSelectorQuery().select('.list')
 				obj.boundingClientRect(res=>{ // data - 各种参数
@@ -70,9 +77,22 @@
 					}
 				}).exec()
 			},200)
+			this.getSearchList()
 		},
 		methods:{
-			down(){
+			getSearchList(){
+				this.request({
+					url: 'wanlshop/common/searchList',
+					header: {
+						token: uni.getStorageSync('userInfo').token
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.refList = res.data.data
+					}
+				})
+			},
+			down(e){
 				this.show = !this.show
 				if(!this.show){
 					this.rotate = 180
@@ -86,8 +106,14 @@
 				uni.clearStorage('history')
 				this.downShow = false
 			},
-			refresh(){
+			// 节流-换一换
+			refresh:throttle(function(){
 				this.refreshRot += 720
+			}, 2000),
+			search(e){
+				uni.navigateTo({
+					url: '/pages/public/public?search=' + e
+				})
 			}
 		}
 	}

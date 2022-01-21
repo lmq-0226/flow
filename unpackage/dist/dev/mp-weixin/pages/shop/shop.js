@@ -96,22 +96,22 @@ var components
 try {
   components = {
     uTabs: function() {
-      return Promise.all(/*! import() | node-modules/uview-ui/components/u-tabs/u-tabs */[__webpack_require__.e("common/vendor"), __webpack_require__.e("node-modules/uview-ui/components/u-tabs/u-tabs")]).then(__webpack_require__.bind(null, /*! uview-ui/components/u-tabs/u-tabs.vue */ 795))
+      return Promise.all(/*! import() | node-modules/uview-ui/components/u-tabs/u-tabs */[__webpack_require__.e("common/vendor"), __webpack_require__.e("node-modules/uview-ui/components/u-tabs/u-tabs")]).then(__webpack_require__.bind(null, /*! uview-ui/components/u-tabs/u-tabs.vue */ 981))
     },
     uSwiper: function() {
-      return __webpack_require__.e(/*! import() | node-modules/uview-ui/components/u-swiper/u-swiper */ "node-modules/uview-ui/components/u-swiper/u-swiper").then(__webpack_require__.bind(null, /*! uview-ui/components/u-swiper/u-swiper.vue */ 802))
+      return __webpack_require__.e(/*! import() | node-modules/uview-ui/components/u-swiper/u-swiper */ "node-modules/uview-ui/components/u-swiper/u-swiper").then(__webpack_require__.bind(null, /*! uview-ui/components/u-swiper/u-swiper.vue */ 988))
     },
     uWaterfall: function() {
-      return Promise.all(/*! import() | node-modules/uview-ui/components/u-waterfall/u-waterfall */[__webpack_require__.e("common/vendor"), __webpack_require__.e("node-modules/uview-ui/components/u-waterfall/u-waterfall")]).then(__webpack_require__.bind(null, /*! uview-ui/components/u-waterfall/u-waterfall.vue */ 809))
+      return Promise.all(/*! import() | node-modules/uview-ui/components/u-waterfall/u-waterfall */[__webpack_require__.e("common/vendor"), __webpack_require__.e("node-modules/uview-ui/components/u-waterfall/u-waterfall")]).then(__webpack_require__.bind(null, /*! uview-ui/components/u-waterfall/u-waterfall.vue */ 995))
     },
     uLazyLoad: function() {
-      return __webpack_require__.e(/*! import() | node-modules/uview-ui/components/u-lazy-load/u-lazy-load */ "node-modules/uview-ui/components/u-lazy-load/u-lazy-load").then(__webpack_require__.bind(null, /*! uview-ui/components/u-lazy-load/u-lazy-load.vue */ 816))
+      return __webpack_require__.e(/*! import() | node-modules/uview-ui/components/u-lazy-load/u-lazy-load */ "node-modules/uview-ui/components/u-lazy-load/u-lazy-load").then(__webpack_require__.bind(null, /*! uview-ui/components/u-lazy-load/u-lazy-load.vue */ 1002))
     },
     uLoadmore: function() {
-      return __webpack_require__.e(/*! import() | node-modules/uview-ui/components/u-loadmore/u-loadmore */ "node-modules/uview-ui/components/u-loadmore/u-loadmore").then(__webpack_require__.bind(null, /*! uview-ui/components/u-loadmore/u-loadmore.vue */ 823))
+      return __webpack_require__.e(/*! import() | node-modules/uview-ui/components/u-loadmore/u-loadmore */ "node-modules/uview-ui/components/u-loadmore/u-loadmore").then(__webpack_require__.bind(null, /*! uview-ui/components/u-loadmore/u-loadmore.vue */ 1009))
     },
     uBackTop: function() {
-      return __webpack_require__.e(/*! import() | node-modules/uview-ui/components/u-back-top/u-back-top */ "node-modules/uview-ui/components/u-back-top/u-back-top").then(__webpack_require__.bind(null, /*! uview-ui/components/u-back-top/u-back-top.vue */ 830))
+      return __webpack_require__.e(/*! import() | node-modules/uview-ui/components/u-back-top/u-back-top */ "node-modules/uview-ui/components/u-back-top/u-back-top").then(__webpack_require__.bind(null, /*! uview-ui/components/u-back-top/u-back-top.vue */ 1016))
     }
   }
 } catch (e) {

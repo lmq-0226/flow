@@ -2,19 +2,19 @@
 	<view class="content">
 		<view class="top">
 			<view class="user">
-				<image src="" mode=""></image>
+				<image :src="ImgUrl + allerDetail.image" mode=""></image>
 				<view class="nick">
-					<text>celia张</text>
+					<text>{{allerDetail.name}}</text>
 					<view class="">
-						<u-rate :count="5" v-model="value" size="20rpx" active-color="#FEA713"></u-rate>
-						<text>5.0分</text>
+						<u-rate :count="allerDetail.star" v-model="value" size="20rpx" active-color="#FEA713"></u-rate>
+						<text>{{allerDetail.star}}分</text>
 					</view>
 				</view>
 			</view>
 			<view class="warp">
 				<view :class="['msg',show ? '' : 'active']">
 					<text class="btn" @click="show = !show">{{show ? '展开' : '收起'}}</text>
-					<text class="desc">擅长品类：箱包、饰品、腕表、服装、鞋履、配饰、玉石入驻鉴定师 曾任职某典当行高级典当师职位，曾任职某典当行高擅长品类：箱包、饰品、腕表、服装、鞋履、配饰、玉石入驻鉴定师 曾任职某典当行高级典当师职位，曾任职某典当行高</text>
+					<text class="desc">擅长品类：{{allerDetail.cate}},  {{allerDetail.introduce}}</text>
 					<!-- #ifdef APP-PLUS -->
 					<text style="display: inline-block; width: 66rpx;"></text>
 					<!-- #endif -->
@@ -22,40 +22,40 @@
 			</view>
 		</view>
 		<view class="goods">
-			<text class="title">累计鉴定2.81万单</text>
+			<text class="title">累计鉴定{{allerDetail.nums}}单</text>
 			<!-- 瀑布流 -->
 			<u-waterfall v-model="flowList" ref="uWaterfall">
 				<template v-slot:left="{leftList}">
-					<view class="demo-warter" v-for="(item, index) in leftList" :key="index" @click="go('./identDetail')">
-						<u-lazy-load threshold="-450" border-radius="10" :image="item.image" img-mode="widthFix" :index="index"></u-lazy-load>
-						<text class="true" v-if="true">鉴别为真</text>
+					<view class="demo-warter" v-for="(item, index) in leftList" :key="index" @click="go('./identDetail?id=' + item.id)">
+						<u-lazy-load threshold="-450" border-radius="10" :image="ImgUrl + item.image" img-mode="widthFix" :index="index"></u-lazy-load>
+						<text class="true" v-if="item.result == 1">鉴别为真</text>
 						<text class="false" v-else>鉴别为假</text>
-						
 						<view class="bot">
-							<text>CELINE/思琳</text>
-							<text>配饰</text>
+							<text>{{item.brand_name}}</text>
+							<text>{{item.category_name}}</text>
 						</view>
 					</view>
 				</template>
 				<template v-slot:right="{rightList}">
-					<view class="demo-warter" v-for="(item, index) in rightList" :key="index" @click="go('./identDetail')">
-						<u-lazy-load threshold="-450" border-radius="10" :image="item.image" img-mode="widthFix" :index="index"></u-lazy-load>
-						<text class="true" v-if="false">鉴别为真</text>
+					<view class="demo-warter" v-for="(item, index) in rightList" :key="index" @click="go('./identDetail?id=' + item.id)">
+						<u-lazy-load threshold="-450" border-radius="10" :image="ImgUrl + item.image" img-mode="widthFix" :index="index"></u-lazy-load>
+						<text class="true" v-if="item.result == 1">鉴别为真</text>
 						<text class="false" v-else>鉴别为假</text>
 						<view class="bot">
-							<text>CELINE/思琳</text>
-							<text>配饰</text>
+							<text>{{item.brand_name}}</text>
+							<text>{{item.category_name}}</text>
 						</view>
 					</view>
 				</template>
 			</u-waterfall>
+			<u-empty v-if="flowList.length <= 0" text="暂无数据" mode="list" margin-top="200"></u-empty>
 		</view>
 		<view class="bottom">
 			<view class="left">
 				<image src="/static/serve/service.png" mode=""></image>
 				<text>等待人数(4)</text>
 			</view>
-			<view class="right">
+			<view class="right" @click="next()">
 				立即鉴定
 			</view>
 		</view>
@@ -136,25 +136,57 @@
 						shop: '李白杜甫白居易旗舰店',
 						image: 'http://pic1.sc.chinaz.com/Files/pic/pic9/202002/zzpic23343_s.jpg',
 					},
-				]
+				],
+				allerDetail: {},
+				type: '',
+				category_id: '',
+				category_name: '',
+				brand_id: '',
+				brand_name: ''
 			};
 		},
-		onLoad() {
-			this.addRandomData()
+		onLoad(option) {
+			this.type = option.type
+			this.type = option.type
+			this.category_id = option.category_id
+			this.category_name = option.category_name
+			this.brand_id = option.brand_id
+			this.brand_name = option.brand_name
+			this.getDetail(option.id)
+			console.log(option)
 		},
 		// 触底加载更多，切换加载更多loading
 		onReachBottom() {
-			this.loadStatus = 'loading';
-			// 模拟数据加载
-			setTimeout(() => {
-				this.addRandomData();
-				this.loadStatus = 'loadmore';
-			}, 1000)
+			// this.loadStatus = 'loading';
+			// // 模拟数据加载
+			// setTimeout(() => {
+			// 	this.addRandomData();
+			// 	this.loadStatus = 'loadmore';
+			// }, 1000)
 		},
 		watch:{
 			
 		},
 		methods:{
+			getDetail(e){
+				this.request({
+					url: 'service/gemmologist/detail',
+					data: {
+						token: uni.getStorageSync('userInfo').token,
+						id: e,	
+						page_index: 1,
+						page_size: 10
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.allerDetail = res.data.data
+						this.flowList = res.data.data.orderList.list
+						this.flowList.forEach(elem=>{
+							elem.image = elem.images.split(',')[0]
+						})
+					}
+				})
+			},
 			getRem() {
 				const defaultRem = 16;
 				let winWidth = window.innerWidth;
@@ -172,6 +204,9 @@
 					item.id = this.$u.guid();
 					this.flowList.push(item);
 				}
+			},
+			next(){
+				this.go('/pages/serve/authen/publish/publish?type=' + this.type + '&category_id=' + this.category_id + '&category_name=' + this.category_name + '&brand_id=' + this.brand_id +'&brand_name=' + this.brand_name + '&authen=' + JSON.stringify(this.allerDetail))
 			},
 			go(e){
 				uni.navigateTo({

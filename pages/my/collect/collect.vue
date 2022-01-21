@@ -12,20 +12,22 @@
 				<u-tabs :list="tabList" :is-scroll="true" :current="current" @change="change" item-width="33.3%" active-color="#FC493D "></u-tabs>
 			</view>
 		</view>
+		<u-empty v-if="list.length <= 0" mode="favor" margin-top="300"></u-empty>
 		<view class="list">
-			<view class="item" v-for="(item,index) in list" :key="item.id" @click="go('/pages/shop/goodsDetail/goodsDetail')">
+			<view class="item" v-for="(item,index) in list" :key="item.id" @click="go('/pages/shop/goodsDetail/goodsDetail?id=' + item.goods_id)">
 				<view class="radio" v-if="!status" @click.stop="check(item.id)">
 					<image v-if="checkedList.indexOf(item.id) > -1" src="/static/login/radio_on.png" mode=""></image>
 					<image v-else src="/static/my/radio.png" mode=""></image>
 				</view>
 				<view class="left">
-					<image :src="item.icon" mode=""></image>
-					<text>约{{ item.time }}天到货</text>
+					<image :src="ImgUrl + item.goods.image" mode=""></image>
+					<!-- <text>约{{ item.time }}天到货</text> -->
 				</view>
 				<view class="right">
-					<text>{{item.desc}}</text>
-					<text>{{item.color + item.size + '数量x' + item.count}}</text>
-					<text>¥899</text>
+					<text>{{item.goods.title}}</text>
+					<!-- {{item.color + item.size + '数量x' + item.count}} -->
+					<text></text>
+					<text>¥{{item.goods.price}}</text>
 				</view>
 			</view>
 		</view>
@@ -55,56 +57,31 @@
 					name: '寄卖'
 				}],
 				current: 0,
-				list: [
-					{
-						id: 1,
-						icon: require('@/static/pub/bbt.png'),
-						desc: '[普通发货] 棒棒糖',
-						color: '白色',
-						size: 'S',
-						price: 899,
-						count: 99,
-						time: 2
-					},
-					{
-						id: 2,
-						icon: require('@/static/pub/ch.png'),
-						desc: '彩虹',
-						color: '彩色',
-						size: 'L',
-						price: 6999,
-						count: 1,
-						time: 3
-					},
-					{
-						id: 3,
-						icon: require('@/static/pub/xj.png'),
-						desc: '[普通发货] 相机',
-						color: '粉丝',
-						size: 'XXL',
-						price: 1999,
-						count: 1,
-						time: 4
-					},
-					{
-						id: 4,
-						icon: require('@/static/pub/ttq.png'),
-						desc: '甜甜圈',
-						color: '粉白色',
-						size: 'XL',
-						price: 699,
-						count: 6,
-						time: 6
-					}
-				],
+				list: [],
 				checkedList: [],
 				show: false,
 			};
 		},
 		onLoad() {
-			
+			this.getData()
 		},
 		methods:{
+			getData(){
+				this.request({
+					url: 'wanlshop/product/collect',
+					method: 'GET',
+					header: {
+						'token': uni.getStorageSync('userInfo').token
+					},
+					data: {
+						type: 'goods'
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.list = res.data.data.data
+					}
+				})
+			},
 			back(){
 				uni.navigateBack({
 					delta:1

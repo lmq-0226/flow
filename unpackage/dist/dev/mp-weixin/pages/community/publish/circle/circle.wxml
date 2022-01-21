@@ -1,0 +1,1 @@
+<view class="content data-v-23a09e60"><text class="title data-v-23a09e60">推荐圈子</text><view class="items data-v-23a09e60"><block wx:for="{{15}}" wx:for-item="item" wx:for-index="index" wx:key="index"><view class="data-v-23a09e60"><image src mode class="data-v-23a09e60"></image><text class="data-v-23a09e60">穿搭研究所</text></view></block></view></view>

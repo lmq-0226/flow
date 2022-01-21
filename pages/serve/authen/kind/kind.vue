@@ -62,7 +62,7 @@
 				<image src="/static/serve/service.png" mode=""></image>
 				<text>联系客服</text>
 			</view>
-			<view class="right">
+			<view class="right" @click="go('/pages/leave/classify/classify?type=kind')">
 				立即鉴定
 			</view>
 		</view>
@@ -107,6 +107,11 @@
 					this.touchNum = 0
 					clearTimeout(timer)
 				},250)
+			},
+			go(e){
+				uni.navigateTo({
+					url: e
+				})
 			}
 		}
 	}

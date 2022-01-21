@@ -94,7 +94,7 @@
 			// 获取验证码
 			getCode(){
 				this.request({
-					url: '/api/wanlshop/sms/send',
+					url: 'wanlshop/sms/send',
 					method: 'POST',
 					data: {
 						mobile: uni.getStorageSync('userInfo').mobile,
@@ -120,7 +120,7 @@
 					if (valid) {
 						console.log("验证成功")
 						this.request({
-							url: '/api/wanlshop/user/resetpwd',
+							url: 'wanlshop/user/resetpwd',
 							method: 'POST',
 							data: {
 								mobile: uni.getStorageSync('userInfo').mobile,

@@ -1,0 +1,518 @@
+<template>
+	<view class="content">
+		<view class="popup">
+			<view class="title">
+				<image class="title_img" src="" mode=""></image>
+				<text class="title_text">715条评论</text>
+				<image class="title_img" src="/static/my/close.png" mode="" @click="closePopup"></image>
+			</view>
+			<list ref="list" class="comments" @loadmore="scrollEnd" :loadmoreoffset="0" :pagingEnabled="false" :scrollable="true" :show-scrollbar="false">
+			    <!-- 注意事项: 不能使用 index 作为 key 的唯一标识 模拟数据,接口数据使用id-->
+				<cell>
+					<view class="firstFloor" v-for="(item,index) in commentsList" :key="index">
+						<view class="first_left">
+							<image class="avatar" src="/static/comm/avatar.png" mode=""></image>
+						</view>
+						<view class="secondFloor">
+							<view class="first_right">
+								<view class="info">
+									<view class="nickname">
+										<text class="name">小马斑比</text>
+										<text class="writer" v-if="false">作者</text>
+									</view>
+									<text class="desc">妈耶，这个真的好好看妈耶，这个真的好好看妈耶，这个真的好好看妈耶，这个真的好好看妈耶，这个真的好好看妈耶</text>
+									<view class="back">
+										<text class="time">9月21日</text>
+										<text class="backBt" @click="focus">回复</text>
+									</view>
+								</view>
+								<view class="praise" @click="item.praise = !item.praise">
+									<image v-if="item.praise" class="praise_img" src="/static/comm/praise_on.png" mode=""></image>
+									<image v-else class="praise_img" src="/static/comm/praise.png" mode=""></image>
+									<text class="num">{{item.praise ? item.praiseNum + 1 : item.praiseNum}}</text>
+								</view>
+							</view>
+							<view class="reply">
+								<view class="second" v-for="(elem,cut) in item.replyList" :key="cut">
+									<view class="second_left">
+										<image class="avatar second_avatar" src="/static/comm/avatar.png" mode=""></image>
+									</view>
+									<view class="second_right">
+										<view class="info second_info">
+											<view class="nickname">
+												<text class="name">小马斑比</text>
+												<text class="writer">作者</text>
+											</view>
+											<text class="desc">妈耶，这个真的好好看妈耶，这个真的好好看妈耶，这个真的好好看妈耶，这个真的好好看妈耶，这个真的好好看妈耶</text>
+											<view class="back">
+												<text class="time">9月21日</text>
+												<text class="backBt" @click="focus">回复</text>
+											</view>
+											
+										</view>
+										<view class="praise" @click="elem.rPraise = !elem.rPraise">
+											<image v-if="elem.rPraise" class="praise_img" src="/static/comm/praise_on.png" mode=""></image>
+											<image v-else class="praise_img" src="/static/comm/praise.png" mode=""></image>
+											<text class="num">{{elem.rPraise ? elem.rPraiseNum + 1 : elem.rPraiseNum}}</text>
+										</view>
+									</view>
+								</view>
+								<view class="second_reply" @click="loadingMore(item)" v-if="item.replyList.length < 5">
+									<text class="more">--- 展开更多回复</text>
+									<my-loading v-if="item.loading" :size="30" color="#9392A0"></my-loading>
+									<image class="down" src="/static/leave/down.png" mode="" v-else></image>
+								</view>
+							</view>
+						</view>
+					</view>
+					<load-more iconType="snow" :status="status" :contentText="contentText"></load-more>
+				</cell>
+			</list>
+			<!-- <scroll-view :scroll-y="true" class="comments" :show-scrollbar="false" :lower-threshold="0" @scrolltolower="scrollEnd">
+				<view class="firstFloor" v-for="(item,index) in commentsList" :key="index">
+					<view class="first_left">
+						<image class="avatar" src="/static/comm/avatar.png" mode=""></image>
+					</view>
+					<view class="secondFloor">
+						<view class="first_right">
+							<view class="info">
+								<view class="nickname">
+									<text class="name">小马斑比</text>
+									<text class="writer" v-if="false">作者</text>
+								</view>
+								<text class="desc">妈耶，这个真的好好看妈耶，这个真的好好看妈耶，这个真的好好看妈耶，这个真的好好看妈耶，这个真的好好看妈耶</text>
+								<view class="back">
+									<text class="time">9月21日</text>
+									<text class="backBt" @click="focus">回复</text>
+								</view>
+							</view>
+							<view class="praise" @click="item.praise = !item.praise">
+								<image v-if="item.praise" class="praise_img" src="/static/comm/praise_on.png" mode=""></image>
+								<image v-else class="praise_img" src="/static/comm/praise.png" mode=""></image>
+								<text class="num">{{item.praise ? item.praiseNum + 1 : item.praiseNum}}</text>
+							</view>
+						</view>
+						<view class="reply">
+							<view class="second" v-for="(elem,cut) in item.replyList" :key="cut">
+								<view class="second_left">
+									<image class="avatar second_avatar" src="/static/comm/avatar.png" mode=""></image>
+								</view>
+								<view class="second_right">
+									<view class="info second_info">
+										<view class="nickname">
+											<text class="name">小马斑比</text>
+											<text class="writer">作者</text>
+										</view>
+										<text class="desc">妈耶，这个真的好好看妈耶，这个真的好好看妈耶，这个真的好好看妈耶，这个真的好好看妈耶，这个真的好好看妈耶</text>
+										<view class="back">
+											<text class="time">9月21日</text>
+											<text class="backBt" @click="focus">回复</text>
+										</view>
+										
+									</view>
+									<view class="praise" @click="elem.rPraise = !elem.rPraise">
+										<image v-if="elem.rPraise" class="praise_img" src="/static/comm/praise_on.png" mode=""></image>
+										<image v-else class="praise_img" src="/static/comm/praise.png" mode=""></image>
+										<text class="num">{{elem.rPraise ? elem.rPraiseNum + 1 : elem.rPraiseNum}}</text>
+									</view>
+								</view>
+							</view>
+							<view class="second_reply" @click="loadingMore(item)" v-if="item.replyList.length < 5">
+								<text class="more">--- 展开更多回复</text>
+								<my-loading v-if="item.loading" color="#9392A0"></my-loading>
+								<image class="down" src="/static/leave/down.png" mode="" v-else></image>
+							</view>
+						</view>
+					</view>
+				</view>
+				<load-more iconType="snow" :status="status" :contentText="contentText"></load-more>
+			</scroll-view> -->
+			<view :class="['mask', maskShow ? '' : 'none']" v-if="maskShow" @click="maskHide"></view>
+			<view class="discuss" :style="{'bottom': bottom + 'px'}">
+				<input 
+					class="input" 
+					ref="input"
+					type="text" 
+					value="" 
+					placeholder="来说两句" 
+					confirm-type="send" 
+					:adjust-position="false" 
+					@focus="maskShow = true"
+					@blur="maskHide"
+					@confirm="send"
+					@keyboardheightchange="boarChange($event)" 
+				/>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	import myLoading from '@/components/my-loading/my-loading.nvue'
+	import loadMore from '@/components/uni-load-more/uni-load-more.vue'
+	export default {
+		components:{
+			myLoading,
+			loadMore
+		},
+		data() {
+			return {
+				bottom: 0, // 输入框距离底部
+				loading: false, // 加载动画是否显示
+				maskShow: false ,// 遮罩
+				status: 'more',
+				contentText: {
+					contentdown: "上拉显示更多",
+					contentrefresh: "正在加载...",
+					contentnomore: "没有更多数据了",
+				},
+				commentsList: [
+					{
+						id: 1,
+						praise: false,
+						praiseNum: 15,
+						loading: false,
+						replyList: [
+							{
+								rid: 1,
+								rPraise: false,
+								rPraiseNum:20
+							},
+							{
+								rid: 2,
+								rPraise: false,
+								rPraiseNum:20
+							},
+							{
+								rid: 3,
+								rPraise: false,
+								rPraiseNum:20
+							}
+						]
+					},
+					{
+						id: 2,
+						praise: false,
+						praiseNum: 15,
+						loading: false,
+						replyList: [
+							{
+								rid: 2,
+								rPraise: false,
+								rPraiseNum:20
+							}
+						]
+					},
+					{
+						id: 3,
+						praise: false,
+						praiseNum: 15,
+						loading: false,
+						replyList: [
+							{
+								rid: 3,
+								rPraise: false,
+								rPraiseNum:20
+							}
+						]
+					},
+					{
+						id: 4,
+						praise: false,
+						praiseNum: 15,
+						loading: false,
+						replyList: [
+							{
+								rid: 4,
+								rPraise: false,
+								rPraiseNum:20
+							}
+						]
+					}
+				]
+			};
+		},
+		created() {
+			
+		},
+		methods:{
+			closePopup(){
+				// #ifdef APP-PLUS
+				// 通过 id 获取 nvue 子窗体
+				const subNVue = uni.getSubNVueById('comment')  
+				// 关闭 nvue 子窗体  
+				subNVue.hide('slide-out-bottom', 300, function(){});
+				// #endif
+			},
+			// 动态设置输入框的位置，防止获取焦点，页面顶起
+			boarChange(e){
+				this.bottom = e.detail.height
+			},
+			// 加载更多回复
+			loadingMore(e){
+				e.loading = true
+				let timer = setTimeout(()=>{
+					e.loading = false
+					// 模拟数据请求
+					this.commentsList.forEach(elem=>{
+						if(elem.id == e.id){
+							for(let i = 0; i <= 1; i ++){
+								elem.replyList.push({
+									rid: elem.replyList.length + 1,
+									rPraise: false,
+									rPraiseNum: 25
+								})
+							}
+						}
+					})
+					
+					this.$forceUpdate()
+					clearTimeout(timer)
+				},2000)
+			},
+			// nvue事件获取焦点，并且显示遮罩
+			focus(e){
+				this.$refs.input.focus()
+				this.maskShow = true
+			},
+			// 监听键盘发送按钮
+			send(e){
+				console.log(e)
+			},
+			// 隐藏遮罩取消焦点
+			maskHide(){
+				this.$refs.input.blur()
+				this.maskShow = false
+			},
+			// list触底加载
+			scrollEnd(){
+				this.status = 'loading'
+				let timer = setTimeout(()=>{
+					for(let i = 0; i <= 1; i ++){
+						this.commentsList.push({
+							id: this.commentsList.length + 1,
+							praise: false,
+							praiseNum: 15,
+							loading: false,
+							replyList: [
+								{
+									rid: 1,
+									rPraise: false,
+									rPraiseNum:20
+								},
+								{
+									rid: 2,
+									rPraise: false,
+									rPraiseNum:20
+								},
+								{
+									rid: 3,
+									rPraise: false,
+									rPraiseNum:20
+								}
+							]
+						})
+					}
+					this.status = 'more'
+					this.$refs['list'].resetLoadmore();
+					clearTimeout(timer)
+				}, 2000)
+			}
+		}
+	}
+</script>
+
+<style lang="scss" scoped>
+	.content{
+		background: rgba(0,0,0,0.7);
+		justify-content: flex-end;
+		.mask{
+			flex: 1;
+			position: absolute;
+			width: 750rpx;
+			height: 1500rpx;
+			top: 0;
+			left: 0;
+			background: rgba(0, 0, 0, 0.5);
+		}
+		.popup{
+			height: 1050rpx;
+			background: #fff;
+			border-top-left-radius: 20rpx;
+			border-top-right-radius: 20rpx;
+			padding-bottom: 100rpx;
+			position: relative;
+			.title{
+				height: 100rpx;
+				padding: 0 30rpx;
+				flex-direction: row;
+				justify-content: space-between;
+				align-items: center;
+				border-bottom: solid 1px #F7F7FB;
+				.title_img{
+					width: 44rpx;
+					height: 44rpx;
+				}
+				.title_text{
+					font-size: 30rpx;
+					font-family: PingFang SC;
+					font-weight: bold;
+					color: #000000;
+				}
+			}
+			// 评论
+			.comments{
+				height: 850rpx;
+				padding: 0 30rpx;
+				.firstFloor{
+					flex-direction: row;
+					justify-content: flex-start;
+					padding: 23rpx 0;
+					border-bottom: solid 1px #F7F7FB;
+					.first_left,.second_left{
+						margin-right: 23rpx;
+						.avatar{
+							width: 80rpx;
+							height: 80rpx;
+						}
+					}
+					.secondFloor{
+						flex: 1;
+						// 评论(第一层) 右部分
+						.first_right,.second_right{
+							flex-direction: row;
+							justify-content: space-between;
+							align-items: flex-start;
+							.info{
+								width: 500rpx;
+								.nickname{
+									flex-direction: row;
+									align-items: center;
+									margin-left: 10rpx;
+									.name{
+										font-size: 26rpx;
+										font-family: PingFang SC;
+										font-weight: 500;
+										color: #686879;
+									}
+									.writer{
+										width: 58rpx;
+										height: 26rpx;
+										text-align: center;
+										line-height: 26rpx;
+										background: #F55454;
+										border-radius: 6rpx;
+										font-size: 18rpx;
+										font-family: PingFang SC;
+										font-weight: 500;
+										color: #FFFFFF;
+									}
+								}
+								.desc{
+									flex: 1;
+									font-size: 28rpx;
+									font-family: PingFang SC;
+									font-weight: 500;
+									color: #000000;
+									margin: 10rpx 0;
+								}
+								.back{
+									flex-direction: row;
+									align-items: center;
+									.time{
+										font-size: 24rpx;
+										font-family: PingFang SC;
+										font-weight: 500;
+										color: #9392A0;
+									}
+									.backBt{
+										font-size: 30rpx;
+										font-family: PingFang SC;
+										font-weight: bold;
+										color: #4e4e56;
+										margin-left: 30rpx;
+									}
+								}
+							}
+							.praise{
+								flex-direction: row;
+								align-items: center;
+								.praise_img{
+									width: 44rpx;
+									height: 44rpx;
+								}
+								.num{
+									font-size: 22rpx;
+									font-family: PingFang SC;
+									font-weight: 500;
+									color: #686879;
+								}
+							}
+						}
+						// 回复(第二层)
+						.reply{
+							flex: 1;
+							margin-top: 10rpx;
+							.second{
+								flex: 1;
+								flex-direction: row;
+								justify-content: flex-start;
+								.second_left{
+									.second_avatar{
+										width: 60rpx;
+										height: 60rpx;
+									}
+								}
+								.second_right{
+									flex: 1;
+									.second_info{
+										width: 400rpx;
+									}
+								}
+							}
+							
+							.second_reply{
+								flex-direction: row;
+								align-items: center;
+								margin-top: 5rpx;
+								height: 44rpx;
+								.more{
+									font-size: 24rpx;
+									font-family: PingFang SC;
+									font-weight: bold;
+									color: #9392A0;
+								}
+								.down{
+									width: 44rpx;
+									height: 44rpx;
+								}
+							}
+							
+						}
+					
+					}
+		
+				}
+			}
+			
+			.discuss{
+				width: 750rpx;
+				height: 98rpx;
+				padding: 20rpx 30rpx;
+				border-top: solid 1px #F2F2F2;
+				background: #fff;
+				position: absolute;
+				.input{
+					
+					height: 60rpx;
+					padding: 0 25rpx;
+					background: #F6F5FA;
+					border-radius: 30rpx;
+					font-size: 24rpx;
+					font-family: PingFang SC;
+					font-weight: 500;
+				}
+			}
+		}
+	}
+</style>

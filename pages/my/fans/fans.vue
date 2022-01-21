@@ -6,11 +6,11 @@
 				<text>{{item.name}}</text>
 			</view>
 			<view class="item_right null" v-if="item.status">
-				<text @click="modelShow(index,1)">已关注</text>
+				<text @click.stop="modelShow(index,1)">已关注</text>
 			</view>
 			<view class="item_right" v-else>
 				<image src="/static/my/add.png" mode=""></image>
-				<text @click="modelShow(index,2)">关注</text>
+				<text @click.stop="modelShow(index,2)">关注</text>
 			</view>
 		</view>
 		<u-modal v-model="show" title="" :content="content" :show-cancel-button="true" @confirm="sure"></u-modal>

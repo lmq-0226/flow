@@ -2,18 +2,18 @@
 	<view class="content">
 		<view class="top">
 			<text>流象证书查询</text>
-			<text>输入证书编号或扫描二维码即可查询</text>
+			<text>输入证书编号即可查询</text>
 		</view>
 		<view class="scan">
 			<text>扫码查询</text>
-			<text>扫描鉴定卡或鉴定师证书二维码，可查询结果</text>
+			<text>扫描鉴定卡或鉴定师证书，可查询结果</text>
 			<text>立即查询</text>
 		</view>
 		<view class="search">
 			<view class="">
 				<image src="/static/shop/search.png" mode=""></image>
-				<u-input place-holder="输入证书编号"></u-input>
-				<text>查询</text>
+				<u-input v-model="cert_no" place-holder="输入证书编号"></u-input>
+				<text @click="query">查询</text>
 			</view>
 		</view>
 		<view class="query">
@@ -40,8 +40,21 @@
 	export default {
 		data() {
 			return {
-				
+				cert_no: ''
 			};
+		},
+		methods:{
+			query(){
+				this.request({
+					url: 'service/index/query_cert',
+					data: {
+						token: uni.getStorageSync('userInfo').token,
+						cert_no: this.cert_no
+					}
+				}).then(res=>{
+					
+				})
+			},
 		}
 	}
 </script>

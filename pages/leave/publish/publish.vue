@@ -3,40 +3,40 @@
 		<view class="pub">
 			<view class="pubDetail">
 				<view class="imgs">
-					<view class="" v-for="(item,index) in imgs" :key="index" @click="pvew(index)">
-						<image :src="item" mode="heightFix"></image>
+					<view class="" v-for="(item,index) in images" :key="index" @click="pvew(index)">
+						<image :src="ImgUrl + item" mode="heightFix"></image>
 						<image src="/static/my/close2.png" mode="" @click.stop="del(index)"></image>
-						<text v-if="index == 0 && type == 2">封面</text>
+						<text v-if="index == 0 && type == 'sale'">封面</text>
 					</view>
 					<image src="/static/leave/upload.png" mode="" @click="upload()"></image>
 				</view>
 				<!-- 平台寄卖 -->
-				<view class="" v-if="type == 1">
+				<view class="" v-if="type == 'consign'">
 					<u-input :custom-style="customStyle" v-model="name" type="text" placeholder="输入寄卖商品名称~" :clearable="false" />
-					<u-input :custom-style="customStyle" v-model="desc" type="textarea" placeholder="给鉴定师多一些对商品的描述..." :clearable="false" />
+					<u-input :custom-style="customStyle" v-model="content" type="textarea" placeholder="给鉴定师多一些对商品的描述..." :clearable="false" />
 				</view>
 				<!-- 拍图售卖 -->
 				<view class="" v-else>
 					<u-input :custom-style="customStyle" v-model="name" type="text" placeholder="填写标题" :clearable="false" />
-					<u-input :custom-style="customStyle" v-model="desc" type="textarea" placeholder="买家都关心品牌型号、入手渠道、转售原因..." :clearable="false" />
+					<u-input :custom-style="customStyle" v-model="content" type="textarea" placeholder="买家都关心品牌型号、入手渠道、转售原因..." :clearable="false" />
 				</view>
-				<view class="area">
+				<view class="area" @click="getLoacltion">
 					<image src="/static/my/location.png" mode=""></image>
-					<text>苏州市</text>
+					<text>{{area}}</text>
 				</view>
 			</view>
 			<view class="classify" :style="'height: '+ classHeight +';overflow: hidden;'">
 				<view class="lettle">
 					<view class="">
 						<image src="/static/leave/classify.png" mode=""></image>
-						<text>{{classStatus ? '分类' : '分类/来源/状态'}}</text>
+						<text>{{classStatus ? classListTitle[0] : classListTitle.join('/')}}</text>
 					</view>
 					<image v-if="classStatus" src="/static/leave/on.png" mode="" @click="classStatus = false,classHeight = '88rpx'"></image>
 					<image v-else src="/static/leave/down.png" mode="" @click="classStatus = true,classHeight = '100%'"></image>
 				</view>
 				<view class="classitem" v-for="(item,index) in classList" :key="index">
 					<text class="title" v-if="index > 0">{{item.lettle}}</text>
-					<text v-for="(elem,cut) in item.class" :key="cut" :class="activeList.indexOf(elem.id) > -1 ? 'active' : ''" @click="select(index,elem.id)">{{elem.text}}</text>
+					<text v-for="(elem,cut) in item.class" :key="cut" :class="activeList.indexOf(elem) > -1 ? 'active' : ''" @click="select(index,elem)">{{elem}}</text>
 				</view>
 			</view>
 			<view class="classify price" :style="'height: '+ priceHeight +';overflow: hidden;'">
@@ -51,47 +51,48 @@
 				<view class="num">
 					<view class="">
 						<text>售价 ¥</text>
-						<u-input v-model="sprice" type="number" :clearable="false" placeholder="请输入售价"/>
+						<u-input v-model="price" type="number" :clearable="false" placeholder="请输入售价"/>
 					</view>
 				</view>
-				<view class="num" v-if="type == 2">
+				<view class="num" v-if="type == 'sale'">
 					<view class="">
 						<text>原价 ¥</text>
-						<u-input v-model="oprice" type="number" :clearable="false" placeholder="请输入原价"/>
+						<u-input v-model="original_price" type="number" :clearable="false" placeholder="请输入原价"/>
 					</view>
 				</view>
-				<view class="num" v-if="type == 2">
+				<view class="num" v-if="type == 'sale'">
 					<view class="">
 						<text>运费 ¥</text>
-						<u-input v-model="freight" type="number" :clearable="false" placeholder="请输入运费"/>
+						<u-input v-model="express_fee" type="text" :focus="express_type == 3 ? true : false" :disabled="express_type != 3" :clearable="false" placeholder="请输入运费"/>
 					</view>
 					<view class="">
-						<text>包邮</text>
-						<text>距离估算</text>
+						<text :class="express_type == 1 ? 'active' : ''" @click="express_type = 1,express_fee = '0.00'">包邮</text>
+						<!-- <text :class="express_type == 2 ? 'active' : ''" @click="express_type = 2,express_fee = ''">距离估算</text> -->
+						<text :class="express_type == 3 ? 'active' : ''" @click="express_type = 3,express_fee = ''">固定运费</text>
 					</view>
 				</view>
 			</view>
 		</view>
 		<view class="bottom">
-			<view class="">
+			<view class="" @click="publish(4)">
 				<image src="/static/leave/draft.png" mode=""></image>
 				<text>存草稿</text>
 			</view>
-			<!-- <text @click="go('./affirm/affirm?type=' + type)">立即发布</text> -->
-			<text @click="go('../detail/detail?status=0&type=' + type)">立即发布</text>
+			<!-- <text v-if="type == 1" @click="go('./affirm/affirm?type=' + type)">立即发布</text> -->
+			<text @click="publish(1)">立即发布</text>
 		</view>
+		<u-modal v-model="show" content="是否重新编辑草稿箱数据？" :show-cancel-button="true" @confirm="go('/pages/my/released/released?current=1&type=' + type)"></u-modal>
 		<u-toast ref="uToast" />
 	</view>
 </template>
 
 <script>
+	import permision from "@/utils/permission.js"
 	export default {
 		data() {
 			return {
-				type: 1,
-				imgs: [], // 图片上传列表
-				name: '', // 名称
-				desc: '', // 描述
+				show: false,
+				type: '', // consign是寄卖 sale是拍卖
 				customStyle: {
 					background: '#F6F5FA',
 					marginTop: '20rpx',
@@ -99,51 +100,129 @@
 					borderRadius: '10rpx'
 				},
 				classList: [
-					{
-						lettle: '分类',class:[
-							{id: 2,text: '运动鞋'},
-							{id: 3,text: '帆布鞋'},
-							{id: 4,text: '高跟鞋'},
-							{id: 5,text: '平底鞋'},
-							{id: 6,text: '皮鞋'},
-						]
-					},
-					{
-						lettle: '来源',class:[
-							{id: 8,text: '代购'},
-							{id: 9,text: '他人赠送'},
-							{id: 10,text: '线下专柜'}
-						]
-					},
-					{
-						lettle: '状态',class:[
-							{id: 14,text: '全新'},
-							{id: 15,text: '几乎全新'},
-							{id: 16,text: '轻微使用痕迹'},
-							{id: 17,text: '明显使用痕迹'}
-						]
-					}
+					// {
+					// 	lettle: '分类',class:['运动鞋', '帆布鞋', '高跟鞋', '平底鞋', '皮鞋']
+					// },
+					// {
+					// 	lettle: '来源',class:['代购', '他人赠送', '线下专柜']
+					// },
+					// {
+					// 	lettle: '状态',class:['全新', '几乎全新', '轻微使用痕迹', '明显使用痕迹']
+					// }
 				],
+				classListTitle: [],
 				classHeight: '100%', // 分类动态高度
 				priceHeight: '100%', // 价格动态高度
 				classStatus: true, // 下拉框状态
 				priceStatus: true,
-				activeList: [] ,// 分类、来源、状态id
-				sprice: '', // 售价
-				oprice: '', // 原价
-				freight: '' // 运费
+				activeList: ['', ''] ,// 分类、来源、状态id
+				// form: {
+				token: uni.getStorageSync('userInfo').token,
+				image: '',
+				images: [], // 本地图片列表
+				name: '', // 名称
+				content: '', // 描述
+				price: '', // 售价
+				original_price: '', // 原价
+				express_fee: '' ,// 运费
+				source: '', // 来源
+				state: '', // 成色
+				brand_id: '', // 品牌id
+				category_id: '', // 分类id
+				express_type: 2, // 1包邮/2距离估算/3固定运费
+				status: 1,// 1=在售 4=存草稿
+				area: '未知'
+				// }
 			};
 		},
 		onLoad(option) {
+			this.getConfig()
 			this.type = option.type
+			// 先获取闲置发布草稿箱 如果是1就是编辑进来的，就不请求草稿箱
+			if(option.current != 1){
+				this.getDraft(option.type)
+			}
+			this.category_id = option.category_id
+			this.brand_id = option.brand_id
+			if(option.id){
+				this.id = option.id
+			}
+		},
+		onShow() {
+			if(this.id){
+				this.getDetail(this.id)
+			}
 		},
 		methods:{
+			getConfig(){
+				// 来源
+				this.request({
+					url: 'idle/goods/config',
+					data: {
+						token: uni.getStorageSync('userInfo').token,
+						name: 'comefrom'
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.classList.push({
+							lettle: '来源',
+							class: res.data.data.info
+						})
+						this.classListTitle.push('来源')
+						// 状态
+						this.request({
+							url: 'idle/goods/config',
+							data: {
+								token: uni.getStorageSync('userInfo').token,
+								name: 'condition'
+							}
+						}).then(res=>{
+							if(res.data.code == 1){
+								this.classList.push({
+									lettle: '状态',
+									class: res.data.data.info
+								})
+								this.classListTitle.push('状态')
+							}
+						})
+					}
+				})
+				
+			},
+			// 编辑时获取详情
+			getDetail(e){
+				this.request({
+					url: 'idle/goods/detail',
+					data: {
+						token: uni.getStorageSync('userInfo').token,
+						id: e
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						// Object.keys(this.form).forEach(key => {
+						// 	this.form[key] = res.data.data[key]
+						// })
+						this.name = res.data.data.name
+						this.content = res.data.data.content
+						this.price = res.data.data.price
+						this.original_price = res.data.data.original_price
+						this.express_fee = res.data.data.express_fee
+						this.express_type = res.data.data.express_type
+						this.brand_id = res.data.data.brand_id
+						this.category_id = res.data.data.category_id
+						this.images = res.data.data.images.split(',')
+						this.activeList[0] = res.data.data.source
+						this.activeList[1] = res.data.data.state
+					}
+				})
+			},
+			// 选择来源和状态
 			select(e,n){
 				// this.$set解决数组添加dom不更新
 				this.$set(this.activeList,e,n)
 			},
 			upload(){
-				if(this.imgs.length >= 6){
+				if(this.images.length >= 6){
 					this.$refs.uToast.show({
 						title: '最多上传6张图片',
 						type: 'warning'
@@ -151,12 +230,283 @@
 					return
 				}
 				uni.chooseImage({
-				    count: 6 - this.imgs.length, //默认9
+				    count: 6 - this.images.length, //默认9
 				    sizeType: ['original', 'compressed'], //可以指定是原图还是压缩图，默认二者都有
 				    sourceType: ['album'], //从相册选择
 				    success: res =>{
-						this.imgs = [...this.imgs, ...res.tempFilePaths]
+						// this.imgs = [...this.imgs, ...res.tempFilePaths]
+						res.tempFilePaths.forEach(elem=>{
+							this.uploadFile(elem)
+						})
 				    }
+				})
+			},
+			// 提交发布
+			publish(e, n){
+				this.status = e // 存草稿/发布
+				this.source = this.activeList[0]
+				this.state = this.activeList[1]
+				this.token = uni.getStorageSync('userInfo').token
+				this.image = this.images[0]
+				if(this.images.length <= 0){
+					uni.showToast({
+						title: '请上传宝贝图片',
+						icon: 'none'
+					})
+					return
+				}
+				if(this.name == ''){
+					uni.showToast({
+						title: '请填写宝贝标题',
+						icon: 'none'
+					})
+					return
+				}
+				if(this.content == ''){
+					uni.showToast({
+						title: '请填写宝贝描述',
+						icon: 'none'
+					})
+					return
+				}
+				if(this.source == ''){
+					uni.showToast({
+						title: '请选择宝贝来源',
+						icon: 'none'
+					})
+					return
+				}
+				if(this.state == ''){
+					uni.showToast({
+						title: '请选择宝贝状态',
+						icon: 'none'
+					})
+					return
+				}
+				if(this.state == ''){
+					uni.showToast({
+						title: '请选择宝贝状态',
+						icon: 'none'
+					})
+					return
+				}
+				if(this.price == ''){
+					uni.showToast({
+						title: '请填写宝贝售价',
+						icon: 'none'
+					})
+					return
+				}
+				if(this.type != 'consign'){
+					if(this.original_price == ''){
+						uni.showToast({
+							title: '请填写宝贝原价',
+							icon: 'none'
+						})
+						return
+					}
+					if(this.express_fee == ''){
+						uni.showToast({
+							title: '请填写宝贝运费',
+							icon: 'none'
+						})
+						return
+					}
+				}
+				if(this.type == 'consign'){
+					this.conPush()
+				}else{
+					this.aucPush()
+				}
+				
+			},
+			// 拍卖
+			aucPush(){
+				// 编辑
+				if(this.id){
+					this.request({
+						url: 'idle/goods/edit',
+						data: {
+							id: this.id,
+							token: uni.getStorageSync('userInfo').token,
+							image: this.image,
+							images: this.images, // 本地图片列表
+							name: this.name, // 名称
+							content: this.content, // 描述
+							price: this.price, // 售价
+							original_price: this.original_price, // 原价
+							express_fee: this.express_fee,// 运费
+							source: this.source, // 来源
+							state: this.state, // 成色
+							brand_id: this.brand_id, // 品牌id
+							category_id: this.category_id, // 分类id
+							express_type: this.express_type, // 1包邮/2距离估算
+							status: this.status // 1=在售 4=存草稿
+						}
+					}).then(res=>{
+						if(res.data.code == 1){
+							uni.navigateBack({
+								delta: 1
+							})
+						}
+					})
+					// 发布新增
+				}else{
+					this.request({
+						url: 'idle/goods/add',
+						data: {
+							token: uni.getStorageSync('userInfo').token,
+							image: this.image,
+							images: this.images, // 本地图片列表
+							name: this.name, // 名称
+							content: this.content, // 描述
+							price: this.price, // 售价
+							original_price: this.original_price, // 原价
+							express_fee: this.express_fee,// 运费
+							source: this.source, // 来源
+							state: this.state, // 成色
+							brand_id: this.brand_id, // 品牌id
+							category_id: this.category_id, // 分类id
+							express_type: this.express_type, // 1包邮/2距离估算
+							status: this.status // 1=在售 4=存草稿
+						}
+					}).then(res=>{
+						if(res.data.code == 1){
+							this.go('/pages/my/released/released?type=sale')
+						}
+					})
+				}
+			},
+			// 寄卖
+			conPush(){
+				// 编辑
+				if(this.id){
+					this.request({
+						url: 'idle/goods/edit',
+						data: {
+							id: this.id,
+							token: uni.getStorageSync('userInfo').token,
+							image: this.image,
+							images: this.images, // 本地图片列表
+							name: this.name, // 名称
+							content: this.content, // 描述
+							price: this.price, // 售价
+							original_price: this.price, // 原价
+							express_fee: this.express_fee,// 运费
+							source: this.source, // 来源
+							state: this.state, // 成色
+							brand_id: this.brand_id, // 品牌id
+							category_id: this.category_id, // 分类id
+							express_type: this.express_type, // 1包邮/2距离估算
+							status: this.status,// 1=在售 4=存草稿
+							goods_type: "consign"
+						}
+					}).then(res=>{
+						if(res.data.code == 1){
+							uni.navigateBack({
+								delta: 1
+							})
+						}
+					})
+					// 发布新增
+				}else{
+					this.request({
+						url: 'idle/goods/add',
+						data: {
+							token: uni.getStorageSync('userInfo').token,
+							image: this.image,
+							images: this.images, // 本地图片列表
+							name: this.name, // 名称
+							content: this.content, // 描述
+							original_price: this.price, // 售价
+							express_fee: this.express_fee,// 运费
+							source: this.source, // 来源
+							state: this.state, // 成色
+							brand_id: this.brand_id, // 品牌id
+							category_id: this.category_id, // 分类id
+							status: this.status,// 1=在售 4=存草稿
+							goods_type: "consign"
+						}
+					}).then(res=>{
+						if(res.data.code == 1){
+							this.go('/pages/my/released/released?type=consign')
+							// this.go('../detail/detail?status=0&order_id=' + this.type)
+						}
+					})
+				}
+			},
+			uploadFile(e){
+				uni.uploadFile({
+					url: 'http://app.51liuxiang.com/api/common/upload', //仅为示例，非真实的接口地址
+					filePath: e,
+					name: 'file',
+					formData: {
+						'token': uni.getStorageSync('userInfo').token
+					},
+					success: res => {
+						this.images.push(JSON.parse(res.data).data.url)
+						
+					},
+					complete: all => {
+						console.log(all)
+					}
+				})
+			},
+			async getLoacltion(){
+				let systom = uni.getSystemInfoSync()
+				// #ifdef APP-PLUS
+				// android和ios位置权限判断
+				if(systom.platform == 'android'){
+					var result = await  permision.requestAndroidPermission('android.permission.ACCESS_FINE_LOCATION')
+					console.log(result)
+					if (result == 1) {
+					   // "已获得授权"
+						uni.getLocation({
+						    type: 'gcj02',
+							geocode: true,
+							isHighAccuracy: true,
+						    success: res => {
+						        console.log(res)
+								this.area = res.address.district
+						    }
+						})
+					} else if (result == 0) {
+					    // "未获得授权"
+					} else {
+					    // "被永久拒绝权限"
+						// permision.gotoAppPermissionSetting()
+					}
+				}else{
+					var result = permision.judgeIosPermission("location")
+					if(result){
+						uni.getLocation({
+						    type: 'wgs84',
+							geocode: true,
+							isHighAccuracy: true,
+						    success: res => {
+						        console.log(res)
+						    }
+						})
+					}else{
+						permision.gotoAppPermissionSetting()
+					}
+				}
+				// #endif
+			},
+			getDraft(e){
+				this.request({
+					url: 'idle/goods/list',
+					data: {
+						token: uni.getStorageSync('userInfo').token,
+						status: 4,
+						type: e,
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						if(res.data.data.list.length >= 1){
+							this.show = true
+						}
+					}
 				})
 			},
 			go(e){
@@ -166,17 +516,27 @@
 			},
 			// 图片预览
 			pvew(e){
-				uni.previewImage({
-					current: e,
-					urls: this.imgs
+				let arr = []
+				this.images.forEach(elem=>{
+					arr.push(this.ImgUrl + elem)
 				})
+				let timer = setTimeout(()=>{
+					uni.previewImage({
+						current: e,
+						urls: arr
+					})
+				}, 50)
+				
+				
 			},
 			del(e){
-				this.imgs.splice(e, 1)
+				this.images.splice(e, 1)
+				
 				this.$refs.uToast.show({
 					title: '删除成功!',
 					type: 'success'
 				})
+				console.log(this.images)
 			}
 		}
 	}
@@ -335,7 +695,7 @@
 						align-items: center;
 						text{
 							display: inline-block;
-							padding: 18rpx 28rpx;
+							padding: 10rpx 20rpx;
 							border: 3rpx solid #EDEDF2;
 							border-radius: 10rpx;
 							font-size: 24rpx;

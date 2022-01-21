@@ -13,8 +13,6 @@
     ]
   },
   "usingComponents": {
-    "detail-u-waterfall-left": "/pages/serve/authen/aller/detail-u-waterfall-left",
-    "detail-u-waterfall-right": "/pages/serve/authen/aller/detail-u-waterfall-right",
     "u-rate": "/node-modules/uview-ui/components/u-rate/u-rate",
     "u-waterfall": "/node-modules/uview-ui/components/u-waterfall/u-waterfall",
     "u-lazy-load": "/node-modules/uview-ui/components/u-lazy-load/u-lazy-load"

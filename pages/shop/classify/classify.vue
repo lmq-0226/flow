@@ -1,11 +1,11 @@
 <template>
 	<view class="content">
-		<view class="menus">
+		<view class="menus" v-if="show">
 			<view class="left">
 				<scroll-view scroll-y="true" class="scroll-Y">
 					<view>
-						<text v-for="(item,index) in 20" :key="index" :class="active == index ? 'active' : ''"
-							@click="active = index">推荐</text>
+						<text v-for="(item,index) in classify" :key="index" :class="active == index ? 'active' : ''"
+							@click="selectClass(index)">{{item.name}}</text>
 					</view>
 				</scroll-view>
 			</view>
@@ -13,10 +13,13 @@
 				<scroll-view scroll-y="true" class="scroll-Y" @scroll="scrollpage" @touchend="scrollEnd">
 					<view>
 						<view class="top">
-							<view class="advertising">
-								
-							</view>
-							<view class="class">
+							<swiper class="advertising" :autoplay="true" :circular="true" :interval="3000">
+								<swiper-item v-for="(item,index) in categoryAdverts" :key="index">
+									 <!-- @click="go('/pages/public/public?category_id=' + elem.id)" -->
+									<image v-for="(elem,cut) in item" :key="cut" :src="ImgUrl + elem.media" mode="widthFix"></image>
+								</swiper-item>
+							</swiper>
+							<!-- <view class="class">
 								<view class="title">
 									<text></text>
 									<text>热门分类</text>
@@ -28,9 +31,28 @@
 										<text>绒线帽</text>
 									</view>
 								</view>
+							</view> -->
+						</view>
+						<view class="right_list">
+							<view class="item" v-for="(item,index) in rightList" :key="index">
+								<view class="father" @click="go('/pages/public/public?category_id=' + item.id)">
+									<view class="">
+										<image :src="ImgUrl + item.image" mode=""></image>
+										<text>{{item.name}}</text>
+									</view>
+									<image src="/static/serve/right.png" mode=""></image>
+								</view>
+								<view class="classify">
+									<view class="" v-for="(elem,cut) in item.childlist" :key="cut"
+										 @click="go('/pages/public/public?category_id=' + elem.id)"
+									>
+										<image :src="ImgUrl + elem.image" mode=""></image>
+										<text>{{elem.name}}</text>
+									</view>
+								</view>
 							</view>
 						</view>
-						<u-index-list :scrollTop="scrollTop" :showIndex="Index" active-color="#FC493D">
+						<!-- <u-index-list :scrollTop="scrollTop" :showIndex="Index" active-color="#FC493D">
 							<view v-for="(item, index) in indexList" :key="index" @click="go('/pages/public/public')">
 								<u-index-anchor :index="item" />
 								<view class="list-cell">
@@ -46,9 +68,15 @@
 									<text>列表3</text>
 								</view>
 							</view>
-						</u-index-list>
+						</u-index-list> -->
 					</view>
 				</scroll-view>
+			</view>
+		</view>
+		<view class="searchList" v-else>
+			<view class="" v-for="(item,index) in searchList" :key="index" @click="go('/pages/public/public?category_id=' + item.id)">
+				<text>{{item.name}}</text>
+				<image src="/static/serve/right.png" mode=""></image>
 			</view>
 		</view>
 	</view>
@@ -58,23 +86,74 @@
 	export default {
 		data() {
 			return {
-				active: 1,
+				active: 0,
 				scrollTop: 300,
 				indexList: ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S",
 					"T", "U",
 					"V", "W", "X", "Y", "Z"
 				],
 				Index: -1,
-				timer: ''
+				timer: '',
+				classify: [],
+				rightList: [],
+				searchList: [],
+				show: true,
+				categoryAdverts: []
 			};
 		},
+		onNavigationBarSearchInputChanged(e){
+			console.log(e)
+			if(e.text == ''){
+				this.show = true
+			}else{
+				this.show = false
+			}
+			this.request({
+				url: 'wanlshop/common/search',
+				method: 'GET',
+				data: {
+					search: e.text
+				}
+			}).then(res=>{
+				if(res.data.code == 1){
+					this.searchList = res.data.data == null ? [] : res.data.data.categoryList
+				}
+			})
+		},
 		onNavigationBarSearchInputConfirmed(e) {
-			console.log(e.text, '1111')
+				// var webView = this.$mp.page.$holder.navigationBar.searchInput
+				// webView.placeholder = option.search
+			// this.go('/pages/search/search?search=' + e.text)
 		},
 		onLoad() {
-			
+			this.getClass()
+			this.getAdv()
 		},
 		methods:{
+			getClass(){
+				this.request({
+					url: 'wanlshop/common/init'
+				}).then(res => {
+					if (res.data.code == 1) {
+						this.classify = res.data.data.modulesData.categoryModules
+						this.rightList = this.classify[0].childlist
+					}
+				})
+			},
+			getAdv(){
+				this.request({
+					url: 'wanlshop/common/adverts?version=1.1.2',
+					methods: 'GET'
+				}).then(res => {
+					if (res.data.code == 1) {
+						this.categoryAdverts = res.data.data.data.categoryAdverts
+					}
+				})
+			},
+			selectClass(e){
+				this.active = e
+				this.rightList = this.classify[e].childlist
+			},
 			scrollpage(e){
 				this.scrollTop = e.detail.scrollTop
 				this.Index = 9999
@@ -171,9 +250,12 @@
 							height: 130rpx;
 							background: #E9E9EB;
 							border-radius: 6rpx;
+							image{
+								width: 100%;
+							}
 						}
 						.class{
-							padding: 40rpx 0;
+							padding: 40rpx 0 0;
 							.title{
 								display: flex;
 								justify-content: center;
@@ -223,6 +305,98 @@
 							}
 						}
 					}
+					.right_list{
+						padding: 0 30rpx;
+					}
+					.item{
+						background: #F6F5FA;
+						.father{
+							display: flex;
+							justify-content: space-between;
+							align-items: center;
+							margin-top: 20rpx;
+							view{
+								display: flex;
+								justify-content: flex-start;
+								align-items: center;
+								padding: 10rpx;
+								image{
+									width: 50rpx;
+									height: 50rpx;
+									margin-right: 20rpx;
+									background: #eeeeee;
+									padding: 10rpx;
+									border-radius: 10rpx;
+								}
+								text{
+									font-size: 28rpx;
+									font-family: PingFang SC;
+									font-weight: bold;
+									color: #686879;
+								}
+							}
+							
+							>image{
+								width: 44rpx;
+								height: 44rpx;
+							}
+						}
+						.classify{
+							display: flex;
+							// justify-content: space-between;
+							flex-wrap: wrap;
+							padding: 0 20rpx;
+							:not(:nth-child(3n-2)){
+								margin-left: 2%;
+							}
+							view{
+								// width: 340rpx;
+								width: 32%;
+								// height: 128rpx;
+								border: 1px solid #EDEDF2;
+								border-radius: 6rpx;
+								padding: 14rpx 13rpx;
+								display: flex;
+								flex-direction: column;
+								justify-content: space-between;
+								align-items: center;
+								margin-bottom: 12rpx;
+								text{
+									font-size: 26rpx;
+									font-family: PingFang SC;
+									font-weight: bold;
+									color: #000000;
+								}
+								image{
+									width: 100rpx;
+									height: 100rpx;
+									background: #F5F5F5;
+									border-radius: 10rpx;
+								}
+							}
+						}
+					}
+					
+				}
+			}
+		}
+	
+		.searchList{
+			padding: 0 20rpx;
+			view{
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				padding: 20rpx 30rpx;
+				background-color: #F6F5Fa;
+				border-radius: 10rpx;
+				margin-top: 20rpx;
+				text{
+					font-size: 28rpx;
+				}
+				image{
+					width: 44rpx;
+					height: 44rpx;
 				}
 			}
 		}

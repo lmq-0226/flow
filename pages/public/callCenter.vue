@@ -27,7 +27,7 @@
 			</view>
 		</view>
 		<view class="bottom">
-			<text>专属热线</text>
+			<text @click="call">专属热线</text>
 			<text @click="go('/pages/HM-chat/HM-chat')">在线客服</text>
 		</view>
 	</view>
@@ -59,6 +59,12 @@
 			go(e){
 				uni.navigateTo({
 					url: e
+				})
+				
+			},
+			call(){
+				uni.makePhoneCall({
+				    phoneNumber: '17516078421' //仅为示例
 				})
 			}
 		}

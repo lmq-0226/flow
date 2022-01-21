@@ -19,14 +19,14 @@
 					</view>
 				</view>
 				<view class="expor">
-					<view class="">
+					<!-- <view class="">
 						<image src="/static/leave/expor.png" mode=""></image>
 						<text>专区展示曝光</text>
 					</view>
 					<view class="">
 						<text>查看效果</text>
 						<image src="/static/my/right.png" mode=""></image>
-					</view>
+					</view> -->
 				</view>
 				<view class="basics" @click="active = false">
 					<text :class="{'active' : !active}">深层洗护 ¥29.90</text>
@@ -36,11 +36,45 @@
 						<image v-else src="/static/login/radio.png" mode=""></image>
 					</view>
 				</view>
+				<view class="expor"></view>
+				
+				<view class="all">
+					<view class="left" @click="popupShow = true">
+						<text>总服务费</text>
+						<u-icon name="info-circle"></u-icon>
+					</view>
+					<text>¥60.00</text>
+				</view>
 			</view>
 		</view>
 		<view class="bottom">
 			<text @click="go('/pages/shop/goodsDetail/confirmOrder/pay?type=' + type)">提交</text>
 		</view>
+		<u-popup v-model="popupShow" mode="bottom" border-radius="20" @touchmove.native.stop.prevent>
+			<view class="popup">
+				<view class="title">
+					<image src="" mode=""></image>
+					<text>总服务费</text>
+					<image src="/static/my/close.png" mode="" @click="popupShow = false"></image>
+				</view>
+				<view class="detailed">
+					<view class="item" v-for="(item,index) in priceList" :key="index">
+						<view class="left">
+							<text>{{index == 0 ? item.text : '-' + item.text}}</text>
+							<text v-if="item.type == 1" class="active">活动减免</text>
+						</view>
+						<view class="right">
+							<text v-if="item.op" class="op">{{item.op}}</text>
+							<text>{{item.money}}</text>
+						</view>
+					</view>
+					<view class="bot">
+						<text>基础清洁 ¥8.00</text>
+						<text>表面重点清理</text>
+					</view>
+				</view>
+			</view>
+		</u-popup>
 	</view>
 </template>
 
@@ -49,7 +83,19 @@
 		data() {
 			return {
 				type: 1,
-				active: true
+				active: true,
+				popupShow: false,
+				priceList: [
+					{text: '总服务费', money: '¥59.99'},
+					{text: '银行转行费', money: '¥20.00'},
+					{text: '质检费', money: '¥20.00'},
+					{text: '包装费', money: '¥5.00'},
+					{text: '鉴别费', money: '¥5.00'},
+					{text: '信息收录费',type: 1,op:'¥20.00', money: '¥0.00'},
+					{text: '专业摄影费',type: 1,op:'¥20.00', money: '¥0.00'},
+					{text: '技术服务费',type: 1,op:'¥20.00', money: '¥0.00'},
+					{text: '服务清理费', money: '¥8.00'}
+				],
 			};
 		},
 		onLoad(option) {
@@ -184,6 +230,28 @@
 						}
 					}
 				}
+			
+				.all{
+					display: flex;
+					justify-content: space-between;
+					align-items: center;
+					view{
+						
+						text{
+							font-size: 30rpx;
+							font-family: PingFang SC;
+							font-weight: bold;
+							color: #000000;
+							margin-right: 10rpx;
+						}
+					}
+					>text{
+						font-size: 30rpx;
+						font-family: PingFang SC;
+						font-weight: 500;
+						color: #000000;
+					}
+				}
 			}
 		}
 		.bottom{
@@ -203,6 +271,103 @@
 				color: #fff;
 				justify-content: center;
 				align-items: center;
+			}
+		}
+		.popup{
+			.title{
+				padding: 30rpx;
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				border-bottom: solid 1px #F6F5FB;
+				image{
+					width: 44rpx;
+					height: 44rpx;
+				}
+				text{
+					font-size: 30rpx;
+					font-family: PingFang SC;
+					font-weight: bold;
+					color: #000000;
+				}
+			}
+			.detailed{
+				padding: 35rpx 40rpx;
+				.item{
+					display: flex;
+					justify-content: space-between;
+					align-items: center;
+					padding: 10rpx 0;
+					text{
+						font-size: 22rpx;
+						font-family: PingFang SC;
+						font-weight: 500;
+						color: #6A6A79;
+					}
+					.left{
+						display: flex;
+						justify-content: flex-start;
+						align-items: center;
+						.active{
+							font-size: 18rpx;
+							color: #FF4243;
+							padding: 3rpx 6rpx;
+							border: 1px solid #FF4243;
+							border-radius: 2rpx;
+							margin-left: 7rpx;
+						}
+					}
+					.right{
+						display: flex;
+						justify-content: flex-end;
+						align-items: center;
+						.op{
+							margin-right: 7rpx;
+							text-decoration: line-through;
+						}
+					}
+				}
+				>:nth-child(1){
+					.left{
+						text{
+							font-size: 26rpx !important;
+							font-family: PingFang SC;
+							font-weight: 500;
+							color: #6A6A79;
+						}
+						
+					}
+					.right{
+						text{
+							font-size: 24rpx !important;
+							font-family: PingFang SC;
+							font-weight: 500;
+							color: #6A6A79;
+						}	
+					}
+				}
+				.bot{
+					width: 100%;
+					height: 115rpx;
+					background: url(@/static/leave/servicebg.png) no-repeat;
+					background-size: 100%;
+					display: flex;
+					justify-content: space-between;
+					align-items: center;
+					padding: 0 30rpx;
+					>:nth-child(1){
+						font-size: 30rpx;
+						font-family: PingFang SC;
+						font-weight: bold;
+						color: #000000;
+					}
+					>:nth-child(2){
+						font-size: 22rpx;
+						font-family: PingFang SC;
+						font-weight: 500;
+						color: #9094A6;
+					}
+				}
 			}
 		}
 	}

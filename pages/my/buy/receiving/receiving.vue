@@ -1,28 +1,34 @@
 <template>
+	<!-- 商城订单详情 -->
 	<view class="content">
 		<view class="status_bar"></view>
 		<view class="nav">
 			<view class="" @click="back">
 				<image src="/static/my/back.png" mode=""></image>
 			</view>
-			<view class="">
+			<!-- <view class="" @click="go('/pages/HM-chat/HM-chat')">
 				<image src="/static/my/service2.png" mode=""></image>
-			</view>
+			</view> -->
 		</view>
 		<view class="top">
-			<view class="status" v-if="status == 0">
+			<view class="status">
+				<text>{{logistics.status}}</text>
+				<!-- <text class="context">{{logistics.context}}</text> -->
+				<text>{{logistics.time}}</text>
+			</view>
+			<!-- <view class="status" v-if="status == 0">
 				<text>交易关闭</text>
 				<text>订单取消成功，期待您再次选择。</text>
 			</view>
-			<view class="status" v-else-if="status == 1">
+			<view class="status" v-else-if="orderDetail.state == 1">
 				<text>待收货</text>
 				<text>已发货，请您耐心等待。</text>
 			</view>
-			<view class="status" v-else-if="status == 2">
+			<view class="status" v-else-if="orderDetail.state == 2">
 				<text>待发货</text>
 				<text>订单已付款，仓库会尽快安排发货。</text>
-			</view>
-			<view class="status" v-else-if="status == 3">
+			</view> -->
+			<!-- <view class="status" v-else-if="status == 3">
 				<view class="">
 					<text>退货中</text>
 					<u-count-down 
@@ -39,60 +45,61 @@
 					<text>退货申请成功，请及时填写退货运单号</text>
 					<text>退货倒计时</text>
 				</view>
-			</view>
+			</view> -->
 		</view>
-		<view v-if="status == 1" :class="['flow', status == 1 ? 'marginTop' : '']">
+		<view class="flow marginTop">
 			<view class="">
 				<image src="/static/my/car.png" mode=""></image>
-				<text>派送中</text>
+				<text>{{logistics.status}}</text>
 			</view>
-			<text>高铁新城某某正在派件(95720为中通快递员外呼专属号码，请...</text>
+			<text>{{logistics.context}}</text>
 			<text class="time">2021-10-15 15:25:24</text>
 		</view>
-		<view v-else-if="status == 3" :class="['flow', status == 3 ? 'marginTop' : '']">
+		 <!-- v-if="status == 1" -->
+		<!-- <view v-else-if="status == 3" :class="['flow', status == 3 ? 'marginTop' : '']">
 			<view class="">
 				<image src="/static/my/car.png" mode=""></image>
 				<text>买家已收货</text>
 			</view>
 			<text class="time">2021-10-15 15:25:24</text>
-		</view>
+		</view> -->
 		<view :class="['address', status == 2 ? 'marginTop' : '']">
 			<view class="">
 				<image src="/static/my/location.png" mode=""></image>
-				<text>王小明  166****1554</text>
+				<text>{{address.name}}  {{address.mobile}}</text>
 			</view>
-			<text>江苏省苏州市相城区南天城路77号高铁新城高融大厦快递快递柜</text>
+			<text>{{address.address + address.address_name}}</text>
 		</view>
 		<view class="detail">
 			<view class="title">
 				<image src="/static/avatar3.png" mode=""></image>
-				<text>EVISU官方旗舰店</text>
+				<text>{{shop.shopname}}</text>
 			</view>
-			<view class="goods">
-				<image src="/static/pub/bql.png" mode=""></image>
+			<view class="goods" v-for="(item,index) in goods" :key="index">
+				<image :src="ImgUrl + item.image" mode=""></image>
 				<view class="info">
-					<text>EVISU 老虎达摩拼图印花T恤 男款</text>
-					<text>白色 XXL 数量x1</text>
-					<text>¥899</text>
-					<view class="safe">
+					<text>{{item.title}}</text>
+					<text>{{item.difference}} 数量x{{item.number}}</text>
+					<text>¥{{item.price}}</text>
+					<!-- <view class="safe">
 						<text>假一赔三</text>
 						<text>防伪包装</text>
 						<text>7天无理由退货</text>
-					</view>
+					</view> -->
 				</view>
 			</view>
 			<view class="money">
 				<view class="">
 					<text>运费</text>
-					<text>¥10.00</text>
+					<text>¥{{pay.freight_price}}</text>
 				</view>
 				<view class="">
 					<text>优惠劵</text>
-					<text>-¥25.00</text>
+					<text>-¥{{pay.discount_price}}</text>
 				</view>
 				<view class="">
 					<text>合计支付</text>
-					<text>¥899.00</text>
+					<text>¥{{pay.actual_payment}}</text>
 				</view>
 			</view>
 		</view>
@@ -101,25 +108,29 @@
 			<view class="item">
 				<text>订单编号</text>
 				<view class="">
-					<text>145585852112881399</text>
-					<text @click="copy('145585852112881399')">复制</text>
+					<text>{{orderDetail.order_no}}</text>
+					<text @click="copy(orderDetail.order_no)">复制</text>
 				</view>
 			</view>
 			<view class="item">
 				<text>创建时间</text>
-				<text>2021-08-20 10:35:25</text>
+				<text>{{orderDetail.paymenttime_text}}</text>
 			</view>
 			<view class="item">
 				<text>交易编号</text>
-				<text>2120549565926232</text>
+				<text>{{pay.pay_no}}</text>
 			</view>
 		</view>
 		<view class="bottom">
-			<image src="/static/my/tpoint.png" mode=""></image>
-			<view class="" v-if="status == 1">
-				<text>申请售后</text>
-				<text @click="go('../logistics/logistics')">查看物流</text>
-				<text class="active">确认收货</text>
+			<text @click.stop="go('/pages/HM-chat/HM-chat?shop_id=' + orderDetail.shop_id)">联系商家</text>
+			<!-- <image src="/static/my/tpoint.png" mode=""></image> -->
+			<view class="" v-if="orderDetail.state == 3">
+				<!-- <text>申请售后</text> -->
+				<text @click="go('../logistics/logistics?id=' + orderDetail.id)">查看物流</text>
+				<text class="active" @click="open">确认收货</text>
+			</view>
+			<view class="" v-else-if="orderDetail.state == 4">
+				<text class="active" @click="go('../comment/comment?order_id=' + orderDetail.id)">评论订单</text>
 			</view>
 			<view class="" v-else-if="status == 2">
 				<text @click="go('../drawback/drawback')">申请退款</text>
@@ -129,6 +140,7 @@
 				<text class="active" @click="go('/pages/my/refund/bill/bill')">填写货运单号</text>
 			</view>
 		</view>
+		<u-modal v-model="modelshow" :content="content" :show-cancel-button="true" @confirm="receipt"></u-modal>
 	</view>
 </template>
 
@@ -137,8 +149,25 @@
 	export default {
 		data() {
 			return {
-				status: 3
+				status: 3,
+				order_id: '',
+				orderDetail: {},// 订单详情
+				address: {},// 收货地址
+				shop: {}, // 店铺信息
+				goods: [], // 购买的商品
+				pay: {}, // 支付数据 money
+				logistics: {},
+				type: '',
+				modelshow: false,
+				content: ''
+				
 			};
+		},
+		onBackPress() {
+			uni.navigateTo({
+				url: '../buy'
+			})
+			return true
 		},
 		onReady() {
 			uni.setNavigationBarColor({
@@ -151,13 +180,64 @@
 			})
 		},
 		onLoad(option) {
+			if(option.type){
+				this.type = option.type
+			}
 			this.status = option.status
+			this.order_id = option.order_id
+			this.getData()
 		},
 		methods:{
-			back(){
-				uni.navigateBack({
-					delta: 1
+			getData(){
+				this.request({
+					url: 'wanlshop/order/getOrderInfo',
+					method: 'GET',
+					header: {
+						token: uni.getStorageSync('userInfo').token
+					},
+					data: {
+						id: this.order_id,
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.address = res.data.data.address
+						this.shop = res.data.data.shop
+						this.goods = res.data.data.goods
+						this.pay = res.data.data.pay
+						this.orderDetail = res.data.data
+						this.logistics = res.data.data.logistics
+					}
 				})
+			},
+			open(){
+				this.content = '是否确认收货？'
+				this.modelshow = true
+			},
+			receipt(){
+				this.request({
+					url: 'wanlshop/order/confirmOrder',
+					data: {
+						id: this.order_id,
+						token: uni.getStorageSync('userInfo').token
+					}
+				}).then(res=>{
+					this.getData()
+					if(res.data.code == 1){
+						
+					}
+				})
+			},
+			back(){
+				if(this.type == 'pay'){
+					uni.navigateTo({
+						url: '../buy'
+					})
+				}else{
+					uni.navigateBack({
+						delta: 1
+					})
+				}
+				
 			},
 			copy(e){
 				setText(e)
@@ -218,9 +298,16 @@
 				>:nth-child(1){
 					font-size: 32rpx;
 					font-weight: bold;
-					margin-bottom: 19rpx;
 				}
-				>:nth-child(2){
+				.context{
+					overflow: hidden;
+					-webkit-line-clamp: 1;
+					text-overflow: ellipsis;
+					display: -webkit-box;
+					-webkit-box-orient: vertical;
+				}
+				>:nth-child(2),>:nth-child(3){
+					margin-top: 19rpx;
 					font-size: 24rpx;
 					font-weight: bold;
 				}
@@ -298,8 +385,10 @@
 				padding: 37rpx 0;
 				border-bottom: solid 1px #F1F4F9;
 				image{
-					width: 164rpx;
-					height: 164rpx;
+					width: 180rpx;
+					height: 180rpx;
+					min-width: 180rpx;
+					border-radius: 10rpx;
 					margin-right: 22rpx;
 				}
 				.info{
@@ -311,7 +400,12 @@
 						font-size: 26rpx;
 						font-family: PingFang SC;
 						font-weight: bold;
-						color: #000000;
+						color: #000000;	
+						overflow: hidden;
+						-webkit-line-clamp: 2;
+						text-overflow: ellipsis;
+						display: -webkit-box;
+						-webkit-box-orient: vertical;
 					}
 					>:nth-child(2){
 						font-size: 22rpx;
@@ -411,7 +505,7 @@
 			padding: 0 35rpx;
 			border-top: solid 1px #F2F2F2;
 			display: flex;
-			justify-content: space-between;
+			justify-content: flex-end;
 			align-items: center;
 			position: fixed;
 			bottom: 0;

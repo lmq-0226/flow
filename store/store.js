@@ -6,7 +6,7 @@ Vue.use(Vuex)
 
 const store = new Vuex.Store({
 	state: {
-		userInfo: {} // 登录用户信息
+		userInfo: uni.getStorageSync('userInfo') || {} // 登录用户信息
 	},
 	mutations: {
 		setUserInfo(state, data){

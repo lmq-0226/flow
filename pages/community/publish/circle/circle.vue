@@ -2,7 +2,7 @@
 	<view class="content">
 		<text class="title">推荐圈子</text>
 		<view class="items">
-			<view class="" v-for="(item,index) in 15" :key="index">
+			<view class="" v-for="(item,index) in 15" :key="index" @click="go('./house')">
 				<image src="" mode=""></image>
 				<text>穿搭研究所</text>
 			</view>
@@ -23,6 +23,13 @@
 				url: './search'
 			})
 		},
+		methods:{
+			go(e){
+				uni.navigateTo({
+					url: e
+				})
+			}
+		}
 	}
 </script>
 

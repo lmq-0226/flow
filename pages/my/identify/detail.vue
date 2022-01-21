@@ -9,7 +9,7 @@
 				</view>
 			</view>
 			<view class="status">
-				<text>待鉴别</text>
+				<text>{{detail.state_text}}</text>
 			</view>
 			<view class="identer">
 				<text>鉴定结果由资深鉴别师根据用户所提供图片得出</text>
@@ -18,15 +18,22 @@
 					<text>鉴定师: celia张</text>
 				</view>
 			</view>
-		</view>
+		</view>	
 		<view class="detail">
 			<view class="title">
-				<text>LANVIN(浪凡)  服装</text>
+				<text>{{detail.brand_name}}  {{detail.category_name}}</text>
 				<text>2020-10-25 13:25鉴定</text>
 			</view>
 			<view class="imgs">
-				<image v-for="(item,index) in imgs" :key="index" :src="item" mode="widthFix" @click="preview(index)"></image>
+				<image v-for="(item,index) in detail.images.split(',')" :key="index" :src="ImgUrl + item" mode="widthFix" @click="preview(index)"></image>
 			</view>
+		</view>
+		<view class="bottom">
+			<u-button 
+				v-if="detail.type == 2 && detail.state == 2" 
+				class="uButton"
+				@click="go('/pages/leave/detail/shipments/shipments?type=authen&order_id=' + detail.id)"
+			 >去发货</u-button>
 		</view>
 	</view>
 </template>
@@ -35,22 +42,43 @@
 	export default {
 		data() {
 			return {
-				imgs: [
-					require('@/static/pub/bbt.png'),
-					require('@/static/pub/ch.png'),
-					require('@/static/pub/ttq.png')
-				]
+				id: '',
+				imgs: [],
+				detail: {}
 			};
 		},
-		onLoad() {
-			
+		onLoad(option) {
+			this.id = option.id
+			this.getDetail()
 		},
 		methods:{
+			getDetail(){
+				this.request({
+					url: 'service/order/detail',
+					data: {
+						token: uni.getStorageSync('userInfo').token,
+						id: this.id
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.detail = res.data.data
+					}
+				})
+			},
 			preview(e){
+				let arr = []
+				this.detail.images.split(',').forEach(elem=>{
+					arr.push(this.ImgUrl + elem)
+				})
 				// 预览图片
 				uni.previewImage({
-					urls: this.imgs,
+					urls: arr,
 					current: e
+				})
+			},
+			go(e){
+				uni.navigateTo({
+					url: e
 				})
 			}
 		}
@@ -59,6 +87,7 @@
 
 <style lang="scss" scoped>
 	.content{
+		padding-bottom: 100rpx;
 		.top{
 			padding: 0 30rpx;
 			border-bottom: solid 10rpx #F7F7FB;
@@ -154,6 +183,31 @@
 					border: solid 1px #f8f8f8;
 					margin-bottom: 10rpx;
 				}
+			}
+		}
+		.bottom{
+			width: 100%;
+			height: 98rpx;
+			position: fixed;
+			bottom: 0;
+			background: #fff;
+			display: flex;
+			justify-content: flex-end;
+			align-items: center;
+			border-top: solid 1px #e1e1e1;
+			z-index: 999;
+			.uButton{
+				width: 200rpx;
+				height: 74rpx;
+				line-height: 74rpx;
+				background: #F55454;
+				border-radius: 6rpx;
+				font-size: 28rpx;
+				font-family: PingFang SC;
+				font-weight: bold;
+				color: #FFFFFF;
+				// margin: 0 !important;
+				margin-right: 30rpx;
 			}
 		}
 	}

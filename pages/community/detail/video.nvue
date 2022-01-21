@@ -1,160 +1,106 @@
 <template>
-	<view class="content">
-		<view class="swipers">
-			<swiper :vertical="true">
-				<swiper-item v-for="(item,index) in swiperList" :key="index" @click.stop="dblclick(item.id)">
-					<view class="swiper-item">
-						<u-lazy-load threshold="-450" :image="item.url" duration="1000" img-mode="widthFix" :index="index"></u-lazy-load>
-						<view class="right">
-							<view class="avatar">
-								<image class="avatarImg" src="/static/comm/avatar.png" mode=""></image>
-								<image v-if="attenList.indexOf(item.id) > -1"  class="add" src="/static/comm/atten.png" mode="" @click.stop="atten(item.id)"></image>
-								<image v-else class="add" src="/static/comm/add2.png" mode="" @click.stop="atten(item.id)"></image>
-							</view>
-							<view class="opera" @click.stop="praise(item.id)">
-								<image v-if="praiseList.indexOf(item.id) > -1" src="/static/comm/videoPraiseOn.png" mode=""></image>
-								<image v-else src="/static/comm/videoPraise.png" mode=""></image>
-								<text>赞</text>
-							</view>
-							<view class="opera">
-								<image src="/static/comm/videoComment.png" mode=""></image>
-								<text>评论</text>
-							</view>
-							<view class="opera">
-								<image src="/static/comm/videoShare.png" mode=""></image>
-								<text>转发</text>
-							</view>
-						</view>
-					</view>
-				</swiper-item>
-			</swiper>
-		</view>
+	<view class="root">
+		<video ref="myVideos" id="videoId" :src="src" :enable-progress-gesture="false"
+			:page-gesture="false" :controls="false" :show-fullscreen-btn="false" :show-center-play-btn="false"
+			:style="boxStyle" object-fit="fill" :poster="src+'?x-oss-process=video/snapshot,t_1000,f_jpg'" 
+			@play="play"
+			:autoplay="true"
+		></video>
+		<!-- <image v-if="!playIng" @click="dblclick(11, $event)" class="videoImg" :src="src+'?x-oss-process=video/snapshot,t_1000,f_jpg'" mode="heightFix"
+			:style="boxStyle"></image> -->
 	</view>
 </template>
 
 <script>
 	export default {
+		props: {
+			state: {
+				default: false
+			},
+			src: {
+				default: false
+			},
+			boxStyle: {
+				default: {}
+			}
+		},
+		watch: {
+			// state(newValue, oldValue) {
+			// 	setTimeout(() => {
+			// 		var createVideoContext = uni.createVideoContext('myVideo', this);
+			// 		switch (newValue) {
+			// 			case 'play':
+			// 				createVideoContext.seek(0);
+			// 				createVideoContext.play();
+			// 				break;
+			// 			case 'continue':
+			// 				createVideoContext.play();
+			// 				break;
+			// 			case 'pause':
+			// 				createVideoContext.pause();
+			// 				break;
+			// 			case 'stop':
+			// 				//this.showMe = false;
+			// 				//this.unshowMe = true;
+			// 				createVideoContext.seek(0);
+			// 				createVideoContext.pause();
+			// 				break;
+			// 			default:
+			// 				break;
+			// 		}
+			// 	}, 300)
+			// }
+		},
 		data() {
 			return {
-				swiperList: [
-					{id: 1, url: require('@/static/pub/zy.jpg')},
-					{id: 2, url: require('@/static/pub/ttq.png')},
-					{id: 3, url: require('@/static/pub/ch.png')},
-					{id: 4, url: require('@/static/pub/fj.jpg')},
-					{id: 5, url: require('@/static/pub/bbt.png')}
-				],
-				praiseList: [], // 点赞过的数据id
-				attenList: [], // 关注列表
-				touchNum: 0, // 双击
-			};
+				playIng: false,
+				touchNum: 0
+			}
 		},
-		methods:{
-			praise(e){
-				if(this.praiseList.indexOf(e) > -1){
-					let index = this.praiseList.indexOf(e)
-					this.praiseList.splice(index, 1)
-				}else{
-					this.praiseList.push(e)
-				}
-			},
-			atten(e){
-				if(this.attenList.indexOf(e) > -1){
-					let index = this.attenList.indexOf(e)
-					this.attenList.splice(index, 1)
-				}else{
-					this.attenList.push(e)
-				}
-			},
+
+		created() {
+			console.log(this.$refs)
+		},
+		watch: {
+
+		},
+		methods: {
 			// 双击暂停、开始播放
-			dblclick(e){
-				this.touchNum ++
-				let timer = setTimeout(()=>{
-					if(this.touchNum == 1){
+			dblclick(e, n) {
+				this.touchNum++
+				let timer = setTimeout(() => {
+					if (this.touchNum == 1) {
 						// 单击
+						console.log(e, 111)
 					}
-					if(this.touchNum >= 2){
-						// 双击
-						if(this.praiseList.indexOf(e) > -1){
-							let index = this.praiseList.indexOf(e)
-							this.praiseList.splice(index, 1)
-						}else{
-							this.praiseList.push(e)
-						}
+					if (this.touchNum >= 2) {
+						console.log(e, 222)
 					}
 					this.touchNum = 0
 					clearTimeout(timer)
-				},250)
+				}, 250)
+				// #ifdef APP-NVUE
+				n.stopPropagation()
+				// #endif
+			},
+			play(e){
+				console.log(e)
 			}
 		}
 	}
 </script>
 
 <style lang="scss" scoped>
-	.content{
-		.swipers{
-			uni-swiper{
-				width: 100%;
-				height: 100vh;
-				/* #ifdef H5 */
-				height: calc(100vh - 88rpx);
-				/* #endif */
-				.swiper-item{
-					width: 100%;
-					height: 100vh;
-					/* #ifdef H5 */
-					height: calc(100vh - 88rpx);
-					/* #endif */
-					background: #000;
-					display: flex;
-					justify-content: center;
-					align-items: center;
-					image{
-						width: 100%;
-					}
-					/deep/ .u-wrap{
-						width: 100% !important;
-					}
-					.right{
-						position: fixed;
-						right: 20rpx;
-						top: 50%;
-						transform: translateY(-50%);
-						z-index: 99999;
-						.avatar{
-							display: flex;
-							justify-content: flex-start;
-							align-items: center;
-							.avatarImg{
-								width: 80rpx;
-								height: 80rpx;
-								border-radius: 50%;
-							}
-							.add{
-								width: 44rpx;
-								height: 44rpx;
-								margin-top: -19rpx;
-								border-radius: 50%;
-							}
-						}
-						.opera{
-							display: flex;
-							justify-content: flex-start;
-							align-items: center;
-							margin-top: 20rpx;
-							image{
-								width: 70rpx;
-								height: 70rpx;
-							}
-							text{
-								font-size: 24rpx;
-								font-family: PingFang SC;
-								font-weight: 500;
-								color: #FFFFFF;
-							}
-						}
-					}
-				}
-			}
-		}
+	.root {
+		flex: 1;
+		width: 750rpx;
+		background-color: #ccc;
+		position: relative;
+	}
+
+	.videoImg {
+		position: absolute;
+		top: 0;
+		left: 0;
 	}
 </style>

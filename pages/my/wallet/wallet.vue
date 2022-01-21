@@ -2,20 +2,20 @@
 	<view class="content">
 		<view class="balance">
 			<text>我的余额(元)</text>
-			<text>0.00</text>
+			<text>{{info.money || 0.00}}</text>
 			<text @click="go('./withdrawal/withdrawal')">提现</text>
 		</view>
 		<view class="have">
 			<view class="" @click="go('./discount/discount')">
-				<text>1</text>
+				<text>{{dynamic.coupon}}</text>
 				<text>优惠券(张)</text>
 			</view>
 			<view class="" @click="go('./gold/gold')">
-				<text>0</text>
+				<text>{{info.score || 0}}</text>
 				<text>积分</text>
 			</view>
 			<view class="" @click="go('./bankCard/bankCard')">
-				<text>1</text>
+				<text>{{dynamic.accountbank || 0}}</text>
 				<text>银行卡(张)</text>
 			</view>
 		</view>
@@ -26,7 +26,9 @@
 	export default {
 		data() {
 			return {
-				
+				banlance: '',
+				dynamic: {},
+				info: {}
 			};
 		},
 		// 监听点击，明细按钮
@@ -35,12 +37,38 @@
 				url: './detail/detail'
 			})
 		},
+		onLoad() {
+			this.getBalance()
+		},
 		methods:{
 			go(e){
 				uni.navigateTo({
 					url: e
 				})
-			}
+			},
+			getBalance(){
+				this.request({
+					url: 'wanlshop/user/refresh',
+					data: {
+						token: uni.getStorageSync('userInfo').token
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.dynamic = res.data.data.statistics.dynamic
+						this.info  =res.data.data.userinfo
+					}
+				})
+				// this.request({
+				// 	url: 'wanlshop/pay/getBalance',
+				// 	data: {
+				// 		token: uni.getStorageSync('userInfo').token
+				// 	}
+				// }).then(res=>{
+				// 	if(res.data.code == 1){
+				// 		this.banlance = res.data.data
+				// 	}
+				// })
+			},
 		}
 	}
 </script>

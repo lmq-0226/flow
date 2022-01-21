@@ -1,0 +1,13 @@
+{
+    "id": "zwy-popup",
+    "name": "模态弹窗",
+    "version": "1.0.3",
+    "description": "可自定义内容的弹窗组件",
+    "keywords": [
+        "弹窗",
+        "popup"
+    ],
+    "dependencies": {
+        "uview-ui": "^1.8.4"
+    }
+}

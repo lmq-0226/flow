@@ -109,25 +109,25 @@ var components
 try {
   components = {
     uTabs: function() {
-      return Promise.all(/*! import() | node-modules/uview-ui/components/u-tabs/u-tabs */[__webpack_require__.e("common/vendor"), __webpack_require__.e("node-modules/uview-ui/components/u-tabs/u-tabs")]).then(__webpack_require__.bind(null, /*! uview-ui/components/u-tabs/u-tabs.vue */ 795))
+      return Promise.all(/*! import() | node-modules/uview-ui/components/u-tabs/u-tabs */[__webpack_require__.e("common/vendor"), __webpack_require__.e("node-modules/uview-ui/components/u-tabs/u-tabs")]).then(__webpack_require__.bind(null, /*! uview-ui/components/u-tabs/u-tabs.vue */ 981))
     },
     uDropdown: function() {
-      return __webpack_require__.e(/*! import() | node-modules/uview-ui/components/u-dropdown/u-dropdown */ "node-modules/uview-ui/components/u-dropdown/u-dropdown").then(__webpack_require__.bind(null, /*! uview-ui/components/u-dropdown/u-dropdown.vue */ 876))
+      return __webpack_require__.e(/*! import() | node-modules/uview-ui/components/u-dropdown/u-dropdown */ "node-modules/uview-ui/components/u-dropdown/u-dropdown").then(__webpack_require__.bind(null, /*! uview-ui/components/u-dropdown/u-dropdown.vue */ 1062))
     },
     uDropdownItem: function() {
-      return __webpack_require__.e(/*! import() | node-modules/uview-ui/components/u-dropdown-item/u-dropdown-item */ "node-modules/uview-ui/components/u-dropdown-item/u-dropdown-item").then(__webpack_require__.bind(null, /*! uview-ui/components/u-dropdown-item/u-dropdown-item.vue */ 883))
+      return __webpack_require__.e(/*! import() | node-modules/uview-ui/components/u-dropdown-item/u-dropdown-item */ "node-modules/uview-ui/components/u-dropdown-item/u-dropdown-item").then(__webpack_require__.bind(null, /*! uview-ui/components/u-dropdown-item/u-dropdown-item.vue */ 1069))
     },
     uWaterfall: function() {
-      return Promise.all(/*! import() | node-modules/uview-ui/components/u-waterfall/u-waterfall */[__webpack_require__.e("common/vendor"), __webpack_require__.e("node-modules/uview-ui/components/u-waterfall/u-waterfall")]).then(__webpack_require__.bind(null, /*! uview-ui/components/u-waterfall/u-waterfall.vue */ 809))
+      return Promise.all(/*! import() | node-modules/uview-ui/components/u-waterfall/u-waterfall */[__webpack_require__.e("common/vendor"), __webpack_require__.e("node-modules/uview-ui/components/u-waterfall/u-waterfall")]).then(__webpack_require__.bind(null, /*! uview-ui/components/u-waterfall/u-waterfall.vue */ 995))
     },
     uLazyLoad: function() {
-      return __webpack_require__.e(/*! import() | node-modules/uview-ui/components/u-lazy-load/u-lazy-load */ "node-modules/uview-ui/components/u-lazy-load/u-lazy-load").then(__webpack_require__.bind(null, /*! uview-ui/components/u-lazy-load/u-lazy-load.vue */ 816))
+      return __webpack_require__.e(/*! import() | node-modules/uview-ui/components/u-lazy-load/u-lazy-load */ "node-modules/uview-ui/components/u-lazy-load/u-lazy-load").then(__webpack_require__.bind(null, /*! uview-ui/components/u-lazy-load/u-lazy-load.vue */ 1002))
     },
     uLoadmore: function() {
-      return __webpack_require__.e(/*! import() | node-modules/uview-ui/components/u-loadmore/u-loadmore */ "node-modules/uview-ui/components/u-loadmore/u-loadmore").then(__webpack_require__.bind(null, /*! uview-ui/components/u-loadmore/u-loadmore.vue */ 823))
+      return __webpack_require__.e(/*! import() | node-modules/uview-ui/components/u-loadmore/u-loadmore */ "node-modules/uview-ui/components/u-loadmore/u-loadmore").then(__webpack_require__.bind(null, /*! uview-ui/components/u-loadmore/u-loadmore.vue */ 1009))
     },
     uBackTop: function() {
-      return __webpack_require__.e(/*! import() | node-modules/uview-ui/components/u-back-top/u-back-top */ "node-modules/uview-ui/components/u-back-top/u-back-top").then(__webpack_require__.bind(null, /*! uview-ui/components/u-back-top/u-back-top.vue */ 830))
+      return __webpack_require__.e(/*! import() | node-modules/uview-ui/components/u-back-top/u-back-top */ "node-modules/uview-ui/components/u-back-top/u-back-top").then(__webpack_require__.bind(null, /*! uview-ui/components/u-back-top/u-back-top.vue */ 1016))
     }
   }
 } catch (e) {

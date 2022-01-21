@@ -2,23 +2,24 @@
 	<view class="content">
 		<view class="list">
 			<text class="title">订阅品牌</text>
-			<view class="item" @click.stop="go('./store/store')">
+			<view class="item" v-for="(item,index) in storeList" :key="index" @click.stop="go('./store/store?id=' + item.shop.id)">
 				<view class="left">
-					<image src="/static/pub/ttq.png" mode=""></image>
+					<image :src="ImgUrl + item.shop.avatar" mode=""></image>
 					<view class="">
-						<text>EVISU</text>
+						<text>{{item.shop.shopname}}</text>
 						<text>12563人订阅·1524款商品</text>
 					</view>
 				</view>
-				<view v-if="false" class="right on">
-					<text class="">+订阅</text>
-				</view>
-				<view v-else class="right">
+				<view v-if="item.isFollow == 1" class="right" @click.stop="sub(item.user_no)">
 					<text >已订阅</text>
+				</view>
+				<view v-else class="right on" @click.stop="sub(item.user_no)">
+					<text class="">+订阅</text>
 				</view>
 			</view>
 		</view>
-		<view class="list">
+		<u-empty v-if="storeList.length <= 0" text="暂无数据" mode="list" margin-top="400"></u-empty>
+		<!-- <view class="list">
 			<text class="title">推荐品牌</text>
 			<view class="item" @click.stop="go('./store/store')">
 				<view class="left">
@@ -28,14 +29,14 @@
 						<text>12563人订阅·1524款商品</text>
 					</view>
 				</view>
-				<view v-if="true" class="right on">
+				<view v-if="true" class="right on" @click.stop="">
 					<text class="">+订阅</text>
 				</view>
-				<view v-else class="right">
+				<view v-else class="right" @click.stop="">
 					<text >已订阅</text>
 				</view>
 			</view>
-		</view>
+		</view> -->
 	</view>
 </template>
 
@@ -43,16 +44,45 @@
 	export default {
 		data() {
 			return {
-				
+				storeList: []
 			};
 		},
 		onLoad() {
 			
 		},
+		onShow() {
+			this.getData()
+		},
 		methods:{
+			getData(){
+				this.request({
+					url: 'wanlshop/find/user/getShopList',
+					data: {
+						token: uni.getStorageSync('userInfo').token
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.storeList = res.data.data.data
+					}
+				})
+			},
 			go(e){
 				uni.navigateTo({
 					url: e
+				})
+			},
+			sub(e){
+				this.request({
+					url: 'wanlshop/find/user/setFindUser',
+					data: {
+						id: e,
+						token: uni.getStorageSync('userInfo').token,
+						type: 'follow'
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.getData()
+					}
 				})
 			}
 		}

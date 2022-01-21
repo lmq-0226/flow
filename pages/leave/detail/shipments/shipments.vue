@@ -7,22 +7,27 @@
 					<text :class="{'active2': !active}" @click="active = true">顺丰上门取货</text>
 				</view>
 				<view class="t1" v-if="!active">
-					<view class="address" @click="go('/pages/my/set/address/address')">
+					<view class="address">
 						<text>收</text>
 						<view class="">
-							<text>王小明 166****1562</text>
-							<text>江苏省苏州市相城区南天城路77号</text>
+							<text>{{platAddress.receiver}} {{platAddress.photo}}</text>
+							<text>{{platAddress.area + platAddress.address}}</text>
 						</view>
 					</view>
-					<view class="address" @click="go('/pages/my/set/address/address')">
+					<view class="address right" @click="go('/pages/my/set/address/address')">
 						<text>退</text>
 						<view class="">
-							<text>王小明 166****1562</text>
-							<text>江苏省苏州市相城区南天城路77号</text>
+							<text>{{defAddress.name}} {{defAddress.mobile}}</text>
+							<text>{{defAddress.formatted_address + defAddress.address + defAddress.address_name}}</text>
 						</view>
 					</view>
+					<u-field @click="show = true" v-model="express_name" 
+						:disabled="true" label="快递公司" placeholder="请选择快递公司"
+						right-icon="arrow-right"
+						>
+					</u-field>
 					<view class="number">
-						<u-input v-model="value" placeholder="请输入快递单号"/>
+						<u-input v-model="express_no" placeholder="请输入快递单号"/>
 						<image src="/static/my/scan.png" mode=""></image>
 					</view>
 				</view>
@@ -52,10 +57,13 @@
 				<text v-for="(item,index) in 4" :key="index">{{index + 1}}、每件交易商品均由平台针对实物进行鉴别</text>
 			</view>
 		</view>
+		
 		<view class="bottom">
 			<text @click="back">稍后发货</text>
-			<text>确认</text>
+			<text @click="submit">确认</text>
 		</view>
+		<u-picker mode="selector" v-model="show"  :range="selector" range-key="name" @confirm="confirm"></u-picker>
+		<u-toast ref="uToast" />
 	</view>
 </template>
 
@@ -63,18 +71,125 @@
 	export default {
 		data() {
 			return {
+				show: false,
+				token: uni.getStorageSync('userInfo').token,
 				active: false,
-				value: '',
-				time: '1小时上门'
+				time: '1小时上门',
+				order_id: '', // 订单id
+				selector: [], // 快递公司列表
+				platAddress: {}, // 平台地址
+				defAddress: {}, // 默认地址
+				express_name: '', // 快递公司
+				express_no: '',// 快递单号
+				type: ''
 			};
 		},
 		created() {
 			console.log(111 )
 		},
-		onLoad() {
-			
+		onLoad(option) {
+			this.type = option.type
+			this.order_id = option.order_id
+			this.getPlatAddress()
+			this.getEnter()
+		},
+		onShow() {
+			this.getAddress()
 		},
 		methods:{
+			submit(){
+				if(this.express_name == ''){
+					this.$refs.uToast.show({
+						title: '请选择快递公司',
+						type: 'warning'
+					})
+					return
+				}
+				if(this.express_no == ''){
+					this.$refs.uToast.show({
+						title: '请填写快递单号',
+						type: 'warning'
+					})
+					return
+				}
+				if(this.type == 'sign'){
+					this.request({
+						url: 'idle/consign/delivery',
+						data: {
+							token: uni.getStorageSync('userInfo').token,
+							order_id: this.order_id,
+							express_name: this.express_name,
+							express_no: this.express_no
+						}
+					}).then(res=>{
+						if(res.data.code == 1){
+							uni.navigateBack({
+								delta: 1
+							})
+						}
+					})
+				}else{
+					this.request({
+						url: 'service/order/delivery',
+						data: {
+							token: uni.getStorageSync('userInfo').token,
+							order_id: this.order_id,
+							express_name: this.express_name,
+							express_no: this.express_no
+						}
+					}).then(res=>{
+						
+					})
+				}
+			},
+			confirm(e){
+				this.express_name = this.selector[e].code
+				console.log(this.express_name)
+			},
+			// 平台地址
+			getPlatAddress(){
+				this.request({
+					url: 'service/order/platform_address',
+					data: {
+						token: this.token
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.platAddress = res.data.data
+					}
+				})
+			},
+			// 快递公司列表
+			getEnter(){
+				this.request({
+					url: 'idle/order/express_list',
+					data: {
+						token: this.token
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.selector = res.data.data.list
+					}
+				})
+			},
+			// 获取默认地址
+			getAddress(){
+				this.request({
+					url: 'wanlshop/address/getaddress',
+					data: {
+						token: this.token
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						let list = res.data.data.data
+						list.forEach(elem=>{
+							if(elem.default == 1){
+								this.defAddress = elem
+							}
+						})
+					}
+				})
+			},
 			go(e){
 				uni.navigateTo({
 					url: e
@@ -95,6 +210,10 @@
 </style>
 <style lang="scss" scoped>
 	.content{
+		.u-field {
+			padding: 20rpx 0!important;
+			margin-bottom: 20rpx;
+		}
 		.matter{
 			padding: 30rpx;
 			.writing{
@@ -131,7 +250,8 @@
 						display: flex;
 						justify-content: flex-start;
 						align-items: center;
-						margin-bottom: 30rpx;
+						padding: 20rpx 0;
+						border-bottom: 1px solid rgba($color: #e4e7ed, $alpha: 0.5);
 						>text{
 							display: block;
 							margin-right: 30rpx;
@@ -146,11 +266,10 @@
 							border: 1px solid #43424E;
 							border-radius: 2rpx;
 						}
-						view{
+						>:nth-child(2){
 							width: 100%;
 							padding-right: 50rpx;
-							background: url(../../../../static/serve/right.png) no-repeat right center;
-							background-size: 44rpx;
+							
 							>:nth-child(1){
 								font-size: 26rpx;
 								margin-bottom: 5rpx;
@@ -163,6 +282,10 @@
 								color: #43424E;
 							}
 						}
+					}
+					.right{
+						background: url(@/static/serve/right.png) no-repeat right center;
+						background-size: 44rpx;
 					}
 					.number{
 						width: 100%;

@@ -11,15 +11,16 @@
 				<text>{{item.text}}</text>
 				<image src="/static/serve/right.png" mode=""></image>
 			</view>
-			<view class="logout" @click="go('/pages/login/login')">
+			<view class="logout" @click="logout">
 				<text>退出登录</text>
 			</view>
 		</view>
-		
+		<u-toast ref="uToast" />
 	</view>
 </template>
 
 <script>
+	import {throttle} from '@/utils/throttle.js'
 	export default {
 		data() {
 			return {
@@ -28,7 +29,7 @@
 					{text: '支付设置', url: ''},
 					{text: '实名认证', url: './authen/authen'},
 					{text: '地址管理', url: './address/address'},
-					{text: '我的尺码', url: ''}
+					// {text: '我的尺码', url: ''}
 				],
 				setList2: [
 					{text: '隐私设置', url: './privacy/privacy'},
@@ -42,13 +43,30 @@
 			
 		},
 		methods:{
+			logout:throttle(function(){
+				this.request({
+					url: 'wanlshop/user/logout',
+					data: {
+						token: uni.getStorageSync('userInfo').token,
+						client_id: ''
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.$refs.uToast.show({
+							title: '退出成功',
+							type: 'success',
+							duration: 500,
+							callback: ()=>{
+								uni.clearStorage()
+								uni.reLaunch({
+									url: '/pages/login/login'
+								})
+							}
+						})
+					}
+				})
+			}, 2000),
 			go(e){
-				if(e == '/pages/login/login'){
-					uni.reLaunch({
-						url: e
-					})
-					return
-				}
 				uni.navigateTo({
 					url: e
 				})

@@ -2,8 +2,6 @@
   "navigationBarTitleText": "",
   "enablePullDownRefresh": false,
   "usingComponents": {
-    "leaveShop-u-waterfall-left": "/pages/leave/leaveShop/leaveShop-u-waterfall-left",
-    "leaveShop-u-waterfall-right": "/pages/leave/leaveShop/leaveShop-u-waterfall-right",
     "u-swiper": "/node-modules/uview-ui/components/u-swiper/u-swiper",
     "u-tabs": "/node-modules/uview-ui/components/u-tabs/u-tabs",
     "u-waterfall": "/node-modules/uview-ui/components/u-waterfall/u-waterfall",

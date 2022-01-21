@@ -1,56 +1,49 @@
 <template>
 	<view class="content">
-		<view class="tabs">
-			<u-tabs :list="list" :is-scroll="false" :current="current" @change="change" active-color="#FC493D"></u-tabs>
+		<view class="status_bar"></view>
+		<view class="status">
+			<image class="back" src="/static/pub/back.png" mode="" @click="back"></image>
+			<u-subsection style="width: 80%;" :list="statusList" :current="statusCurrent" active-color="#FF4243" @change="subChange"></u-subsection>
 		</view>
-		<view class="list">
-			<view class="item" v-for="(item,index) in orderList" :key="item.id">
-				<view class="title">
-					<view class="">
-						<image src="/static/avatar3.png" mode=""></image>
-						<text>{{item.name}}</text>
-					</view>
-					<text class="ing">{{item.order_text}}</text>
-				</view>
-				<view class="goods">
-					<view class="avatar">
-						<image :src="item.goodsImg" mode=""></image>
-					</view>
-					<view class="">
-						<text>{{item.desc}}</text>
-						<text>白色 XXL 数量x1</text>
-						<text>¥199</text>
-					</view>
-				</view>
-				<view class="bot">
-					<text v-for="(elem,cut) in item.buttons" :key="cut" @click="go('./receiving/receiving?status=' + elem.id)">{{elem.text}}</text>
-					<!-- <text>申请退款</text>
-					<text @click="go('./logistics/logistics')">查看物流</text>
-					<text class="active" @click="go('./receiving/receiving?status=3')">确认收货</text> -->
-				</view>
-			</view>
-		</view>
-		<u-empty v-if="identList.length <= 0" margin-top="400" text="暂无数据" mode="data"></u-empty>
+		<swiper class="swipers" :current="statusCurrent" @change="statusCurrent = $event.detail.current">
+			<swiper-item>
+				<shop-order ref="shop"></shop-order>
+			</swiper-item>
+			<swiper-item>
+				<leave-order ref="leave"></leave-order>
+			</swiper-item>
+			<swiper-item>
+				<serve-order ref="serve"></serve-order>
+			</swiper-item>
+		</swiper>
 	</view>
 </template>
 
 <script>
+	import shopOrder from '@/components/order/shop-order.vue'
+	import leaveOrder from '@/components/order/leave-order.vue'
+	import serveOrder from '@/components/order/serve-order.vue'
 	export default {
+		components:{
+			'shop-order': shopOrder,
+			'leave-order': leaveOrder,
+			'serve-order': serveOrder
+		},
 		data() {
 			return {
-				current: 0,
-				list: [
+				statusList: [
 					{
-						name: '全部'
-					}, {
-						name: '待付款'
-					}, {
-						name: '待发货'
-					},{
-						name: '待收货'
+						name: '商城订单'
+					}, 
+					{
+						name: '闲置订单'
+					}, 
+					{
+						name: '服务订单'
 					}
 				],
-				identList: [1],
+				statusCurrent: 0,
+				
 				orderList: [
 					{
 						id: 1,
@@ -102,6 +95,14 @@
 		onLoad() {
 			
 		},
+		onShow() {
+			let timer = setTimeout(()=>{
+				this.$refs.shop.getData()
+				this.$refs.leave.getData()
+			}, 50)
+			
+			// this.$refs.serve.getData()
+		},
 		onBackPress(){
 			uni.switchTab({
 				url: '../my'
@@ -109,11 +110,17 @@
 			return true
 		},
 		methods:{
-			change(e){
-				this.current = e
+			
+			subChange(e){
+				this.statusCurrent = e
+			},
+			
+			back(){
+				uni.navigateBack({
+					delta: 1
+				})
 			},
 			go(e){
-				console.log(e)
 				uni.navigateTo({
 					url: e
 				})
@@ -124,14 +131,32 @@
 
 <style lang="scss"scoped>
 	.content{
-		.tabs{
-			border-bottom: solid 10rpx #F6F5FA;
-			position: sticky;
-			top: 0;
+		height: 100vh;
+		.status{
+			width: 100%;
+			// padding: 0 50rpx;	
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			height: 88rpx;
 			background: #fff;
 			z-index: 999;
+			position: sticky;
+			top: 0;
+			.back{
+				width: 48rpx;
+				height: 48rpx;
+				position: absolute;
+				left: 10rpx;
+			}
+		}
+		
+		.swipers{
 			/* #ifdef H5 */
-			top: 88rpx;
+			height: calc(100vh - 88rpx);
+			/* #endif */
+			/* #ifdef APP-PLUS */
+			height: calc(100vh - 88rpx - var(--status-bar-height));
 			/* #endif */
 		}
 		.list{
@@ -182,6 +207,7 @@
 						image{
 							width: 164rpx;
 							height: 164rpx;
+							border-radius: 10rpx;
 						}
 					}
 					view{

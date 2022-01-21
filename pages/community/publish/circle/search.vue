@@ -1,6 +1,6 @@
 <template>
 	<view class="content">
-		<view class="item">
+		<view class="item" @click="go('./house')">
 			<image src="" mode=""></image>
 			<text>#学生党最爱黑色潮鞋合集</text>
 		</view>
@@ -18,6 +18,13 @@
 		onNavigationBarSearchInputConfirmed(e) {
 			console.log(e.text, '1111')
 		},
+		methods:{
+			go(e){
+				uni.navigateTo({
+					url: e
+				})
+			}
+		}
 	}
 </script>
 

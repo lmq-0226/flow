@@ -1,5 +1,5 @@
 <template>
-	<view class="content">
+	<view class="content" v-if="show">
 		<view class="tabs" :style="{'opacity': opacity}">
 			<u-tabs :list="list" :is-scroll="false" :current="cut" duration="0.3" @change="changeCut" active-color="#FC493D"></u-tabs>
 		</view>
@@ -10,24 +10,31 @@
 					<view class="p_left">
 						<view class="">
 							<text>¥</text>
-							<text>899</text>
+							<text>{{sku.market_price}}</text>
 						</view>
 						<view class="">
 							<text>券后价¥</text>
-							<text>849</text>
+							<text>{{sku.price}}</text>
 						</view>
 					</view>
-					<text>156人付款</text>
+					<text>{{goodsDetail.payment}}人付款</text>
 				</view>
-				<view class="coupon">
-					<text>商品有优惠劵可领取，立减50元</text>
+				<view class="coupon" v-if="goodsDetail.coupon.length > 0">
+					<text>可领取店铺优惠券</text>
 					<view class="" @click="disPopup = true">
 						<text>领券</text>
 						<image src="/static/shop/right.png" mode=""></image>
 					</view>
 				</view>
+				<view class="coupon" v-else>
+					<text>当前店铺暂无优惠券</text>
+					<view class="couponNull">
+						<text>领券</text>
+						<image src="/static/shop/right.png" mode=""></image>
+					</view>
+				</view>
 				<view class="desc">
-					<text>EVISU福神 老虎达摩拼图印花T恤 男款EVISU福神 老虎达摩拼图印花T恤 男款</text>
+					<text>{{goodsDetail.title}}</text>
 				</view>
 			</view>
 			<view class="ident">
@@ -40,12 +47,13 @@
 					<image src="/static/shop/leave_go.png" mode=""></image>
 				</view>
 			</view>
-			<view class="store" @click="go('/pages/my/subscribe/store/store')">
+			<view class="store" @click="go('/pages/my/subscribe/store/store?id=' + goodsDetail.shop_id)">
 				<view class="s_left">
-					<image src="" mode=""></image>
+					<image :src="ImgUrl + shop.avatar" mode=""></image>
 					<view class="">
-						<text>流象自营</text>
-						<text>12563人订阅·1524款商品</text>
+						<text>{{shop.shopname}}</text>
+						<text>{{shop.find_user.fans}}人订阅</text>
+						<!-- ·1524款商品 -->
 					</view>
 				</view>
 				<view class="s_right">
@@ -53,10 +61,11 @@
 					<image src="/static/my/right.png" mode=""></image>
 				</view>
 			</view>
-			<view class="adver">
+			<!-- <view class="adver">
 				<text>广告位</text>
-			</view>
-			<view class="recency">
+			</view> -->
+			
+		<!-- 	<view class="recency">
 				<view class="title">
 					<text>最近购买(636)</text>
 					<view class="" @click="go('./recency/recency')">
@@ -65,39 +74,52 @@
 					</view>
 				</view>
 				<view class="list">
-					<view class="item" v-for="(item,index) in 4" :key="index">
-						<view class="">
-							<image src="" mode=""></image>
-							<text>故*事</text>
-						</view>
-						<text>黑色 XL</text>
-						<text>¥899</text>
-						<text>9月30日</text>
-					</view>
+					<swiper class="swiper" :autoplay="true" :interval="2000" :duration="800" :vertical="true" :display-multiple-items="4" :disable-touch="true" :circular="true">
+						<swiper-item v-for="(item,index) in 10" :key="index">
+							<view class="swiper-item uni-bg-red item">
+								<view class="">
+									<image src="" mode=""></image>
+									<text>故*事</text>
+								</view>
+								<text>黑色 XL</text>
+								<text>¥899</text>
+								<text>9月30日</text>
+							</view>
+						</swiper-item>
+					</swiper>
+					
 				</view>
-			</view>
-			<view class="comment">
+			</view> -->
+			
+			<view class="comment" @click="go('./evaluate/evaluate?id=' + goodsDetail.id)">
 				<view class="title">
-					<text>评价(210)</text>
-					<view class="" @click="go('./evaluate/evaluate')">
+					<text> {{ '评价(' + goodsDetail.comment_list.figure + ')'}}</text>
+					<view class="">
 						<text>全部</text>
 						<image src="/static/my/right.png" mode=""></image>
 					</view>
 				</view>
-				<view class="item" v-for="(item,index) in 2" :key="index">
+				<view class="item" v-for="(item,index) in comment_list" :key="index">
 					<view class="user">
-						<image src="" mode=""></image>
+						<image :src="ImgUrl + item.user.avatar" mode=""></image>
 						<view class="nickname">
-							<text>北**海</text>
-							<text>刚刚</text>
+							<text>{{item.user.nickname}}</text>
+							<u-rate :current="item.score" :disabled="true"></u-rate>
 						</view>
 					</view>
-					<text>非常好看哦，首先包装就很到位，防尘袋和外盒子装着的，衣服版型很正！！我以为对小个子来说会很大，但是垫肩的设计穿上直接成...</text>
+					<text>{{item.content}}</text>
+					<view class="imgs" style="margin-top: 10rpx;">
+						<image style="height: 200rpx;padding: 10rpx;" v-for="(elem,cut) in item.images" :key="cut" :src="ImgUrl + elem" mode="heightFix"></image>
+					</view>
 				</view>
 			</view>
 			<view class="goodsDetail">
 				<text class="title">商品详情</text>
-				<image style="width: 100%;" src="/static/shop/detail.png" mode="widthFix"></image>
+				<view style="padding: 0 20rpx 20rpx 20rpx;">
+					<rich-text :nodes="goodsDetail.content"></rich-text>
+				</view>
+				
+				<!-- <image style="width: 100%;" src="/static/shop/detail.png" mode="widthFix"></image> -->
 			</view>
 			<view class="recommend">
 				<view class="title">
@@ -109,27 +131,27 @@
 					<!-- 瀑布流 -->
 					<u-waterfall v-model="flowList" ref="uWaterfall">
 						<template v-slot:left="{leftList}">
-							<view class="demo-warter" v-for="(item, index) in leftList" :key="index" @click="go('./goodsDetail/goodsDetail')">
+							<view class="demo-warter" v-for="(item, index) in leftList" :key="index" @click="go('/pages/shop/goodsDetail/goodsDetail?id=' + item.id)">
 								<!-- 警告：微信小程序中需要hx2.8.11版本才支持在template中结合其他组件，比如下方的lazy-load组件 -->
-								<u-lazy-load threshold="-450" border-radius="10" :image="item.image" img-mode="widthFix" :index="index"></u-lazy-load>
+								<u-lazy-load threshold="-450" border-radius="10" :image="ImgUrl + item.image" img-mode="widthFix" :index="index"></u-lazy-load>
 								<view class="demo-title">
 									{{item.title}}
 								</view>
 								<view class="num">
-									<text>¥899</text>
-									<text>156人付款</text>
+									<text>¥{{item.price}}</text>
+									<!-- <text>156人付款</text> -->
 								</view>
 							</view>
 						</template>
 						<template v-slot:right="{rightList}">
-							<view class="demo-warter" v-for="(item, index) in rightList" :key="index" @click="go('./goodsDetail/goodsDetail')">
-								<u-lazy-load threshold="-450" border-radius="10" :image="item.image" img-mode="widthFix" :index="index"></u-lazy-load>
+							<view class="demo-warter" v-for="(item, index) in rightList" :key="index" @click="go('/pages/shop/goodsDetail/goodsDetail?id=' + item.id)">
+								<u-lazy-load threshold="-450" border-radius="10" :image="ImgUrl + item.image" img-mode="widthFix" :index="index"></u-lazy-load>
 								<view class="demo-title">
 									{{item.title}}
 								</view>
 								<view class="num">
-									<text>¥899</text>
-									<text>156人付款</text>
+									<text>¥{{item.price}}</text>
+									<!-- <text>156人付款</text> -->
 								</view>
 							</view>
 						</template>
@@ -140,66 +162,70 @@
 			</view>
 		</view>
 		<view class="bottom">
-			<view class="b_left" @click="collect = !collect">
-				<image v-if="collect" src="/static/shop/collect_on.png" mode=""></image>
+			<view class="b_left" @click="collect">
+				<image v-if="goodsDetail.like" src="/static/shop/collect_on.png" mode=""></image>
 				<image v-else src="/static/shop/collect.png" mode=""></image>
 				<text>收藏</text>
 			</view>
 			<view class="b_right" @click="popupShow = true">
 				<text>立即购买</text>
 				<text></text>
-				<text>入手¥849</text>
+				<text>入手¥{{sku.price}}</text>
 			</view>
 		</view>
 		<!-- 选择规格弹窗 -->
 		<u-popup v-model="popupShow" mode="bottom" border-radius="20"  @touchmove.native.stop.prevent> 
 			<view class="popupCon">
 				<view class="top">
-					<image class="avatar" src="/static/pub/bbt.png" mode=""></image>
+					<image class="avatar" :src="ImgUrl + sku.thumbnail" mode=""></image>
 					<view class="selected">
 						<view class="price">
 							<text>¥</text>
-							<text>899</text>
+							<text>{{sku.price}}</text>
 						</view>
-						<text>已选 黑色XL</text>
+						<text>已选 {{sku.difference.join('-')}}</text>
 					</view>
 					<image class="close" src="/static/my/close.png" mode="" @click="popupShow = false"></image>
 				</view>
-				<view class="color">
+				<!-- <view class="color">
 					<text class="title">颜色</text>
 					<scroll-view scroll-x="true" >
 						<view class="items">
 							<image 
-								v-for="(item,index) in 5" :key="index" 
+								v-for="(item,index) in goodsDetail.spu[1].item" :key="index" 
 								src="/static/pub/ttq.png" mode=""
 								:class="colorCheck == index ? 'active': ''"
 								@click="colorCheck = index"
 							></image>
 						</view>
 					</scroll-view>
-				</view>
-				<view class="size">
-					<text class="title">尺码</text>
+				</view> -->
+				<view class="size" v-for="(item,index) in goodsDetail.spu" :key="index">
+					<text class="title">{{item.name}}</text>
 					<scroll-view scroll-x="true" >
 						<view class="items">
 							<view 
 								class=""
-								v-for="(item,index) in 5" :key="index" 
+								v-for="(elem,cut) in item.item" :key="cut" 
 								src="/static/pub/ttq.png" mode=""
-								:class="sizeCheck == index ? 'active': ''"
-								@click="sizeCheck = index"
+								:class="selectSku.indexOf(elem.name) > -1 ? 'active': ''"
+								@click="select(index,elem.name)"
 							>
-								<text>S</text>
-								<text>¥456</text>
+								<text>{{elem.name}}</text>
+								<!-- <text>¥456</text> -->
 							</view>
 						</view>
 					</scroll-view>
 				</view>
-				<view class="b_right" @click="go('./confirmOrder/confirmOrder')">
-					<text>¥849</text>
-					<text></text>
-					<text>约五天到</text>
+				<!-- go('./confirmOrder/confirmOrder') -->
+				<view class="b_right" @click="next()">
+					<text>¥{{sku.price}}</text>
+					<!-- <text></text>
+					<text>约五天到</text> -->
 				</view>
+				<!-- <view class="b_right" @click="go('./confirmOrder/confirmOrder?number=1&goods_id=' + goodsDetail.id + '&sku_id=' + sku.id)">
+					<text>¥{{sku.price}}</text>
+				</view> -->
 			</view>
 		</u-popup>
 		<!-- 优惠券弹窗 -->
@@ -211,17 +237,20 @@
 					<image src="/static/my/close.png" mode="" @click="disPopup = false"></image>
 				</view>
 				<view class="list">
-					<view class="item" v-for="(item,index) in 5" :key="index">
+					<view class="item" v-for="(item,index) in goodsDetail.coupon" :key="index">
 						<view class="left">
 							<text>¥</text>
-							<text>10</text>
+							<text>{{item.price}}</text>
 						</view>
 						<view class="right">
 							<view class="">
-								<text>满100可用</text>
-								<text>有效期至2021.11.30 23:59</text>
+								<text>满{{item.limit}}可用</text>
+								<text v-if="item.pretype == 'fixed'">{{item.pretype_text + item.enddate}}</text>
+								<!-- <view class="" v-else> -->
+								<!-- <text v-if="item.pretype == 'appoint'">领取日期: {{item.startdate}}</text> -->
+								<text v-if="item.pretype == 'appoint'">{{item.pretype_text + item.validity}}</text>
 							</view>
-							<text>领取</text>
+							<text @click="draw(item.id)">立即领取</text>
 						</view>
 					</view>
 				</view>
@@ -243,6 +272,7 @@
 				</view>
 			</view>
 		</u-popup>
+		<u-toast ref="uToast" />
 		<!-- 返回顶部 -->
 		<u-back-top :scroll-top="scrollTop" top="1200" :duration="300"></u-back-top>
 	</view>
@@ -254,13 +284,9 @@
 		components:{imgsBanner},
 		data() {
 			return {
-				imgList: [
-					require('@/static/pub/bbt.png'),
-					require('@/static/pub/ch.png'),
-					require('@/static/pub/ttq.png'),
-					require('@/static/pub/xj.png'),
-					require('@/static/pub/bql.png')
-				],
+				show: false,
+				id: '',
+				imgList: [],
 				current: 0, // 轮播图索引
 				cut: 0, // tabs索引
 				list: [
@@ -279,89 +305,30 @@
 				RTop: '', // 推荐top
 				GTop: '', // 详情top
 				scrollTop: '' ,// 当前滚动top值
-				collect: false, // 收藏状态
 				popupShow: false, // 规格弹窗状态
 				colorCheck: 0, // 颜色选中
 				sizeCheck: 0, // 尺码选中
 				flowList: [], // 推荐列表
 				// 推荐列表 数据请求
-				goodslist: [
-					{
-						price: 35,
-						title: '北国风光，千里冰封，万里雪飘',
-						shop: '李白杜甫白居易旗舰店',
-						image: 'http://pic.sc.chinaz.com/Files/pic/pic9/202002/zzpic23327_s.jpg',
-					},
-					{
-						price: 75,
-						title: '望长城内外，惟余莽莽',
-						shop: '李白杜甫白居易旗舰店',
-						image: 'http://pic.sc.chinaz.com/Files/pic/pic9/202002/zzpic23325_s.jpg',
-					},
-					{
-						price: 385,
-						title: '大河上下，顿失滔滔',
-						shop: '李白杜甫白居易旗舰店',
-						image: 'http://pic2.sc.chinaz.com/Files/pic/pic9/202002/hpic2119_s.jpg',
-					},
-					{
-						price: 784,
-						title: '欲与天公试比高',
-						shop: '李白杜甫白居易旗舰店',
-						image: 'http://pic2.sc.chinaz.com/Files/pic/pic9/202002/zzpic23369_s.jpg',
-					},
-					{
-						price: 7891,
-						title: '须晴日，看红装素裹，分外妖娆',
-						shop: '李白杜甫白居易旗舰店',
-						image: 'http://pic2.sc.chinaz.com/Files/pic/pic9/202002/hpic2130_s.jpg',
-					},
-					{
-						price: 2341,
-						shop: '李白杜甫白居易旗舰店',
-						title: '江山如此多娇，引无数英雄竞折腰',
-						image: 'http://pic1.sc.chinaz.com/Files/pic/pic9/202002/zzpic23346_s.jpg',
-					},
-					{
-						price: 661,
-						shop: '李白杜甫白居易旗舰店',
-						title: '惜秦皇汉武，略输文采',
-						image: 'http://pic1.sc.chinaz.com/Files/pic/pic9/202002/zzpic23344_s.jpg',
-					},
-					{
-						price: 1654,
-						title: '唐宗宋祖，稍逊风骚',
-						shop: '李白杜甫白居易旗舰店',
-						image: 'http://pic1.sc.chinaz.com/Files/pic/pic9/202002/zzpic23343_s.jpg',
-					},
-					{
-						price: 1678,
-						title: '一代天骄，成吉思汗',
-						shop: '李白杜甫白居易旗舰店',
-						image: 'http://pic1.sc.chinaz.com/Files/pic/pic9/202002/zzpic23343_s.jpg',
-					},
-					{
-						price: 924,
-						title: '只识弯弓射大雕',
-						shop: '李白杜甫白居易旗舰店',
-						image: 'http://pic1.sc.chinaz.com/Files/pic/pic9/202002/zzpic23343_s.jpg',
-					},
-					{
-						price: 8243,
-						title: '俱往矣，数风流人物，还看今朝',
-						shop: '李白杜甫白居易旗舰店',
-						image: 'http://pic1.sc.chinaz.com/Files/pic/pic9/202002/zzpic23343_s.jpg',
-					},
-				],
+				goodslist: [],
 				loadStatus: 'loadmore', // 加载更多状态 上拉加载
 				disPopup: false, // 优惠券弹窗状态
-				plaPopup: false // 平台保障弹窗
+				plaPopup: false ,// 平台保障弹窗
+				goodsDetail: {},
+				shop: {},
+				brand: {},
+				selectSku: [],
+				sku: {},
+				content: '',
+				discountList: [], // 优惠券列表
+				comment_list: [], // 商品评论列表
+				count: 0
 			};
 		},
 		onNavigationBarButtonTap(e){
 			if(e.index == 1){
 				console.log('客服1')
-				this.go('/pages/public/callCenter')
+				this.go('/pages/HM-chat/HM-chat?shop_id=' + this.goodsDetail.shop_id + '&goods=' + JSON.stringify({ id: this.goodsDetail.id, title: this.goodsDetail.title, image: this.goodsDetail.image, price: this.goodsDetail.price }))
 			}else{
 				console.log('分享0')
 			}
@@ -383,15 +350,16 @@
 		},
 		// 触底加载更多，切换加载更多loading
 		onReachBottom() {
-			this.loadStatus = 'loading';
-			// 模拟数据加载
-			setTimeout(() => {
-				this.addRandomData();
-				this.loadStatus = 'loadmore';
-			}, 1000)
+			// this.loadStatus = 'loading';
+			// // 模拟数据加载
+			// setTimeout(() => {
+			// 	this.addRandomData();
+			// 	this.loadStatus = 'loadmore';
+			// }, 1000)
 		},
-		onLoad() {
-			this.addRandomData()
+		onLoad(option) {
+			this.id = option.id
+			this.getData()
 		},
 		onPageScroll(e) {
 			this.scrollTop = e.scrollTop
@@ -410,6 +378,118 @@
 			}
 		},
 		methods:{
+			// 优惠券列表
+			// getDiscount(){
+			// 	this.disPopup = true
+			// 	this.request({
+			// 		url: 'wanlshop/coupon/getList',
+			// 		data: {
+			// 			type: 'reduction',
+			// 			page: 1
+			// 		}
+			// 	}).then(res=>{
+			// 		if(res.data.code == 1){
+			// 			this.discountList = res.data.data.data
+			// 		}
+			// 	})
+			// },
+			// 领取优惠券
+			draw(e){
+				this.request({
+					url: 'wanlshop/coupon/receive',
+					data: {
+						token: uni.getStorageSync('userInfo').token,
+						id: e
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.$refs.uToast.show({
+							title: res.data.data.msg,
+							type: 'success'
+						})
+						this.disPopup = false
+						this.getDiscount()
+					}
+				})
+			},
+			// 商品详情
+			getData(){
+				this.request({
+					url: 'wanlshop/product/goods',
+					data: {
+						id: this.id
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						// 轮播
+						res.data.data.images.forEach(elem=>{
+							this.imgList.push(this.ImgUrl + elem)
+						})
+						this.goodsDetail = res.data.data // 商品详情
+						this.goodsDetail.content = res.data.data.content.replace(/<img /g,"<img width='100%'")
+						this.shop = res.data.data.shop // 店铺详情
+						this.brand = res.data.data.brand // 商品名称
+						this.flowList = res.data.data.shop_recommend // 推荐列表
+						this.sku = res.data.data.sku[0] // 默认选中的商品属性商品详情	
+						// this.sku.
+						this.selectSku = res.data.data.sku[0].difference // 默认选中的商品属性
+						this.comment_list = res.data.data.comment_list.data
+						this.show = true
+						// 查询库存
+						// this.request({
+						// 	url: 'wanlshop/product/stock',
+						// 	method: 'GET',
+						// 	data: {
+						// 		sku_id: this.sku.id
+						// 	}
+						// }).then(res=>{})
+						this.query()
+					}
+				})
+			},
+			// 收藏
+			collect(){
+				this.request({
+					url: 'wanlshop/product/follow',
+					data: {
+						token: uni.getStorageSync('userInfo').token,
+						id: this.id
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.$refs.uToast.show({
+							title: res.data.msg,
+							type: 'success'
+						})
+						this.getData()
+					}
+				})
+			},
+			// 选择商品规格属性
+			select(e,n){
+				this.$set(this.selectSku, e, n)
+				this.goodsDetail.sku.forEach(elem=>{
+					if(JSON.stringify(elem.difference) == JSON.stringify(this.selectSku)){
+						this.sku = elem
+					}
+				})
+				this.query()
+			},
+			// 查询库存
+			query(){
+				
+				this.request({
+					url: 'wanlshop/product/stock',
+					method: 'GET',
+					data: {
+						sku_id: this.sku.id
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.count = res.data.data
+					}
+				})
+			},
 			changeCut(e){
 				let top = ''
 				if(e == 0){
@@ -437,6 +517,15 @@
 					item.id = this.$u.guid();
 					this.flowList.push(item);
 				}
+			},
+			next(){
+				if(this.count <= 0){
+					this.$refs.uToast.show({
+						title: '当前商品暂无库存',
+						type: 'warning'
+					})
+				}
+				this.go('./confirmOrder/confirmOrder?number=1&goods_id=' + this.goodsDetail.id + '&sku_id=' + this.sku.id)
 			},
 			go(e){
 				uni.navigateTo({
@@ -495,7 +584,7 @@
 						}
 						>:nth-child(2){
 							margin-left: 10rpx;
-							width: 170rpx;
+							padding: 0 10rpx;
 							height: 50rpx;
 							background: linear-gradient(90deg, #FD3750 0%, #FC653F 100%);
 							border-radius: 25rpx;
@@ -523,6 +612,9 @@
 					justify-content: space-between;
 					align-items: center;
 					padding: 25rpx 0 21rpx 25rpx;
+					.couponNull{
+						background: #ccc;
+					}
 					>text{
 						font-size: 22rpx;
 						font-family: PingFang SC;
@@ -826,7 +918,7 @@
 							background-color: #ccc;
 							margin-right: 15rpx;
 						}
-						view{
+						.nickname{
 							height: 58rpx;
 							display: flex;
 							flex-direction: column;
@@ -841,6 +933,11 @@
 								font-weight: 500;
 								color: #9094A6;
 							}
+						}
+						.imgs{
+							display: flex;
+							justify-content: flex-start;
+							// margin-top: 20rpx;
 						}
 					}
 					>text{
@@ -890,7 +987,7 @@
 				}
 			}
 			.b_right{
-				width: 610rpx;
+				width: 580rpx;
 				height: 74rpx;
 				background: #F35455;
 				border-radius: 6rpx;
@@ -1084,7 +1181,7 @@
 					border-radius: 10rpx;
 					margin-bottom: 20rpx;
 					.left{
-						width: 159rpx;
+						width: 180rpx;
 						text-align: center;
 						border-right: 1px solid #FFBFBB;
 						text{
@@ -1093,14 +1190,14 @@
 							color: #FF4243;
 						}
 						>:nth-child(1){
-							font-size: 36rpx;
+							font-size: 32rpx;
 						}
 						>:nth-child(2){
-							font-size: 48rpx;
+							font-size: 42rpx;
 						}
 					}
 					.right{
-						width: calc(100% - 159rpx);
+						width: calc(100% - 180rpx);
 						padding: 0 23rpx 0 64rpx;
 						display: flex;
 						justify-content: space-between;
@@ -1117,7 +1214,7 @@
 								font-weight: bold;
 								color: #FF4243;
 							}
-							>:nth-child(2){
+							>:nth-child(2),>:nth-child(3){
 								font-size: 24rpx;
 								font-family: PingFang SC;
 								font-weight: 500;

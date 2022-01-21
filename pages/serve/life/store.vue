@@ -3,16 +3,16 @@
 		<view class="store">
 			<u-swiper :list="swiperList" height="350"></u-swiper>
 			<view class="name">
-				<text>衣服修理店</text>
-				<text>人均8~35元</text>
+				<text>{{detail.name}}</text>
+				<text>人均{{detail.consumption}}元</text>
 			</view>
 			<view class="time">
-				<text>营业时间: 09:00-21:00</text>
+				<text>营业时间: {{detail.hours}}</text>
 			</view>
 			<view class="address">
-				<text>店铺地址: 相城区高铁新城南天成路77号高融大厦一层</text>
+				<text>店铺地址: {{detail.address}}</text>
 				<view class="btns">
-					<view class="map">
+					<view class="map" @click="openMap()">
 						<image src="/static/serve/location.png" mode=""></image>
 						<text>地图</text>
 					</view>
@@ -29,10 +29,11 @@
 				<text class="line"></text>
 			</view>
 			<view class="pro">
-				<view class="" v-for="(item,index) in 7" :key="index">
+				<rich-text :nodes="detail.content"></rich-text>
+				<!-- <view class="" v-for="(item,index) in 7" :key="index">
 					<text>修拉链</text>
 					<text>¥9.9</text>
-				</view>
+				</view> -->
 			</view>
 		</view>
 		<view class="bottom">
@@ -45,22 +46,33 @@
 	export default {
 		data() {
 			return {
-				swiperList: [{
-						image: 'https://cdn.uviewui.com/uview/swiper/1.jpg'
-					},
-					{
-						image: 'https://cdn.uviewui.com/uview/swiper/2.jpg'
-					},
-					{
-						image: 'https://cdn.uviewui.com/uview/swiper/3.jpg'
-					}
-				],
+				swiperList: [],
+				detail: {}
 			};
 		},
+		onLoad(option) {
+			this.detail = JSON.parse(option.detail)
+			this.detail.images.split(',').forEach(elem=>{
+				this.swiperList.push({image: this.ImgUrl + elem})
+			})
+		},
 		methods:{
+			openMap(e){
+				uni.openLocation({
+					latitude: parseFloat(this.detail.lat),
+					longitude: parseFloat(this.detail.lng),
+					success: function () {
+						console.log('success')
+					},
+					complete: (all) => {
+						console.log(all)
+					}
+				})
+				
+			},
 			call(e){
 				uni.makePhoneCall({
-				    phoneNumber: '10086' //仅为示例
+				    phoneNumber: this.detail.phone //仅为示例
 				});
 			}
 		}

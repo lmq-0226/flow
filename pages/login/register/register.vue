@@ -125,8 +125,7 @@
 			getCode(){
 				if(/^1[3|4|5|6|7|8|9][0-9]{9}$/.test(this.form.tell)) {
 					this.request({
-						url: '/api/wanlshop/sms/send',
-						method: 'POST',
+						url: 'wanlshop/sms/send',
 						data: {
 							mobile: this.form.tell,
 							event: 'resetpwd'
@@ -158,8 +157,7 @@
 				this.$refs.uForm.validate(valid => {
 					if (valid) {
 						this.request({
-							url: '/api/wanlshop/user/resetpwd',
-							method: 'POST',
+							url: 'wanlshop/user/resetpwd',
 							data: {
 								mobile: this.form.tell,
 								captcha: this.form.code,

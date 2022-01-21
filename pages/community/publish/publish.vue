@@ -201,6 +201,13 @@
 				this.$set(this.activeList,e,n)
 			},
 			upload(){
+				// plus.io.requestFileSystem( plus.io.PRIVATE_WWW, function(res) {
+				// 	console.log(res)
+				// 	// 可通过fs操作PRIVATE_WWW文件系统 
+				// 	// ......
+				// },function (e) {
+				// 	console.log( "Request file system failed: " + e.message );
+				// });
 				if(this.imgs.length >= 6){
 					this.$refs.uToast.show({
 						title: '最多上传6张图片',

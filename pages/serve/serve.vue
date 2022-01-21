@@ -6,8 +6,8 @@
 			<text @click="go('./consult/consult')">资讯</text>
 		</view>
 		<view class="context">
-			<view class="detection" v-for="item in projectList" :key="item.id">
-				<view class="lettle" @click="go(item.url)">
+			<view class="detection" v-for="item in projectList" :key="item.id" @click="go(item.url)">
+				<view class="lettle">
 					<view class="title">
 						<text>{{item.title}}</text>
 						<text>{{item.sub}}</text>
@@ -16,8 +16,8 @@
 				</view>
 				<view class="project">
 					<view class="" v-for="elem in item.project" :key="elem.sid">
-						<image src="" mode=""></image>
-						<text>{{elem.lettle}}</text>
+						<image :src="ImgUrl + elem.image" mode=""></image>
+						<text>{{elem.name}}</text>
 					</view>
 				</view>
 			</view>
@@ -72,7 +72,7 @@
 				</view>
 			</view>
 		</view>
-		
+		<image class="publish" src="/static/serve/publish.png" mode="" @click="go('./publish/publish')"></image>
 	</view>
 </template>
 
@@ -89,10 +89,10 @@
 						{sid: 5, lettle: '服饰'}
 					]},
 					{id: 6,title: '生活服务',url: './life/life',sub: '专业鉴别 快速准确',project:[
-						{sid: 7, lettle: '新品发售'},
-						{sid: 8, lettle: '新品发售'},
-						{sid: 9, lettle: '新品发售'},
-						{sid: 10, lettle: '新品发售'}
+						{sid: 7, name: '新品发售'},
+						{sid: 8, name: '新品发售'},
+						{sid: 9, name: '新品发售'},
+						{sid: 10, name: '新品发售'}
 					]}
 				],
 				forumList:[
@@ -122,12 +122,26 @@
 						topStatus: true
 					}
 				]
+				
 			};
 		},
 		onLoad() {
-			
+			this.getData()
 		},
 		methods:{
+			getData(){
+				this.request({
+					url: 'service/index/home_page',
+					data: {
+						token: uni.getStorageSync('userInfo').token
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.projectList[0].project = res.data.data.appraisal_cate
+						this.projectList[1].project = res.data.data.life_service
+					}
+				})
+			},
 			go(e){
 				uni.navigateTo({
 					url: e
@@ -143,6 +157,17 @@
 </style>
 <style lang="scss" scoped>
 	.content{
+		.publish{
+			position: fixed;
+			bottom: 100rpx;
+			right: 30rpx;
+			width: 100rpx;
+			height: 100rpx;
+			z-index: 99999;
+			/* #ifdef H5 */
+			bottom: 200rpx;
+			/* #endif */
+		}
 		.nav{
 			padding: 22rpx 30rpx;
 			display: flex;
@@ -205,6 +230,7 @@
 					align-items: center;
 					view{
 						text-align: center;
+						max-width: 140rpx;
 						image{
 							width: 140rpx;
 							height: 140rpx;
@@ -216,6 +242,11 @@
 							font-family: PingFang SC;
 							font-weight: 500;
 							color: #000000;
+							overflow: hidden;
+							-webkit-line-clamp: 1;
+							text-overflow: ellipsis;
+							display: -webkit-box;
+							-webkit-box-orient: vertical;
 						}
 					}
 				}

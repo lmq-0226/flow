@@ -1,11 +1,13 @@
-export const url = 'http://app.51liuxiang.com'
+export const url = 'http://app.51liuxiang.com/api/'
+export const ImgUrl = 'http://app.51liuxiang.com'
+export const socketurl = 'wss://chat.51liuxiang.com'
 import store from '../store/store.js'
 // 全局token
 let token = uni.getStorageSync('userInfo').token || ''
 export default (options) => {
 	return new Promise((resolved, rejected) => {
 		uni.showLoading({
-			title: 'loading...'
+			title: '加载中...'
 		})
 		console.log('------------------------start------------------');
 		console.log('接口地址:' + url + options.url);
@@ -18,29 +20,67 @@ export default (options) => {
 		// request请求封装
 		uni.request({
 			url: url + options.url, // 请求接口地址
-			method: options.method || 'GET', // 方法从options中获取，如果没有传入method，则默认为GET，
+			method: options.method || 'POST', // 方法从options中获取，如果没有传入method，则默认为GET，
 			data: options.data, // 请求接口参数
 			dataType:'json',
-			header: {
+			header: options.header || {
 				'content-type': 'application/x-www-form-urlencoded',
-				'token': token
+				'Authorization': 'Bearer' + token
 			},
 			success: (res) => {
-				console.log(res, '9999')
-				uni.showToast({
-					title: res.data.msg,
-					icon: 'none'
-				})
+				console.log(res.data.msg, res)
+				if(res.statusCode == 200){
+					if(res.data.code != 1){
+						uni.showToast({
+							title: res.data.msg,
+							icon: 'none'
+						})
+					}
+				}else if(res.statusCode == 401){
+					uni.showToast({
+						title: '请登录后操作',
+						icon: 'none'
+					})
+				}else if(res.statusCode == 500){
+					uni.showToast({
+						title: '服务器错误',
+						icon: 'none'
+					})
+				}
 				resolved(res)
 			},
 			fail: (err) => {
 				rejected(err)
 			},
-			complete() {
+			complete(all) {
 				// 关闭加载中的特效
 				uni.hideLoading()
 				console.log('------------------------end------------------');
 			}
 		})
 	})
+}
+export const date = (format, timeStamp) => {
+	if('' + timeStamp.length <= 10){
+		timeStamp = + timeStamp * 1000;
+	}else{
+		timeStamp = + timeStamp;
+	}
+	let _date = new Date(timeStamp),
+		Y = _date.getFullYear(),
+		m = _date.getMonth() + 1,
+		d = _date.getDate(),
+		H = _date.getHours(),
+		i = _date.getMinutes(),
+		s = _date.getSeconds();
+	
+	m = m < 10 ? '0' + m : m;
+	d = d < 10 ? '0' + d : d;
+	H = H < 10 ? '0' + H : H;
+	i = i < 10 ? '0' + i : i;
+	s = s < 10 ? '0' + s : s;
+	return Y + '-' + m + '-' + d + ' ' + H + ':' + i + ':' + s
+	// return format.replace(/[YmdHis]/g, key=>{
+	// 	return {Y,m,d,H,i,s}[key];
+	// });
 }
