@@ -13,9 +13,9 @@
 			</view>
 			<view class="">
 				<image src="/static/my/location.png" mode=""></image>
-				<text>流象鉴定部  166****1554</text>
+				<text>{{enterAddress.receiver}}  {{enterAddress.photo}}</text>
 			</view>
-			<text>江苏省苏州市相城区南天城路77号高铁新城高融大厦快递快递柜</text>
+			<text>{{enterAddress.area + enterAddress.address}}</text>
 		</view>
 		<view :class="['detail',assessInfo.state == 1 ? 'marginTop' : '']">
 		<!-- <view class="detail"> -->
@@ -70,13 +70,22 @@
 		<view class="bottom" v-if="assessInfo.state == 1">
 			<text>取消估价</text>
 		</view>
-		<view class="bottom" v-else>
+		<view class="bottom" v-else-if="assessInfo.state == 2">
+			<text @click="cancel()">取消寄卖</text>
+			<text class="active" @click="sure">确认寄卖</text>
+		</view>
+		<view class="bottom" v-else-if="assessInfo.state == 3">
+			<text @click="refund()">申请退款</text>
+			<text class="active" @click="go('./shipments/shipments?type=sign&order_id=' + assessInfo.id)">去发货</text>
+		</view><view class="bottom" v-else-if="assessInfo.state == 4">
 			<view class="">
-				<!-- <text @click="go('/pages/public/callCenter')">联系客服</text> -->
-				<text @click="cancel()" v-if="assessInfo.state != 7 && assessInfo.state != 4">取消寄卖</text>
-				<text v-if="assessInfo.state == 2 || assessInfo.state == 7" class="active" @click="sure">确认寄卖</text>
-				<text v-else-if="assessInfo.state == 3" class="active" @click="go('./shipments/shipments?type=sign&order_id=' + assessInfo.id)">去发货</text>
-				<text v-else-if="assessInfo.state == 4" class="active" @click="go('/pages/my/buy/logistics/logistics?id=' + goodsDetail.id)">查询物流</text>
+				<text class="active" @click="go('/pages/my/sell/logistics/logistics?order_id=' + assessInfo.id)">查询物流</text>
+			</view>
+		</view>
+		<view class="bottom" v-else-if="assessInfo.state == 7">
+			<view class="">
+				<text>已取消</text>
+				<text class="active" @click="resubmit">重新提交</text>
 			</view>
 		</view>
 		<u-popup v-model="popupShow" mode="bottom" border-radius="20" @touchmove.native.stop.prevent>
@@ -97,10 +106,10 @@
 							<text>{{item.money}}</text>
 						</view>
 					</view>
-					<view class="bot">
+					<!-- <view class="bot">
 						<text>基础清洁 ¥8.00</text>
 						<text>表面重点清理</text>
-					</view>
+					</view> -->
 				</view>
 			</view>
 		</u-popup>
@@ -113,7 +122,7 @@
 	export default {
 		data() {
 			return {
-				type: '',
+				type: 0,
 				status: 1,
 				numList: [
 					{
@@ -129,18 +138,9 @@
 					},
 				],
 				popupShow: false,
-				priceList: [
-					{text: '总服务费', money: '¥59.99'},
-					{text: '银行转行费', money: '¥20.00'},
-					{text: '质检费', money: '¥20.00'},
-					{text: '包装费', money: '¥5.00'},
-					{text: '鉴别费', money: '¥5.00'},
-					{text: '信息收录费',type: 1,op:'¥20.00', money: '¥0.00'},
-					{text: '专业摄影费',type: 1,op:'¥20.00', money: '¥0.00'},
-					{text: '技术服务费',type: 1,op:'¥20.00', money: '¥0.00'},
-					{text: '服务清理费', money: '¥8.00'}
-				],
+				priceList: [],
 				order_id: '',
+				enterAddress: {}, // 平台地址
 				address: {},
 				goods: {},
 				assessInfo: {},
@@ -148,15 +148,15 @@
 			};
 		},
 		onBackPress() {
-			// if(this.type == 0){
-			// 	return false
-			// }else{
+			if(this.type == 0){
 				
-				// uni.navigateTo({
-				// 	url: '/pages/my/sell/sell'
-				// })
-				// return true
-			// }
+				return false
+			}else{
+				uni.navigateTo({
+					url: '/pages/my/released/released'
+				})
+				return true
+			}
 		},
 		onReady() {
 			uni.setNavigationBarColor({
@@ -172,7 +172,7 @@
 			this.status = option.status
 			this.type = option.type
 			this.order_id = option.order_id
-			
+			this.getEnterAddress()
 		},
 		onShow() {
 			this.getOrderDetail()
@@ -188,6 +188,15 @@
 				}).then(res=>{
 					if(res.data.code == 1){
 						this.assessInfo = res.data.data.assessInfo
+						this.priceList[0] = {text: '总服务费', money: this.assessInfo.total_fee}
+						this.priceList[1] = {text: '清洁费', money: this.assessInfo.cleaning_fee}
+						this.priceList[2] = {text: '质检费', money: this.assessInfo.zhijian_fee}
+						this.priceList[3] = {text: '包装费', money: this.assessInfo.packing_fee}
+						this.priceList[4] = {text: '鉴别费', money: this.assessInfo.identify_fee}
+						this.priceList[5] = {text: '信息费', money: this.assessInfo.information_fee}
+						this.priceList[6] = {text: '摄影费', money: this.assessInfo.photo_fee}
+						this.priceList[7] = {text: '服务费', money: this.assessInfo.service_fee}
+						this.priceList[8] = {text: '其他费用', money: this.assessInfo.other_fee}
 						this.goodsDetail = res.data.data
 						if(this.assessInfo.state == 1){
 							this.status = 0
@@ -212,17 +221,80 @@
 				}).then(res=>{
 					if(res.data.code == 1){
 						this.$refs.uToast.show({
-							title: '取消成功',
+							title: res.data.msg,
 							type: 'success',
 							callback: ()=>{
-								uni.navigateBack({
-									delta: 1
+								if(res.data.data == null){
+									uni.navigateBack({
+										delta: 1
+									})
+									return
+								}
+								this.request({
+									url: res.data.data.buttons.url,
+									data: {
+										token: uni.getStorageSync('userInfo').token,
+										id: res.data.data.buttons.id
+									}
+								}).then(res=>{
+									if(res.data.code == 1){
+										this.$refs.uToast.show({
+											title: '已为您申请退款',
+											type: 'success',
+											callback: ()=>{
+												uni.navigateBack({
+													delta: 1
+												})
+											}
+										})
+									}
 								})
 							}
 						})
 						
 					}
 					
+				})
+			},
+			
+			// 申请退款
+			refund(){
+				this.request({
+					url: 'idle/consign/apply_refund',
+					data: {
+						token: uni.getStorageSync('userInfo').token,
+						id: this.assessInfo.id,
+						refund_content: ''
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						uni.navigateBack({
+							delta: 1
+						})
+						this.$refs.uToast.show({
+							title: '已为您申请退款！',
+							type: 'success',
+						})
+					}
+				})
+			},
+			// 重新提交寄卖
+			resubmit(){
+				this.request({
+					url: 'idle/consign/consign',
+					data: {
+						token: uni.getStorageSync('userInfo').token,
+						id: this.goodsDetail.id,
+						address_id: this.assessInfo.address_id
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.$refs.uToast.show({
+							title: res.data.msg,
+							type: 'success',
+						})
+						this.getOrderDetail()
+					}
 				})
 			},
 			// 确认寄卖
@@ -236,9 +308,21 @@
 					}
 				}).then(res=>{
 					if(res.data.code == 1){
-						this.go('/pages/leave/leaveShop/confirmOrder/pay?type=consign&order_id=' + res.data.data.pay_info.order_id + '&total_amount=' + res.data.data.pay_info.total_amount )
+						this.go('/pages/leave/leaveShop/confirmOrder/pay?type=consign&pay=sell&order_id=' + res.data.data.pay_info.order_id + '&total_amount=' + res.data.data.pay_info.total_amount)
 					}
 					
+				})
+			},
+			getEnterAddress(){
+				this.request({
+					url: 'idle/consign/platform_address',
+					data: {
+						token: uni.getStorageSync('userInfo').token
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.enterAddress = res.data.data
+					}
 				})
 			},
 			back(){

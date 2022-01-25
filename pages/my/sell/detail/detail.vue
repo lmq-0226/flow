@@ -90,7 +90,7 @@
 			<view class="" v-if="goodsDetail.state == 2">
 				<text @click="go('/pages/HM-chat/HM-chat')">联系买家</text>
 				<!-- <text>关闭订单</text> -->
-				<text class="active" @click="go('/pages/my/sell/deliver/deliver?order_id=' + goodsDetail.id)">去发货</text>
+				<text v-if="goodsDetail.type == 'sale'" class="active" @click="go('/pages/my/sell/deliver/deliver?order_id=' + goodsDetail.id)">去发货</text>
 			</view>
 			<!-- <view class="" v-else-if="status == 2 || status == 3 || status == 4">
 				<text @click="go('/pages/HM-chat/HM-chat')">联系买家</text>

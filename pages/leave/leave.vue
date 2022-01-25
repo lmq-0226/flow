@@ -2,7 +2,8 @@
 	<view class="content">
 		<view class="status_bar"></view>
 		<view class="nav_bar">
-			<view class="nav_left" @click="go('./leaveShop/leaveShop')">
+			 <!-- @click="go('./leaveShop/leaveShop')" -->
+			<view class="nav_left">
 				<view class="left_top">
 					<text>流象闲置</text>
 					<image src="/static/shop/leave_go.png" mode=""></image>
@@ -96,7 +97,7 @@
 			<u-tabs style="background-color: #F6F5FA;" :list="tabList" :is-scroll="true" :current="current" active-color="#FF4243" @change="change"></u-tabs>
 		</view>
 		<view class="goods" :style="{'padding-top': flowList.length <= 0 ? '100rpx' : ''}">
-			<u-empty text="暂无商品" mode="data" v-if="flowList.length <= 0" style="padding-bottom: 100rpx;"></u-empty>
+
 			<!-- 瀑布流 -->
 			<u-waterfall v-model="flowList" ref="uWaterfall">
 				<template v-slot:left="{leftList}"> 
@@ -134,8 +135,9 @@
 					</view>
 				</template>
 			</u-waterfall>
+			<u-empty text="暂无商品" mode="data" v-if="flowList.length <= 0" style="padding-bottom: 100rpx;"></u-empty>
 		</view>
-		<view class="bottom" @click="popupShow = true,authenModel = true">
+		<view class="bottom" @click="open">
 			<text>卖</text>
 			<text>闲置</text>
 		</view>
@@ -164,7 +166,7 @@
 			</view>
 		</u-popup>
 		<!-- @cancel="popupShow = false" -->
-		<u-modal v-model="authenModel" title="实名认证" content="认证后可以继续进行操作" :show-cancel-button="true" @confirm="go('/pages/my/set/authen/authen')"></u-modal>
+		<u-modal v-model="authenModel" title="实名认证" content="认证后可以继续进行操作" :show-cancel-button="true" @cancel="popupShow = false" @confirm="go('/pages/my/set/authen/authen')"></u-modal>
 		<!-- 加载更多 -->
 		<!-- <u-loadmore bg-color="#F6F5FA" :status="loadStatus" @loadmore="addRandomData"></u-loadmore> -->
 		<!-- 返回顶部 -->
@@ -211,7 +213,7 @@
 			}
 		},
 		onLoad() {
-			this.getData()
+			
 			// scroll可视区域的宽
 			setTimeout(()=>{
 				let obj = uni.createSelectorQuery().select('.scroll-view_H')
@@ -220,6 +222,9 @@
 				}).exec()
 			}, 100)
 			// this.addRandomData()
+		},
+		onShow() {
+			this.getData()
 		},
 		onHide() {
 			this.popupShow = false
@@ -240,6 +245,9 @@
 		methods: {
 			// 首页数据
 			getData(){
+				let timer = setTimeout(()=>{
+					this.$refs.uWaterfall.clear()
+				}, 50)
 				this.request({
 					url: 'idle/index/init',
 					data: {
@@ -248,7 +256,7 @@
 				}).then(res=>{
 					if(res.data.code == 1){
 						this.tabList = res.data.data.recommendCateList
-						this.flowList = this.tabList[0].goods_list || []
+						this.flowList = this.tabList[this.current].goods_list || []
 						this.cateList = res.data.data.top.data
 						this.center = res.data.data.center
 						this.bottom = res.data.data.bottom
@@ -258,9 +266,13 @@
 			},
 			change(index) {
 				this.current = index;
-				this.$refs.uWaterfall.clear()
-				this.flowList = this.tabList[index].goods_list
-				console.log(this.flowList)
+				let timer = setTimeout(()=>{
+					this.$refs.uWaterfall.clear()
+				}, 50)
+				let timers = setTimeout(()=>{
+					this.flowList = this.tabList[index].goods_list
+				}, 100)
+				
 			},
 			scan(){
 				uni.scanCode({
@@ -271,6 +283,7 @@
 				})
 			},
 			search(e){
+				this.go('/pages/leave/goodsList/goodsList?search=' + e.detail.value)
 				console.log(e.detail.value)
 			},
 			// scrol滚动
@@ -290,6 +303,29 @@
 					item.id = this.$u.guid();
 					this.flowList.push(item);
 				}
+			},
+			// 卖闲置
+			open(){
+				if(!uni.getStorageSync('userInfo').token){
+					uni.showToast({
+						title: '请登录后再操作',
+						icon: 'none'
+					})
+					return
+				}
+				this.request({
+					url: 'userauth/info',
+					data: {
+						token: uni.getStorageSync('userInfo').token
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.popupShow = true						this.authenModel = false
+					}else{
+						this.popupShow = true
+						this.authenModel = true
+					}
+				})
 			},
 			go(e){
 				uni.navigateTo({

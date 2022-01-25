@@ -4,7 +4,7 @@
 			<view class="price">
 				<view class="">
 					<text>所需积分: </text>
-					<text>$</text>
+					<text>￥</text>
 					<text>{{detail.scoreprice}}</text>
 				</view>
 			</view>
@@ -35,7 +35,7 @@
 			</view>
 		</view>
 		<view class="bottom">
-			<text @click="go('/pages/leave/leaveShop/confirmOrder/confirmOrder?type=2&goods_id=' + goodsDetail.id)">我想要</text>
+			<text @click="convert">我想要</text>
 		</view>
 	</view>
 </template>
@@ -72,6 +72,27 @@
 				}).then(res=>{
 					if(res.data.code == 1){
 						this.detail = res.data.data
+					}
+				})
+			},
+			convert(){
+				if(!uni.getStorageSync('userInfo').token){
+					uni.showToast({
+						title: '请登录',
+						icon: 'none'
+					})
+					return
+				}
+				this.request({
+					url: 'integral/order/buy_check',
+					data: {
+						token: uni.getStorageSync('userInfo').token,
+						id: this.id,
+						number: 1
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.go('../confirmOrder/confirmOrder?goods_id=' + this.id)
 					}
 				})
 			},

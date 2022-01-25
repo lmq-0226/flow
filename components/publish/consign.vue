@@ -100,10 +100,10 @@
 				})
 			},
 			goDetail(e){
-				if(e.status == 4){
-					this.go('/pages/leave/leaveShop/goodsDetail/goodsDetail?id=' + e.id)
+				if(e.status == 3){
+					this.go('/pages/leave/publish/publish?type=consign&current=1&id=' + e.id + '&site=add')
 				}else if(e.status == 1){
-					this.go('/pages/leave/detail/detail?order_id=' + e.id)
+					this.go('/pages/leave/detail/detail?type=0&order_id=' + e.id)
 				}
 			},
 			// 回退
@@ -129,7 +129,7 @@
 		height: calc(100vh - 88rpx - 90rpx);
 		/* #endif */
 		/* #ifdef APP-PLUS */
-		height: 100vh;
+		height: calc(100vh - 88rpx - 90rpx - var(--status-bar-height));
 		/* #endif */
 	}
 

@@ -13,22 +13,22 @@
 		<view class="top">
 			<u-steps :list="numList" :current="current" mode="number" active-color="#fff" un-active-color="#fff" icon="/static/my/true2.png"></u-steps>
 		</view>
-		<!-- <view v-if="status == 4" :class="['flow', status == 4 ? 'marginTop' : '']"  @click="go('../logistics/logistics')">
+		<view class="flow marginTop"  @click="go('../logistics/logistics')">
 			<view class="">
 				<image src="/static/my/car.png" mode=""></image>
-				<text>派送中</text>
+				<text>{{logistics.status}}</text>
 			</view>
-			<text>高铁新城某某正在派件(95720为中通快递员外呼专属号码，请...</text>
-			<text class="time">2021-10-15 15:25:24</text>
+			<text>{{logistics.context}}</text>
+			<text class="time">{{logistics.time}}</text>
 		</view>
-		<view :class="['address', status == 3 ? 'marginTop' : '']">
+		<!-- <view :class="['address', status == 3 ? 'marginTop' : '']">
 			<view class="">
 				<image src="/static/my/location.png" mode=""></image>
 				<text>王小明  166****1554</text>
 			</view>
 			<text>江苏省苏州市相城区南天城路77号高铁新城高融大厦快递快递柜</text>
 		</view> -->
-		<view class="address marginTop">
+		<view class="address">
 			<view class="">
 				<image src="/static/my/location.png" mode=""></image>
 				<text>{{address.name}}  {{address.mobile}}</text>
@@ -121,6 +121,12 @@
 				orderDetail: {},
 				current: 0
 			};
+		},
+		onBackPress() {
+			uni.navigateTo({
+				url: '../buy'
+			})
+			return true
 		},
 		onReady() {
 			uni.setNavigationBarColor({

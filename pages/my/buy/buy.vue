@@ -39,69 +39,37 @@
 						name: '闲置订单'
 					}, 
 					{
-						name: '服务订单'
+						// name: '服务订单'
+						name: '积分商城'
 					}
 				],
 				statusCurrent: 0,
 				
-				orderList: [
-					{
-						id: 1,
-						type: 1, // 1官方 2个人寄卖
-						name: 'tb455263296',
-						goodsImg: require('@/static/pub/bbt.png'),
-						desc: '居居侠超级无敌棒棒糖',
-						price: 199,
-						order_status: 0, // 0交易关闭 1待收货 2待发货 3退款售后
-						order_text: '交易失败',
-						buttons: [{id: 0,text: '查看详情'}]
-					},
-					{
-						id: 2,
-						type: 1,
-						name: 'Dyxlhl',
-						goodsImg: require('@/static/pub/ch.png'),
-						desc: '彩虹，又称天弓、天虹、绛等，简称虹',
-						price: 199,
-						order_status: 1, // 0交易关闭 1待收货 2待发货 3退款售后
-						order_text: '待收货',
-						buttons: [{id: 1,text: '确认收货'}]
-					},
-					{
-						id: 3,
-						type: 1,
-						name: 'tb455263296',
-						goodsImg: require('@/static/pub/ttq.png'),
-						desc: '甜甜圈，又称多拿滋、唐纳滋，它是一种用面粉、白砂糖、奶油和鸡蛋混合之后再经过油炸的甜食。',
-						price: 199,
-						order_status: 2, // 0交易关闭 1待收货 2待发货 3退款售后
-						order_text: '待发货',
-						buttons: [{id: 2,text: '申请退款'}]
-					},
-					{
-						id: 4,
-						type: 1,
-						name: 'tb455263296',
-						goodsImg: require('@/static/pub/ttq.png'),
-						desc: '甜甜圈，又称多拿滋、唐纳滋，它是一种用面粉、白砂糖、奶油和鸡蛋混合之后再经过油炸的甜食。',
-						price: 199,
-						order_status: 3, // 0交易关闭 1待收货 2待发货 3退款售后
-						order_text: '退款中',
-						buttons: [{id: 3,text: '退款进度'}]
-					}
-				],
+				orderList: [],
 			};
 		},
-		onLoad() {
-			
+		onLoad(option) {
+			if(option.current){
+				this.statusCurrent = option.current
+			}
+		},
+		watch:{
+			statusCurrent(newVal, oldVal){
+				if(newVal == 0){
+					this.$refs.shop.getData()
+				}else if(newVal == 1){
+					this.$refs.leave.getData()
+				}else{
+					this.$refs.serve.getData()
+				}
+			}
 		},
 		onShow() {
 			let timer = setTimeout(()=>{
 				this.$refs.shop.getData()
 				this.$refs.leave.getData()
+				this.$refs.serve.getData()
 			}, 50)
-			
-			// this.$refs.serve.getData()
 		},
 		onBackPress(){
 			uni.switchTab({

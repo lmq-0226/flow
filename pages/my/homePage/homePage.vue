@@ -11,18 +11,18 @@
 					</view>
 				</view>
 				<view class="avatar">
-					<image :src="avatar" mode=""></image>
+					<image :src="ImgUrl + user.avatar" mode=""></image>
 					<view class="nums">
 						<view class="">
-							<text>33</text>
+							<text>{{userInfo.fans}}</text>
 							<text>粉丝</text>
 						</view>
 						<view class="">
-							<text>33</text>
+							<text>{{userInfo.follow}}</text>
 							<text>关注</text>
 						</view>
 						<view class="">
-							<text>33</text>
+							<text>{{userInfo.praised}}</text>
 							<text>获赞</text>
 						</view>
 					</view>
@@ -31,7 +31,7 @@
 					<view class="nick">
 						<view class="left">
 							<text>账号昵称</text>
-							<text>美妆类 | 流象号：102534685</text>
+							<text>美妆类 | 流象号：{{userInfo.user_no}}</text>
 						</view>
 						<view v-if="type == 1" class="edit" @click="go('./edit')">
 							<text>编辑资料</text>
@@ -50,9 +50,7 @@
 						</view>
 					</view>
 					<view class="desc">
-						<text>
-							摄影界的瞎拍达人禁止审美绑架穿衣自由目前除流象 小红书账号外 其他平台及和人使用我图片 均为盗图作假 切勿上当受骗!未经允许不得转载！小红书号：kaky珂珂
-						</text>
+						<text>{{user.bio || '暂无个性签名，这个人很懒~'}}</text>
 					</view>
 				</view>
 			</view>
@@ -70,11 +68,11 @@
 			<view class="sharePopup">
 				<text class="title">分享至</text>
 				<view class="items">
-					<view class="">
+					<view class="" v-if="install"> 
 						<image src="/static/my/wx.png" mode=""></image>
 						<text>微信好友</text>
 					</view>
-					<view class="">
+					<view class="" v-if="install">
 						<image src="/static/my/wxc.png" mode=""></image>
 						<text>朋友圈</text>
 					</view>
@@ -104,11 +102,11 @@
 				</view>
 				<view class="">
 					<view class="items">
-						<view class="">
+						<view class="" v-if="install">
 							<image src="/static/my/wx.png" mode=""></image>
 							<text>微信好友</text>
 						</view>
-						<view class="">
+						<view class="" v-if="install">
 							<image src="/static/my/wxc.png" mode=""></image>
 							<text>朋友圈</text>
 						</view>
@@ -154,7 +152,10 @@
 				scrollTop: 0,
 				sharePopup: false,
 				sharePhoto: false,
-				ctx: ''
+				ctx: '',
+				userInfo: {},
+				user: {},
+				install: uni.getStorageSync('install')
 				
 			};
 		},
@@ -211,7 +212,25 @@
 		onLoad(option) {
 			this.type = option.type
 		},
+		onShow() {
+			this.getUser()
+		},
 		methods:{
+			getUser(){
+				this.request({
+					url: 'wanlshop/find/user/userInfo',
+					data: {
+						token: uni.getStorageSync('userInfo').token,
+						id: ''
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.userInfo = res.data.data
+						this.user = this.userInfo.user
+						
+					}
+				})
+			},
 			change(e) {
 				this.current = e;
 				// 切换tabs的时候，滚动到子组件当时切换关闭时的位置
@@ -539,6 +558,7 @@
 							font-weight: 500;
 							color: #FFFFFF;
 							overflow: hidden;
+							white-space: pre-wrap;
 							-webkit-line-clamp: 3;
 							text-overflow: ellipsis;
 							display: -webkit-box;

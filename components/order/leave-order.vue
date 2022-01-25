@@ -27,17 +27,15 @@
 						</view>
 					</view>
 					<view class="bot" >
-						<text v-if="item.state != 7" @click.stop="cancel(item.id)">取消订单</text>
-						<text v-if="item.state == 1" @click.stop="go('/pages/leave/leaveShop/confirmOrder/pay?order_id=' + item.id)">立即支付</text>
+						<text v-if="item.state == 7" @click.stop="cancel(item.id)">删除订单</text>
+						<text v-if="item.state == 2" @click.stop="report(item.id)">申请退款</text>
+						<text 
+							v-if="item.state == 1" 
+							@click.stop="go('/pages/leave/leaveShop/confirmOrder/pay?order_id=' + item.id + '&type=' + item.type + '&pay=buy&total_amount=0')"
+						>立即支付</text>
 						
 						<text v-else-if="item.state == 2" @click.stop="go('/pages/HM-chat/HM-chat')">联系商家</text>
 						<text v-else-if="item.state == 7" @click.stop="del(item.id)">删除订单</text>
-						<!-- <text v-for="(elem,cut) in item.buttons" :key="cut" @click="go('./receiving/receiving?status=' + elem.id)">{{elem.text}}</text> -->
-
-
-						<!-- <text>申请退款</text>
-						<text @click="go('./logistics/logistics')">查看物流</text>
-						<text class="active" @click="go('./receiving/receiving?status=3')">确认收货</text> -->
 					</view>
 				</view>
 			</view>
@@ -114,6 +112,26 @@
 				})
 				
 			},
+			// 申请退款
+			report(e){
+				this.request({
+					url: 'idle/order/apply_refund',
+					data: {
+						token: uni.getStorageSync('userInfo').token,
+						id: e,
+						reason: 0,
+						refund_content: ''
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.$refs.uToast.show({
+							title: '申请成功',
+							type: 'success'
+						})
+						this.getData()
+					}
+				})
+			},
 			del(e){
 				uni.showModal({
 					title: '是否删除订单',
@@ -163,7 +181,7 @@
 		.item {
 			padding: 0 36rpx 0;
 			border-bottom: solid 10rpx #F6F5FA;
-
+			background: #fff;
 			.title {
 				padding: 19rpx 8rpx;
 				border-bottom: solid 1px #F2F2F6;

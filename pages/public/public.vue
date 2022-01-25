@@ -37,7 +37,7 @@
 				</template>
 			</u-waterfall>
 			<!-- 加载更多 -->
-			<u-loadmore bg-color="#F6F5FA" :status="loadStatus" @loadmore="addRandomData"></u-loadmore>
+			<!-- <u-loadmore bg-color="#F6F5FA" :status="loadStatus" @loadmore="addRandomData"></u-loadmore> -->
 		</view>
 		<u-popup v-model="show" mode="right" width="670" :safe-area-inset-bottom="true" @touchmove.native.stop.prevent>
 			<view class="popup">
@@ -86,7 +86,7 @@
 					{text: '销量', url: ''},
 					{text: '价格', url: require('@/static/pub/updown.png')},
 					{text: '新品', url: ''},
-					{text: '筛选', url: require('@/static/filter.png')}
+					// {text: '筛选', url: require('@/static/filter.png')}
 				],
 				sortIndex: 0,
 				loadStatus: 'loadmore', // 加载更多状态

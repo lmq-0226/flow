@@ -173,9 +173,22 @@
 		}, {
 			"path": "pages/my/collect/collect",
 			"style": {
-				"navigationBarTitleText": "收藏",
+				"navigationBarTitleText": "",
 				"enablePullDownRefresh": false,
-				"navigationStyle": "custom"
+				"app-plus": {
+					"bounce": "none", //关闭窗口回弹效果
+					"titleNView": {
+						"tags": [{
+							"tag": "font",
+							"text": "收藏",
+							"textStyles": {
+								"weight": "bold"
+							}
+						}]
+					}
+				}
+				// ,
+				// "navigationStyle": "custom"
 			}
 		}, {
 			"path": "pages/my/set/accountSecurity/accountSecurity",
@@ -297,23 +310,37 @@
 							"textStyles": {
 								"weight": "bold"
 							}
-						}],
-						"buttons": [ //原生标题栏按钮配置,
-							{
-								"text": "\ue61f",
-								"fontSrc": "/static/iconfont/iconfont.ttf",
-								"fontSize": "24"
-							}
-						]
+						}]
+						// ,
+						// "buttons": [ //原生标题栏按钮配置,
+						// 	{
+						// 		"text": "\ue61f",
+						// 		"fontSrc": "/static/iconfont/iconfont.ttf",
+						// 		"fontSize": "24"
+						// 	}
+						// ]
 					}
 				}
 			}
 		}, {
 			"path": "pages/my/footprint/footprint",
 			"style": {
-				"navigationBarTitleText": "足迹",
+				"navigationBarTitleText": "",
 				"enablePullDownRefresh": false,
-				"navigationStyle": "custom"
+				"app-plus": {
+					"bounce": "none", //关闭窗口回弹效果
+					"titleNView": {
+						"tags": [{
+							"tag": "font",
+							"text": "足迹",
+							"textStyles": {
+								"weight": "bold"
+							}
+						}]
+					}
+				}
+				// ,
+				// "navigationStyle": "custom"
 			}
 
 		}, {
@@ -915,13 +942,13 @@
 				"app-plus": {
 					"bounce": "none", //关闭窗口回弹效果
 					"titleNView": {
-						"buttons": [ //原生标题栏按钮配置,
-							{
-								"text": "\ue60e",
-								"fontSrc": "/static/iconfont/iconfont.ttf",
-								"fontSize": "24"
-							}
-						]
+						// "buttons": [ //原生标题栏按钮配置,
+						// 	{
+						// 		"text": "\ue60e",
+						// 		"fontSrc": "/static/iconfont/iconfont.ttf",
+						// 		"fontSize": "24"
+						// 	}
+						// ]
 					}
 				}
 			}
@@ -1395,27 +1422,28 @@
 				"navigationBarTitleText":"",
 		    	"navigationBarBackgroundColor":"#fff",
 		    	"backgroundColorTop":"#e5e5e5",
-		    	"backgroundColorBottom":"#e5e5e5",
-		    	"app-plus":{
-		    		"softinputNavBar":"none",
-		    		"bounce":"none",
-					"titleNView": {
-						"tags": [{
-							"tag": "font",
-							"text": "客服中心",
-							"textStyles": {
-								"weight": "bold"
-							}
-						}],
-						"buttons": [ //原生标题栏按钮配置,
-							{
-								"text": "\ue61f",
-								"fontSrc": "/static/iconfont/iconfont.ttf",
-								"fontSize": "24"
-							}
-						]
-					}
-		    	}
+		    	"backgroundColorBottom":"#e5e5e5"
+				// ,
+		  //   	"app-plus":{
+		  //   		"softinputNavBar":"none",
+		  //   		"bounce":"none",
+				// 	"titleNView": {
+				// 		"tags": [{
+				// 			"tag": "font",
+				// 			"text": "客服中心",
+				// 			"textStyles": {
+				// 				"weight": "bold"
+				// 			}
+				// 		}],
+				// 		"buttons": [ //原生标题栏按钮配置,
+				// 			{
+				// 				"text": "\ue61f",
+				// 				"fontSrc": "/static/iconfont/iconfont.ttf",
+				// 				"fontSize": "24"
+				// 			}
+				// 		]
+				// 	}
+		  //   	}
 		    }
 		}
         ,{
@@ -1808,6 +1836,24 @@
         }
         ,{
             "path" : "pages/my/integral/detail/detail",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false
+            }
+            
+        }
+        ,{
+            "path" : "pages/my/integral/confirmOrder/confirmOrder",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false
+            }
+            
+        }
+        ,{
+            "path" : "pages/my/sell/logistics/logistics",
             "style" :                                                                                    
             {
                 "navigationBarTitleText": "",

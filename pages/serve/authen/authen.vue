@@ -21,8 +21,8 @@
 						<text>在线/实物/培训证书</text>
 					</view>
 					<view class="imgs">
-						<image src="" mode=""></image>
-						<image src="" mode=""></image>
+						<image src="/static/serve/1.jpg" mode=""></image>
+						<image src="/static/serve/2.jpg" mode=""></image>
 					</view>
 				</view>
 				<view class="mid_line"></view>
@@ -35,7 +35,7 @@
 						<text>权威学位证书</text>
 					</view>
 					<view class="img">
-						<image src="" mode=""></image>
+						<image src="/static/serve/3.jpg" mode=""></image>
 					</view>
 				</view>
 			</view>
@@ -49,7 +49,7 @@
 						<text>2,028,056</text>
 						<text>累计鉴定数量</text>
 					</view>
-					<image src="" mode=""></image>
+					<image src="/static/serve/4.png" mode=""></image>
 				</view>
 				<view class="btns">
 					<text @click="go('./kind/kind')">实物鉴定</text>
@@ -66,7 +66,8 @@
 				</view>
 				<scroll-view scroll-x="true" class="scroll_x">
 					<view class="list">
-						<view class="item" v-for="(item,index) in allearList" :key="index" @click="go('/pages/serve/authen/aller/detail?id=' + item.id)">
+						 <!-- @click="go('/pages/serve/authen/aller/detail?id=' + item.id)" -->
+						<view class="item" v-for="(item,index) in allearList" :key="index">
 							<image :src="ImgUrl + item.image" mode=""></image>
 							<text>{{item.name}}</text>
 							<text>已鉴定{{item.nums}}单</text>
@@ -91,6 +92,15 @@
 		},
 		methods:{
 			go(e){
+				if(e == './kind/kind' || e == '/pages/leave/classify/classify?type=line'){
+					if(!uni.getStorageSync('userInfo').token){
+						uni.showToast({
+							title: '请登录后操作',
+							icon: 'none'
+						})
+						return
+					}
+				}
 				uni.navigateTo({
 					url: e
 				})

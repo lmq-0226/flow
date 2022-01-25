@@ -1,5 +1,5 @@
 <template>
-	<view class="content">
+	<view class="content" v-if="show">
 		<view class="null"></view>
 		<view class="report">
 			<view class="inside">
@@ -25,7 +25,7 @@
 				<text>{{detail.brand_name}}  {{detail.category_name}}</text>
 				<text>2020-10-25 13:25鉴定</text>
 			</view>
-			<image src="" mode="widthFix" v-for="(item,index) in 2" :key="index"></image>
+			<image v-for="(item,index) in detail.images.split(',')" :key="index" :src="ImgUrl + item" mode="widthFix"></image>
 		</view>
 	</view>
 </template>
@@ -34,6 +34,7 @@
 	export default {
 		data() {
 			return {
+				show: false,
 				status: 1,
 				id: '',
 				detail: {}
@@ -58,6 +59,7 @@
 				}).then(res=>{
 					if(res.data.code == 1){
 						this.detail = res.data.data
+						this.show = true
 					}
 				})
 			},

@@ -4,15 +4,22 @@
 			<view class="pubDetail">
 				<view class="imgs">
 					<view class="" v-for="(item,index) in imgs" :key="index" @click="pvew(index)">
-						<image :src="item" mode="heightFix"></image>
+						<image :src="ImgUrl + item" mode="heightFix"></image>
 						<image src="/static/my/close2.png" mode="" @click.stop="del(index)"></image>
 						<text v-if="index == 0 && type == 2">封面</text>
 					</view>
 					<image src="/static/leave/upload.png" mode="" @click="upload()"></image>
 				</view>
 				<view class="">
-					<u-input :custom-style="customStyle" v-model="name" type="text" placeholder="输入标题~" :clearable="false" />
-					<u-input :custom-style="customStyle" v-model="desc" type="textarea" placeholder="填写正文..." :clearable="false" />
+					<!-- <u-input :custom-style="customStyle" v-model="name" type="text" placeholder="输入标题~" :clearable="false" />
+					<u-input :custom-style="customStyle" v-model="desc" type="textarea" placeholder="填写正文..." :clearable="false" /> -->
+					<editor
+						id="editor"
+						class="edit"
+						@ready="onEditorReady"
+						@input="onEditorInput"
+						placeholder="编辑内容~"
+					/>
 				</view>
 				<view class="tags">
 					<view class="area" v-for="(item,index) in tags" :key="index" @click="go(item.url)">
@@ -28,7 +35,8 @@
 				<text>存草稿</text>
 			</view>
 			<!-- <text @click="go('./affirm/affirm?type=' + type)">立即发布</text> -->
-			<text @click="go('../detail/detail?status=0&type=' + type)">立即发布</text>
+			 <!-- @click="go('../detail/detail?status=0&type=' + type)" -->
+			<text @click="publish()">立即发布</text>
 		</view>
 		<u-popup v-model="show" mode="bottom" border-radius="20">
 			<view class="popups">
@@ -50,25 +58,32 @@
 							<template v-slot:left="{leftList}">
 								<view class="demo-warter" v-for="(item, index) in leftList" :key="index" @click="go('./goodsDetail/goodsDetail')">
 									<!-- 警告：微信小程序中需要hx2.8.11版本才支持在template中结合其他组件，比如下方的lazy-load组件 -->
-									<u-lazy-load threshold="-450" border-radius="10" :image="item.image" img-mode="widthFix" :index="index"></u-lazy-load>
+									<u-lazy-load threshold="-450" border-radius="10" :image="ImgUrl + item.image" img-mode="widthFix" :index="index"></u-lazy-load>
 									<view class="demo-title">
 										{{item.title}}
 									</view>
 									<view class="num">
-										<text>¥899</text>
-										<text>156人付款</text>
+										<text>¥{{item.price}}</text>
+									</view>
+									<view class="radio" @click="select(item.id)">
+										<image v-if="goods_ids.indexOf(item.id) > -1" src="/static/login/radio_on.png" mode=""></image>
+										<image v-else src="/static/login/radio.png" mode=""></image>
 									</view>
 								</view>
 							</template>
 							<template v-slot:right="{rightList}">
 								<view class="demo-warter" v-for="(item, index) in rightList" :key="index" @click="go('./goodsDetail/goodsDetail')">
-									<u-lazy-load threshold="-450" border-radius="10" :image="item.image" img-mode="widthFix" :index="index"></u-lazy-load>
+									<!-- 警告：微信小程序中需要hx2.8.11版本才支持在template中结合其他组件，比如下方的lazy-load组件 -->
+									<u-lazy-load threshold="-450" border-radius="10" :image="ImgUrl + item.image" img-mode="widthFix" :index="index"></u-lazy-load>
 									<view class="demo-title">
 										{{item.title}}
 									</view>
 									<view class="num">
-										<text>¥899</text>
-										<text>156人付款</text>
+										<text>¥{{item.price}}</text>
+									</view>
+									<view class="radio" @click="select(item.id)">
+										<image v-if="goods_ids.indexOf(item.id) > -1" src="/static/login/radio_on.png" mode=""></image>
+										<image v-else src="/static/login/radio.png" mode=""></image>
 									</view>
 								</view>
 							</template>
@@ -100,10 +115,10 @@
 				},
 				tags: [
 					{icon: require('@/static/leave/tag1.png'),lettle: '话题',url: './topic/topic'},
-					{icon: require('@/static/leave/tag2.png'),lettle: '圈子',url: './circle/circle'},
-					{icon: require('@/static/leave/tag3.png'),lettle: '商品',url: 'popup'},
-					{icon: require('@/static/leave/tag4.png'),lettle: '好友'},
-					{icon: require('@/static/leave/tag5.png'),lettle: '不显示',url: 'localtion'}
+					// {icon: require('@/static/leave/tag2.png'),lettle: '圈子',url: './circle/circle'},
+					{icon: require('@/static/leave/tag3.png'),lettle: '商品',url: 'popup'}
+					// {icon: require('@/static/leave/tag4.png'),lettle: '好友'},
+					// {icon: require('@/static/leave/tag5.png'),lettle: '不显示',url: 'localtion'}
 				],
 				show: false,
 				tabList: [{
@@ -117,82 +132,71 @@
 				value: '',
 				loadStatus: 'loadmore', // 加载更多状态
 				flowList: [],
-				list: [
-					{
-						price: 35,
-						title: '北国风光，千里冰封，万里雪飘',
-						shop: '李白杜甫白居易旗舰店',
-						image: 'http://pic.sc.chinaz.com/Files/pic/pic9/202002/zzpic23327_s.jpg',
-					},
-					{
-						price: 75,
-						title: '望长城内外，惟余莽莽',
-						shop: '李白杜甫白居易旗舰店',
-						image: 'http://pic.sc.chinaz.com/Files/pic/pic9/202002/zzpic23325_s.jpg',
-					},
-					{
-						price: 385,
-						title: '大河上下，顿失滔滔',
-						shop: '李白杜甫白居易旗舰店',
-						image: 'http://pic2.sc.chinaz.com/Files/pic/pic9/202002/hpic2119_s.jpg',
-					},
-					{
-						price: 784,
-						title: '欲与天公试比高',
-						shop: '李白杜甫白居易旗舰店',
-						image: 'http://pic2.sc.chinaz.com/Files/pic/pic9/202002/zzpic23369_s.jpg',
-					},
-					{
-						price: 7891,
-						title: '须晴日，看红装素裹，分外妖娆',
-						shop: '李白杜甫白居易旗舰店',
-						image: 'http://pic2.sc.chinaz.com/Files/pic/pic9/202002/hpic2130_s.jpg',
-					},
-					{
-						price: 2341,
-						shop: '李白杜甫白居易旗舰店',
-						title: '江山如此多娇，引无数英雄竞折腰',
-						image: 'http://pic1.sc.chinaz.com/Files/pic/pic9/202002/zzpic23346_s.jpg',
-					},
-					{
-						price: 661,
-						shop: '李白杜甫白居易旗舰店',
-						title: '惜秦皇汉武，略输文采',
-						image: 'http://pic1.sc.chinaz.com/Files/pic/pic9/202002/zzpic23344_s.jpg',
-					},
-					{
-						price: 1654,
-						title: '唐宗宋祖，稍逊风骚',
-						shop: '李白杜甫白居易旗舰店',
-						image: 'http://pic1.sc.chinaz.com/Files/pic/pic9/202002/zzpic23343_s.jpg',
-					},
-					{
-						price: 1678,
-						title: '一代天骄，成吉思汗',
-						shop: '李白杜甫白居易旗舰店',
-						image: 'http://pic1.sc.chinaz.com/Files/pic/pic9/202002/zzpic23343_s.jpg',
-					},
-					{
-						price: 924,
-						title: '只识弯弓射大雕',
-						shop: '李白杜甫白居易旗舰店',
-						image: 'http://pic1.sc.chinaz.com/Files/pic/pic9/202002/zzpic23343_s.jpg',
-					},
-					{
-						price: 8243,
-						title: '俱往矣，数风流人物，还看今朝',
-						shop: '李白杜甫白居易旗舰店',
-						image: 'http://pic1.sc.chinaz.com/Files/pic/pic9/202002/zzpic23343_s.jpg',
-					},
-				],
-				scrollTop: 0
+				list: [],
+				scrollTop: 0,
+				topic_id: '',
+				editorCtx: '',
+				content: '',
+				goods_ids: []
 			};
 		},
 		onLoad(option) {
 			this.type = option.type
-			this.addRandomData()
+			// this.addRandomData()
+		},
+		created() {
+			// 监听从裁剪页发布的事件，获得裁剪结果
+			uni.$on('uAvatarCropper', res => {
+				uni.uploadFile({
+					url: 'http://app.51liuxiang.com/api/common/upload', //仅为示例，非真实的接口地址
+					filePath: res,
+					name: 'file',
+					formData: {
+						'token': uni.getStorageSync('userInfo').token
+					},
+					success: res => {
+						this.imgs.push(JSON.parse(res.data).data.url)
+					}
+				})
+			})
 		},
 		methods:{
+			publish(){
+				let form = {
+					topic_id: this.topic_id,
+					content: this.content, // 内容
+					goods_ids: this.goods_ids, // 商品id
+					images: this.imgs, // 图片
+					type: 'want',
+					video_id: null
+				}
+				console.log(form)
+				// return
+				this.request({
+					url: 'wanlshop/find/find/addData',
+					header: {
+						token: uni.getStorageSync('userInfo').token,
+						'content-type': 'application/json;charset=UTF-8'
+					},
+					data: {
+						topic_id: this.topic_id,
+						content: this.content, // 内容
+						goods_ids: this.goods_ids, // 商品id
+						images: this.imgs.join(','), // 图片
+						type: 'want'
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						uni.showToast({
+							title: '发布成功',
+							icon: 'none'
+						})
+						uni.navigateBack({
+							delta: 1
+						})
+					}
+				})
+			},
 			change(index) {
 				this.current = index;
 			},
@@ -215,18 +219,56 @@
 					})
 					return
 				}
-				uni.chooseImage({
-				    count: 6 - this.imgs.length, //默认9
-				    sizeType: ['original', 'compressed'], //可以指定是原图还是压缩图，默认二者都有
-				    sourceType: ['album'], //从相册选择
-				    success: res =>{
-						this.imgs = [...this.imgs, ...res.tempFilePaths]
-				    }
+				let width = 375,height = 375
+				this.$u.route({
+					// 关于此路径，请见下方"注意事项"
+					url: '/node_modules/uview-ui/components/u-avatar-cropper/u-avatar-cropper',
+					// 内部已设置以下默认参数值，可不传这些参数
+					params: {
+						// 输出图片宽度，高等于宽，单位px
+						destWidth: width,
+						destHeight: height,
+						// 裁剪框宽度，高等于宽，单位px
+						rectWidth: width,
+						rectHeight: height,
+						// 输出的图片类型，如果'png'类型发现裁剪的图片太大，改成"jpg"即可
+						fileType: 'jpg',
+					}
+				})
+				// uni.chooseImage({
+				//     count: 6 - this.imgs.length, //默认9
+				//     sizeType: ['original', 'compressed'], //可以指定是原图还是压缩图，默认二者都有
+				//     sourceType: ['album'], //从相册选择
+				//     success: res =>{
+				// 		res.tempFilePaths.forEach(elem=>{
+				// 			// this.uploadFile(elem)
+							
+				// 		})
+				// 		// this.imgs = [...this.imgs, ...res.tempFilePaths]
+				//     }
+				// })
+			},
+			uploadFile(e){
+				uni.uploadFile({
+					url: 'http://app.51liuxiang.com/api/common/upload', //仅为示例，非真实的接口地址
+					filePath: e,
+					name: 'file',
+					formData: {
+						'token': uni.getStorageSync('userInfo').token
+					},
+					success: res => {
+						this.imgs.push(JSON.parse(res.data).data.url)
+						
+					},
+					complete: all => {
+						console.log(all)
+					}
 				})
 			},
 			go(e){
 				if(e == 'popup'){
 					this.show = true
+					this.getOrderList()
 					return
 				}else if(e == 'localtion'){
 					uni.getLocation({
@@ -245,11 +287,52 @@
 					url: e
 				})
 			},
+			onEditorInput(e) {
+				this.content = e.detail.html;
+			},
+			onEditorReady() {
+				// #ifdef MP-BAIDU
+				this.editorCtx = requireDynamicLib('editorLib').createEditorContext('editorId');
+				// #endif
+			
+				// #ifdef APP-PLUS || H5 ||MP-WEIXIN
+				uni.createSelectorQuery()
+					.select('#editor')
+					.context(res => {
+						this.editorCtx = res.context;
+					})
+					.exec();
+				// #endif
+			},
+			// 获取购买过的商品列表
+			getOrderList(){
+				this.request({
+					url: 'wanlshop/order/getBuyList',
+					header: {
+						token: uni.getStorageSync('userInfo').token,
+						'content-type': 'application/json;charset=UTF-8'
+					},
+					data: {
+						page: 1
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.flowList = res.data.data.data
+					}
+				})
+			},
+			select(e){
+				if(this.goods_ids.indexOf(e) > -1){
+					let index = this.goods_ids.indexOf(e)
+					this.goods_ids.splice(index, 1)
+				}else{
+					this.goods_ids.push(e)
+				}
+			},
 			rachBotm(){
 				this.loadStatus = 'loading';
 				// 模拟数据加载
 				setTimeout(() => {
-					this.addRandomData();
 					this.loadStatus = 'loadmore';
 				}, 2000)
 			},
@@ -267,10 +350,16 @@
 			},
 			// 图片预览
 			pvew(e){
-				uni.previewImage({
-					current: e,
-					urls: this.imgs
+				let arr = []
+				this.imgs.forEach(elem=>{
+					arr.push(this.ImgUrl + elem)
 				})
+				let timer = setTimeout(()=>{
+					uni.previewImage({
+						current: e,
+						urls: arr
+					})
+				}, 50)
 			},
 			del(e){
 				this.imgs.splice(e, 1)
@@ -326,6 +415,14 @@
 						height: 164rpx;
 					}
 				}
+				
+				.edit{
+					background: #F6F5FA;
+					margin-top: 20rpx;
+					border-radius: 10rpx;
+					padding: 10rpx;
+				}
+				
 				.tags{
 					display: flex;
 					justify-content: flex-start;
@@ -441,6 +538,17 @@
 						background-color: #ffffff;
 						padding: 8px;
 						position: relative;
+						.radio{
+							width: 44rpx;
+							height: 44rpx;
+							position: absolute;
+							top: 20rpx;
+							right: 20rpx;
+							image{
+								width: 44rpx;
+								height: 44rpx;
+							}
+						}
 						.demo-title {
 							margin-top: 14rpx;
 							font-size: 24rpx;

@@ -1,16 +1,17 @@
 <template>
 	<view class="content">
-		<view class="status_bar"></view>
+		<!-- <view class="status_bar"></view>
 		<view class="nav_bar">
 			<view class="nav">
 				<u-icon name="arrow-left" color="#000" size="44" @click="back"></u-icon>
 				<text class="navMid">足迹</text>
+				<text></text>
 				<text class="navRit" v-if="status" @click="status = false">管理</text>
 				<text class="navRit" v-else @click="status = true">完成</text>
 			</view>
-		</view>
+		</view> -->
 		<view class="foots">
-			<view class="often" v-for="(item,index) in goodsList" :key="item.id">
+			<!-- <view class="often" v-for="(item,index) in goodsList" :key="item.id">
 				<view class="title">
 					<view class="" v-if="!status" @click="Rchoice(index)">
 						<image v-if="item.status" src="/static/login/radio_on.png" mode=""></image>
@@ -27,6 +28,17 @@
 						<image :src="elem.url" mode=""></image>
 						<text>¥{{elem.price}}</text>
 					</view>
+				</view>
+			</view> -->
+			<view class="often">
+				
+				<view class="item" v-for="(item,index) in goodsList" :key="item.id" @click="go('/pages/shop/goodsDetail/goodsDetail?id=' + item.goods_id)">
+					<!-- <view class="radio" v-if="!status" @click.stop="Mchoice(index,cut)">
+						<image v-if="item.status" src="/static/login/radio_on.png" mode=""></image>
+						<image v-else src="/static/login/radio.png" mode=""></image>
+					</view> -->
+					<image v-if="item.goods" :src="ImgUrl + item.goods.image" mode=""></image>
+					<text v-if="item.goods">¥{{item.goods.price}}</text>
 				</view>
 			</view>
 		</view>
@@ -81,7 +93,9 @@
 						type: 'goods'
 					}
 				}).then(res=>{
-					
+					if(res.data.code == 1){
+						this.goodsList = res.data.data.data
+					}
 				})
 			},
 			// 单选  以下的所有status是每条数据的选中状态
@@ -203,7 +217,11 @@
 		}
 	}
 </script>
-
+<style>
+	page{
+		background: #F6F5FA;
+	}
+</style>
 <style lang="scss" scoped>
 	.content{
 		/* #ifdef H5 */
@@ -242,72 +260,114 @@
 			>:not(:first-child){
 				border-top: solid 10rpx #F6F5FA;
 			}
+			// .often{
+			// 	padding: 0 30rpx 30rpx;
+			// 	.title{
+			// 		padding: 17rpx 0;
+			// 		display: flex;
+			// 		justify-content: flex-start;
+			// 		align-items: center;
+			// 		view{
+			// 			height: 44rpx;
+			// 			margin-right: 17rpx;
+			// 			image{
+			// 				width: 44rpx;
+			// 				height: 44rpx;
+			// 			}
+			// 		}
+			// 		text{
+			// 			font-size: 30rpx;
+			// 			font-family: PingFang SC;
+			// 			font-weight: bold;
+			// 			color: #000000;
+			// 		}
+			// 	}
+			// 	.list{
+			// 		padding: 0 6rpx;
+			// 		display: flex;
+			// 		justify-content: flex-start;
+			// 		flex-wrap: wrap;
+			// 		>:not(:nth-child(4n)){
+			// 			margin-right: 13rpx;
+			// 		}
+			// 		.item{
+			// 			width: 160rpx;
+			// 			height: 200rpx;
+			// 			position: relative;
+			// 			background-color: rgba($color: #d3d3d3, $alpha: .2);
+			// 			border-radius: 10rpx;
+			// 			margin-top: 15rpx;
+			// 			.radio{
+			// 				position: absolute;
+			// 				top: 10rpx;
+			// 				left: 10rpx;
+			// 				z-index: 9;
+			// 				height: 44rpx;
+			// 				image{
+			// 					width: 44rpx;
+			// 					height: 44rpx;
+			// 				}
+			// 			}
+			// 			>image{
+			// 				width: 160rpx;
+			// 				height: 160rpx;
+			// 			}
+			// 			text{
+			// 				display: block;
+			// 				padding: 0 6rpx;
+			// 				font-size: 28rpx;
+			// 				line-height: 18rpx;
+			// 				font-family: PingFang SC;
+			// 				font-weight: bold;
+			// 				color: #000000;
+			// 			}
+						
+			// 		}
+			// 	}
+			// }
 			.often{
 				padding: 0 30rpx 30rpx;
-				.title{
-					padding: 17rpx 0;
-					display: flex;
-					justify-content: flex-start;
-					align-items: center;
-					view{
+				display: flex;
+				justify-content: flex-start;
+				flex-wrap: wrap;
+				>:not(:nth-child(4n)){
+					margin-right: 13rpx;
+				}
+				.item{
+					width: 160rpx;
+					height: 200rpx;
+					position: relative;
+					background-color: rgba($color: #fff, $alpha: 1);
+					border-radius: 10rpx;
+					margin-top: 15rpx;
+					.radio{
+						position: absolute;
+						top: 10rpx;
+						left: 10rpx;
+						z-index: 9;
 						height: 44rpx;
-						margin-right: 17rpx;
 						image{
 							width: 44rpx;
 							height: 44rpx;
 						}
 					}
+					>image{
+						width: 160rpx;
+						height: 160rpx;
+					}
 					text{
-						font-size: 30rpx;
+						display: block;
+						padding: 0 6rpx;
+						font-size: 28rpx;
+						line-height: 18rpx;
 						font-family: PingFang SC;
 						font-weight: bold;
 						color: #000000;
 					}
 				}
-				.list{
-					padding: 0 6rpx;
-					display: flex;
-					justify-content: flex-start;
-					flex-wrap: wrap;
-					>:not(:nth-child(4n)){
-						margin-right: 13rpx;
-					}
-					.item{
-						width: 160rpx;
-						height: 200rpx;
-						position: relative;
-						background-color: rgba($color: #d3d3d3, $alpha: .2);
-						border-radius: 10rpx;
-						margin-top: 15rpx;
-						.radio{
-							position: absolute;
-							top: 10rpx;
-							left: 10rpx;
-							z-index: 9;
-							height: 44rpx;
-							image{
-								width: 44rpx;
-								height: 44rpx;
-							}
-						}
-						>image{
-							width: 160rpx;
-							height: 160rpx;
-						}
-						text{
-							display: block;
-							padding: 0 6rpx;
-							font-size: 28rpx;
-							line-height: 18rpx;
-							font-family: PingFang SC;
-							font-weight: bold;
-							color: #000000;
-						}
-						
-					}
-				}
 			}
 		}
+		
 		.bottom{
 			position: fixed;
 			bottom: 0;

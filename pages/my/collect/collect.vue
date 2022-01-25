@@ -1,6 +1,6 @@
 <template>
 	<view class="content">
-		<view class="status_bar"></view>
+		<!-- <view class="status_bar"></view>
 		<view class="nav_bar">
 			<view class="nav">
 				<u-icon name="arrow-left" color="#000" size="44" @click="back"></u-icon>
@@ -11,8 +11,8 @@
 			<view class="tabs">
 				<u-tabs :list="tabList" :is-scroll="true" :current="current" @change="change" item-width="33.3%" active-color="#FC493D "></u-tabs>
 			</view>
-		</view>
-		<u-empty v-if="list.length <= 0" mode="favor" margin-top="300"></u-empty>
+		</view> -->
+		<u-empty v-if="list.length <= 0" mode="favor" margin-top="400"></u-empty>
 		<view class="list">
 			<view class="item" v-for="(item,index) in list" :key="item.id" @click="go('/pages/shop/goodsDetail/goodsDetail?id=' + item.goods_id)">
 				<view class="radio" v-if="!status" @click.stop="check(item.id)">
@@ -29,6 +29,7 @@
 					<text></text>
 					<text>¥{{item.goods.price}}</text>
 				</view>
+				<image class="clear" src="/static/shop/clear.png" mode="" @click.stop="cancel(item.goods_id)"></image>
 			</view>
 		</view>
 		<view class="bottom" v-if="!status">
@@ -39,7 +40,7 @@
 			</view>
 			<text @click="show = true">删除</text>
 		</view>
-		<u-empty v-if="list.length <= 0" text="数据为空" margin-top="300"></u-empty>
+		<!-- <u-empty v-if="list.length <= 0" text="数据为空" margin-top="300"></u-empty> -->
 		<u-modal v-model="show" title="" content="确定移除所选吗？" :show-cancel-button='false' @confirm="del"></u-modal>
 	</view>
 </template>
@@ -89,6 +90,26 @@
 			},
 			change(index) {
 				this.current = index;
+			},
+			cancel(e){
+				this.request({
+					url: 'wanlshop/product/follow',
+					header: {
+						'token': uni.getStorageSync('userInfo').token,
+						'content-type': 'application/json;charset=UTF-8'
+					},
+					data: {
+						id: e
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						uni.showToast({
+							title: '移除成功',
+							icon: 'none'
+						})
+						this.getData()
+					}
+				})
 			},
 			// 单选
 			check(e){
@@ -178,6 +199,15 @@
 				align-items: center;
 				border-bottom: solid 1px #efefef;
 				padding: 20rpx 0;
+				position: relative;
+				.clear{
+					position: absolute;
+					width: 50rpx;
+					height: 50rpx;
+					z-index: 999;
+					bottom: 20rpx;
+					right: 20rpx;
+				}
 				.radio{
 					image{
 						width: 44rpx;

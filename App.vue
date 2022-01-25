@@ -13,6 +13,15 @@
 		onShow() {
 			// 启动或重启即时通讯
 			this.$store.dispatch('chat/start');
+			// #ifdef APP-PLUS
+			if(plus.runtime.isApplicationExist({ pname: 'com.tencent.mm', action: 'weixin://'})){
+				console.log(true)
+				uni.setStorageSync('install', true)
+			} else {
+				console.log(false)
+				uni.setStorageSync('install', false)
+			}
+			// #endif
 		},
 		onHide() {
 			// 断开即时通讯

@@ -1,10 +1,10 @@
 <template>
 	<view class="content">
 		<view class="top">
-			<view class="address" @click="go('/pages/my/set/address/address')" v-if="type == 2">
+			<view class="address" @click="go('/pages/my/set/address/address?type=serve&address=' + JSON.stringify(addressData))" v-if="type == 2">
 				<view class="" v-if="address_id != ''">
-					<text>回寄地址: {{addressDetail.formatted_address + addressDetail.address + addressDetail.address_name}}</text>
-					<text>{{addressDetail.name}}  {{addressDetail.mobile}}</text>
+					<text>回寄地址: {{addressData.formatted_address + addressData.address + addressData.address_name}}</text>
+					<text>{{addressData.name}}  {{addressData.mobile}}</text>
 				</view>
 				<text v-else>请设置默认地址</text>
 				<image src="/static/serve/right.png" mode=""></image>
@@ -71,14 +71,14 @@
 				brand_name: '', // 品牌名称
 				type: '', // 1=在线鉴定,2=实物鉴定
 				images: [], // 图集
-				addressDetail:{},
+				addressData:{},
 				authen: {},
 				address_id: '', // 回寄地址
 				consent: true
 			};
 		},
 		onShow() {
-			this.getAddress()
+			
 		},
 		onLoad(option) {
 			this.type = option.type == 'line' ? 1 : 2
@@ -87,6 +87,7 @@
 			this.brand_id = option.brand_id
 			this.brand_name = option.brand_name
 			this.authen = JSON.parse(option.authen)
+			this.getAddress()
 		},
 		methods: {
 			submit(){
@@ -143,7 +144,7 @@
 						let list = res.data.data.data
 						list.forEach(elem=>{
 							if(elem.default == 1){
-								this.addressDetail = elem
+								this.addressData = elem
 								this.address_id = elem.id
 							}
 						})

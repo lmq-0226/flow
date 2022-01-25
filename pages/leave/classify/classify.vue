@@ -106,7 +106,7 @@
 					flex-wrap: wrap;
 					padding: 0 20rpx;
 					view{
-						width: 340rpx;
+						width: 47%;
 						height: 128rpx;
 						border: 1px solid #EDEDF2;
 						border-radius: 6rpx;

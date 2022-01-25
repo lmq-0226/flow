@@ -4,15 +4,15 @@
 		<view class="nav">
 			<view class="left" @click="go('/pages/my/homePage/homePage?type=0')">
 				<image src="/static/comm/back.png" mode="" @click.stop="back"></image>
-				<image src="/static/comm/avatar.png" mode=""></image>
+				<image :src="ImgUrl + user.avatar" mode=""></image>
 				<view class="">
-					<text>珂珂</text>
+					<text>{{user.username || user.shopname}}</text>
 					<text>9月21日·苏州市</text>
 				</view>
 			</view>
 			<view class="right">
-				<text v-if="atten" class="attened" @click="atten = false">已关注</text>
-				<text v-else class="atten" @click="atten = true">关注</text>
+				<text v-if="detail.isFollow == 1" class="attened" @click="follow">已关注</text>
+				<text v-else class="atten" @click="follow">关注</text>
 				<image src="/static/serve/share.png" mode="" @click="sharePopup = true"></image>
 				<image src="/static/comm/more.png" mode=""></image>
 			</view>
@@ -21,31 +21,36 @@
 			<u-swiper :list="imgList" height="750" interval="5000"></u-swiper>
 		</view>
 		<view class="made">
-			<text class="title">这双小粉我可以爱一万年</text>
+			<!-- <text class="title">这双小粉我可以爱一万年</text> -->
 			<view class="desc">
-				<text>小粉色配色太好了！黑粉撞色的设计根本看不腻~甜酷甜酷的赶脚
+				<rich-text :nodes="detail.content"></rich-text>
+				<!-- <text>小粉色配色太好了！黑粉撞色的设计根本看不腻~甜酷甜酷的赶脚
 					麂皮的材质也为鞋子的质感加分噢~
 					用作日常的搭配也可以增加亮点
 				</text>
-				<text>@珂珂kaky @杨洋的小粉丝</text>
+				<text>@珂珂kaky @杨洋的小粉丝</text> -->
 			</view>
 			<view class="tags">
-				<view class="">
+				<view class="" v-if="detail.topic">
 					<image src="/static/comm/tag1.png" mode=""></image>
-					<text>今天只晒鞋</text>
+					<text>{{detail.topic.name}}</text>
 				</view>
-				<view class="">
+				<!-- view class="">
 					<image src="/static/comm/tag2.png" mode=""></image>
 					<text>潮流圈</text>
-				</view>
+				</view> -->
 			</view>
-			<view class="goods">
+			<!-- <view class="goods">
 				<image src="/static/pub/bbt.png" mode=""></image>
 				<text>MATVUT Blood男女同款 情侣...</text>
-			</view>
+			</view> -->
+		</view>
+		<view class="report">
+			<image src="/static/comm/report.png" mode="" @click="showToast"></image>
+			<text @click="showToast">举报</text>
 		</view>
 		<view class="comment">
-			<text class="title">7条评论</text>
+			<text class="title">{{detail.comments}}条评论</text>
 			<view class="list">
 				<!-- 评论列表 -->
 				<view class="item" v-for="(elem,cut) in comList" :key="cut">
@@ -127,27 +132,27 @@
 		<view class="bottom">
 			<u-input placeholder="来说两句..." :custom-style="customStyle" confirm-type="send" @confirm="send"/>
 			<view class="right">
-				<view class="" @click="praise = !praise">
-					<image v-if="praise" src="/static/my/praise_on.png" mode=""></image>
+				<view class="" @click="praise">
+					<image v-if="detail.isLike == 1" src="/static/my/praise_on.png" mode=""></image>
 					<image v-else src="/static/comm/praise2.png" mode=""></image>
 					<text></text>
 				</view>
-				<view class="" @click="collect = !collect">
-					<image v-if="collect" src="/static/my/collect_on.png" mode=""></image>
+				<!-- <view class="" @click="collect">
+					<image v-if="true" src="/static/my/collect_on.png" mode=""></image>
 					<image v-else src="/static/comm/collect.png" mode=""></image>
 					<text></text>
-				</view>
+				</view> -->
 			</view>
 		</view>
 		<u-popup v-model="sharePopup" mode="bottom" border-radius="20" @touchmove.native.stop.prevent>
 			<view class="sharePopup">
 				<text class="title">分享至</text>
 				<view class="items">
-					<view class="">
+					<view class="" v-if="shareShow" @click="share('WXSceneSession')">
 						<image src="/static/my/wx.png" mode=""></image>
 						<text>微信好友</text>
 					</view>
-					<view class="">
+					<view class="" v-if="shareShow" @click="share('WXSceneTimeline')">
 						<image src="/static/my/wxc.png" mode=""></image>
 						<text>朋友圈</text>
 					</view>
@@ -177,11 +182,11 @@
 				</view>
 				<view class="">
 					<view class="items">
-						<view class="">
+						<view class="" v-if="shareShow">
 							<image src="/static/my/wx.png" mode=""></image>
 							<text>微信好友</text>
 						</view>
-						<view class="">
+						<view class="" v-if="shareShow">
 							<image src="/static/my/wxc.png" mode=""></image>
 							<text>朋友圈</text>
 						</view>
@@ -196,6 +201,7 @@
 				</view>
 			</view>
 		</u-popup>
+		<u-toast ref="uToast" />
 		<u-back-top :scrollTop="scrollTop" top="800"></u-back-top>
 	</view>
 </template>
@@ -204,25 +210,20 @@
 	export default {
 		data() {
 			return {
+				id: '',
 				scrollTop: 0,
-				imgList: [
-					require('@/static/pub/bbt.png'),
-					require('@/static/pub/ch.png'),
-					require('@/static/pub/ttq.png'),
-					require('@/static/pub/xj.png'),
-					require('@/static/pub/bql.png')
-				],
+				imgList: [],
 				status: 'loadmore',
 				iconType: 'flower',
 				list: 2, // 回复循环数据
 				page: 0, // 分页
 				loadmore: true, // 回复列表如果加载完毕，这隐藏加载更多标签
-				comList: 1, // 评论数据
+				comList: [], // 评论数据
 				comStatus: false, // 是否显示暂时没有更多
 				loading: true ,// 评论列表加载中
 				customStyle: {
 					background: '#F6F5FA',
-					width: '60%',
+					width: '80%',
 					borderRadius: '30rpx',
 					padding: '0 25rpx'
 				},
@@ -230,15 +231,18 @@
 				sharePhoto: false,
 				ctx: '',
 				atten: false, // 关注状态
-				praise: false ,// 点赞状态
-				collect: false // 收藏状态
+				collect: false, // 收藏状态
+				shareShow: uni.getStorageSync('install'),
+				detail: {},
+				user: {}
 			};
 		},
 		onReady() {
 			
 		},
-		onLoad() {
-			
+		onLoad(option) {
+			this.id = option.id
+			this.getDetail()
 		},
 		onPageScroll(e) {
 			this.scrollTop = e.scrollTop
@@ -263,6 +267,89 @@
 			}, 2000)
 		},
 		methods:{
+			getDetail(){
+				this.request({
+					url: 'wanlshop/find/find/getDetails',
+					header: {
+						token: uni.getStorageSync('userInfo').token
+					},
+					data:{
+						id: this.id
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						res.data.data.images.forEach(elem=>{
+							this.imgList.push(this.ImgUrl + elem)
+						})
+						this.detail = res.data.data
+						if(this.detail.shop_id == 0){
+							this.user = this.detail.user
+						}else{
+							this.user = this.detail.shop
+						}
+					}
+				})
+			},
+			praise(){
+				this.request({
+					url: 'wanlshop/find/user/setFindUser',
+					header: {
+						token: uni.getStorageSync('userInfo').token
+					},
+					data:{
+						id: this.id,
+						type: 'likes'
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						if(res.data.data.data == 1){
+							uni.showToast({
+								title: '点赞成功',
+								icon: 'none'
+							})
+						}else{
+							uni.showToast({
+								title: '取消成功',
+								icon: 'none'
+							})
+						}
+						this.getDetail()
+					}
+				})
+			},
+			follow(){
+				this.request({
+					url: 'wanlshop/find/user/setFindUser',
+					header: {
+						token: uni.getStorageSync('userInfo').token
+					},
+					data:{
+						id: this.detail.user_no,
+						type: 'follow'
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						if(res.data.data.data == 1){
+							uni.showToast({
+								title: '关注成功',
+								icon: 'none'
+							})
+						}else{
+							uni.showToast({
+								title: '取消成功',
+								icon: 'none'
+							})
+						}
+						this.getDetail()
+					}
+				})
+			},
+			showToast() {
+				this.$refs.uToast.show({
+					title: '举报成功！',
+					type: 'success'
+				})
+			},
 			back(){
 				uni.navigateBack({
 					delta: 1
@@ -289,6 +376,24 @@
 			go(e){
 				uni.navigateTo({
 					url: e
+				})
+			},
+			// 微信分享
+			share(e){
+				uni.share({
+					provider: "weixin",
+				    scene: e,
+				    type: 0,
+				    href: "http://uniapp.dcloud.io/",
+				    title: "uni-app分享",
+				    summary: "我正在使用HBuilderX开发uni-app，赶紧跟我一起来体验！",
+				    imageUrl: "https://bjetxgzv.cdn.bspapp.com/VKCEYUGU-uni-app-doc/d8590190-4f28-11eb-b680-7980c8a877b8.png",
+				    success: function (res) {
+				        console.log("success:" + JSON.stringify(res));
+				    },
+				    fail: function (err) {
+				        console.log("fail:" + JSON.stringify(err));
+				    }
 				})
 			},
 			// 下载图片至相册
@@ -567,6 +672,23 @@
 				}
 			}
 		}
+		
+		.report{
+			display: flex;
+			justify-content: flex-end;
+			align-items: center;
+			padding: 20rpx;
+			image{
+				width: 44rpx;
+				height: 44rpx;
+				margin-right: 10rpx;
+			}
+			text{
+				font-size: 28rpx;
+				color: #333;
+			}
+		}
+		
 		.comment{
 			padding: 27rpx;
 			.title{
@@ -690,7 +812,7 @@
 			justify-content: space-between;
 			align-items: center;
 			.right{
-				width: 35%;
+				width: 20%;
 				display: flex;
 				justify-content: flex-end;
 				align-items: center;

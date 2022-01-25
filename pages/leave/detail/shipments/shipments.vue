@@ -60,7 +60,7 @@
 		
 		<view class="bottom">
 			<text @click="back">稍后发货</text>
-			<text @click="submit">确认</text>
+			<u-button @click="submit" :loading="loading">确认</u-button>
 		</view>
 		<u-picker mode="selector" v-model="show"  :range="selector" range-key="name" @confirm="confirm"></u-picker>
 		<u-toast ref="uToast" />
@@ -71,6 +71,7 @@
 	export default {
 		data() {
 			return {
+				loading: false,
 				show: false,
 				token: uni.getStorageSync('userInfo').token,
 				active: false,
@@ -113,6 +114,7 @@
 					return
 				}
 				if(this.type == 'sign'){
+					this.loading = true
 					this.request({
 						url: 'idle/consign/delivery',
 						data: {
@@ -123,9 +125,44 @@
 						}
 					}).then(res=>{
 						if(res.data.code == 1){
-							uni.navigateBack({
-								delta: 1
+							this.$refs.uToast.show({
+								title: res.data.msg,
+								type: 'success',
+								callback: ()=>{
+									this.loading = false
+									uni.navigateBack({
+										delta: 1
+									})
+								}
 							})
+						}else{
+							this.loading = false
+						}
+					})
+				}else if (this.type == 'serve'){
+					this.loading = true
+					this.request({
+						url: 'service/order/delivery',
+						data: {
+							token: uni.getStorageSync('userInfo').token,
+							order_id: this.order_id,
+							express_name: this.express_name,
+							express_no: this.express_no
+						}
+					}).then(res=>{
+						if(res.data.code == 1){
+							this.$refs.uToast.show({
+								title: res.data.msg,
+								type: 'success',
+								callback: ()=>{
+									this.loading = false
+									uni.navigateBack({
+										delta: 1
+									})
+								}
+							})
+						}else{
+							this.loading = false
 						}
 					})
 				}else{

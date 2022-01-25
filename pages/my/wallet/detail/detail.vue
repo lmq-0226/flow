@@ -2,8 +2,8 @@
 	<view class="content">
 		<view class="item" v-for="(item,index) in list" :key="index">
 			<view class="left">
-				<text>{{item.name}}</text>
-				<text>{{item.time}}</text>
+				<text>{{item.memo}}</text>
+				<text>{{date('YmdHis',item.createtime*1000)}}</text>
 			</view>
 			<text>{{item.money}}</text>
 		</view>

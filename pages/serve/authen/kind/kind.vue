@@ -1,10 +1,13 @@
 <template>
 	<view class="content">
 		<view class="context">
-			<view class="video" @click.stop="dblclick">
+			<!-- <view class="video" @click.stop="dblclick">
 				<video src="" :controls="false" poster="/static/pub/fj.jpg" :show-center-play-btn="false" objectFit="cover"></video>
 				<image v-if="player" style="opacity: 0.7;" src="/static/serve/player.png" mode="" @click.stop="play"></image>
 				<image v-else src="/static/serve/pauser.png" :animation="animationData" mode="" @click.stop="pause"></image>
+			</view> -->
+			<view class="video">
+				<image class="tImage" src="/static/serve/5.jpg" mode="widthFix"></image>
 			</view>
 			<view class="flow">
 				<text class="title">鉴定流程</text>
@@ -27,7 +30,7 @@
 			</view>
 			<view class="cert">
 				<text class="title">流象鉴定证书</text>
-				<image src="" mode=""></image>
+				<image src="/static/serve/6.png" mode=""></image>
 			</view>
 			<view class="ensure">
 				<image src="/static/serve/ensure.png" mode=""></image>
@@ -131,6 +134,9 @@
 					width: 100%;
 					height: 100%;
 					border-radius: 10rpx;
+				}
+				.tImage{
+					width: 100%;
 				}
 				image{
 					width: 100rpx;

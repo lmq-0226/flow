@@ -3,7 +3,8 @@
 		<view class="nav">
 			<view class="status_bar"></view>
 			<view class="nav_bar">
-				<view class="nav_left" @click="go('./newPro/newPro')">
+				 <!-- @click="go('./newPro/newPro')" -->
+				<view class="nav_left">
 					<view class="left_top">
 						<text>保障全新正品</text>
 						<image src="/static/shop/leave_go.png" mode=""></image>
@@ -78,14 +79,14 @@
 			}
 		},
 		onReady() {
-			// #ifdef APP-PLUS
-			// 通过 id 获取 nvue 子窗体
-			const subNVue = uni.getSubNVueById('privacy')
-			// 打开 nvue 子窗体  
-			subNVue.show('fade-in', 300, function() {
-				// 打开后进行一些操作...  
-			});
-			// #endif
+			// // #ifdef APP-PLUS
+			// // 通过 id 获取 nvue 子窗体
+			// const subNVue = uni.getSubNVueById('privacy')
+			// // 打开 nvue 子窗体  
+			// subNVue.show('fade-in', 300, function() {
+			// 	// 打开后进行一些操作...  
+			// });
+			// // #endif
 		},
 		onShow() {
 			// 关闭 nvue 子窗体  

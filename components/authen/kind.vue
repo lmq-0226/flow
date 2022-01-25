@@ -3,7 +3,7 @@
 		<view class="tabs">
 			<u-tabs :list="list" :is-scroll="false" :current="current" @change="change" active-color="#FC493D"></u-tabs>
 		</view>
-		<scroll-view class="swiper-scroll" scroll-y="true">
+		<scroll-view class="swiper-scroll" scroll-y="true" @scrolltolower="onRachBoom" >
 			<view class="swiper-item">
 				<view class="list">
 					<view class="item" v-for="(item,index) in identList" :key="item.id" @click="next(item)">
@@ -31,6 +31,8 @@
 						<view class="bot">
 							<text>{{item.time}}</text>
 							<view class="">
+								<text class="active" v-if="item.state == 1" @click.stop="go('/pages/serve/authen/publish/pay?type=recx&id=' + item.id)">去支付</text>
+								<text class="active" v-else-if="item.state == 2" @click.stop="go('/pages/leave/detail/shipments/shipments?type=serve&order_id=' + item.id)">去发货</text>
 								<!-- <text @click="go('/pages/public/callCenter')">联系客服</text>
 								<text>查看物流</text>
 								<text @click="go(item.url + '?status=' + item.status)">查看详情</text> -->
@@ -60,69 +62,7 @@
 				}, {
 					name: '已退款'
 				}],
-				identList: [
-					// 0 假、 1 真、 2 进行中
-					{
-						id: 2,
-						name: '李师傅',
-						price: 99,
-						status_text: '在线鉴定',
-						state_text: '进行中',
-						time: '2021.11.16',
-						url: './detail',
-						status: 2
-					},
-					{
-						id: 3,
-						name: '王师傅',
-						price: 188,
-						status_text: '在线鉴定',
-						state_text: '鉴定完成',
-						time: '2021.11.16',
-						url: '/pages/serve/authen/aller/identDetail',
-						status: 1
-					},
-					{
-						id: 8,
-						name: '王师傅',
-						price: 188,
-						status_text: '在线鉴定',
-						state_text: '鉴定完成',
-						time: '2021.11.16',
-						url: '/pages/serve/authen/aller/identDetail',
-						status: 0
-					},
-					{
-						id: 4,
-						name: '张师傅',
-						price: 88,
-						status_text: '实物鉴定',
-						state_text: '进行中',
-						time: '2021.11.16',
-						url: './payIdentDetail',
-						status: 2
-					},
-					{
-						id: 9,
-						name: '张师傅',
-						price: 88,
-						status_text: '实物鉴定',
-						state_text: '鉴定完成',
-						time: '2021.11.16',
-						url: './payIdentDetail',
-						status: 1
-					},
-					{
-						id: 5,
-						name: '李师傅',
-						price: 299,
-						status_text: '实物鉴定',
-						state_text: '鉴定完成',
-						time: '2021.11.17',
-						url: './payIdentDetail',
-						status: 0
-					}
-				],
+				identList: [],
 
 			};
 		},
@@ -135,6 +75,9 @@
 			})
 		},
 		methods: {
+			onRachBoom(e){
+				console.log(e)
+			},
 			getData() {
 				this.request({
 					url: 'service/order/list',
@@ -307,7 +250,11 @@
 							font-weight: 500;
 							color: #686879;
 						}
-
+						.active{
+							background: #F43530;
+							color: #fff;
+							border: #fff;
+						}
 						>:nth-child(2) {
 							margin: 0 20rpx;
 						}

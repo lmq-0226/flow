@@ -207,7 +207,7 @@
 						page_index: 1,
 						page_size: 10,
 						flag: 'new',//商品标识	字符串	否	recommend	同类推荐 ： recommend=》推荐 new=》上新 可不传
-						keyword: ''
+						keyword: this.search
 					}
 				}).then(res=>{
 					if(res.data.code == 1){

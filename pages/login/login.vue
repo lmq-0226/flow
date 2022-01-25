@@ -34,21 +34,21 @@
 				<image v-if="radio" src="/static/login/radio_on.png" mode=""></image>
 				<image v-else src="/static/login/radio.png" mode=""></image>
 				<text>已经阅读同意</text>
-				<text>《用户协议》</text>
-				<text>《隐私政策》</text>
+				<text @click="go('/pages/public/richtext?url=index/agreement&type=user_agreement')">《用户协议》</text>
+				<text @click="go('/pages/public/richtext?url=index/agreement&type=privacy_protection')">《隐私政策》</text>
 				<text>和</text>
-				<text>《买家需知》</text>
+				<text @click="go('/pages/public/richtext?url=index/agreement&type=buyers_notice')">《买家需知》</text>
 			</view>
 			<!-- 登录 -->
 			<view class="login">
-				<button type="default" @click="login">登录</button>
+				<button type="default" :loading="loading" @click="login">登录</button>
 				<view class="cut">
 					<view class="" @click="cut()">
 						<text v-if="loginStatus">密码登录</text>
 						<text v-else>验证码登录</text>
 					</view>
-					<text v-if="loginStatus">收不到验证码?</text>
-					<text v-else @click="go('./forget/forget')">忘记密码</text>
+					<!-- <text v-if="loginStatus">收不到验证码?</text> -->
+					<text @click="go('register/register?type=forget')">忘记密码</text>
 				</view>
 			</view>
 		</view>
@@ -64,6 +64,7 @@
 	export default {
 		data() {
 			return {
+				loading: false,
 				// 倒计时
 				timer: 60,
 				status: true,
@@ -153,7 +154,7 @@
 		// 监听点击注册按钮
 		onNavigationBarButtonTap (){
 			uni.navigateTo({
-				url: 'register/register'
+				url: 'register/register?type=regist'
 			})
 		},
 		// 必须要在onReady生命周期，因为onLoad生命周期组件可能尚未创建完毕
@@ -210,6 +211,7 @@
 					// 手机号码登录
 					this.$refs.uForm1.validate(valid => {
 						if (valid) {
+							this.loading = true
 							this.request({
 								url: 'wanlshop/user/mobilelogin',
 								data: {
@@ -218,6 +220,7 @@
 								}
 							}).then(res=>{
 								if(res.data.code == 1){
+									this.loading = false
 									this.$store.commit('setUserInfo', res.data.data.userinfo)
 									uni.setStorageSync('userInfo', res.data.data.userinfo)
 									uni.switchTab({

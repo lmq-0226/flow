@@ -1,8 +1,8 @@
 <template>
 	<view class="content">
-		<view class="tabs" :style="{'opacity': opacity}">
+		<!-- <view class="tabs" :style="{'opacity': opacity}">
 			<u-tabs v-if="opacity > 0" :list="list" :is-scroll="false" :current="cut" @change="changeCut" active-color="#FC493D"></u-tabs>
-		</view>
+		</view> -->
 		<imgsBanner :imgList='imgList' :currentImg='current'></imgsBanner>
 		<view class="goodsInfo">
 			<view class="detail">
@@ -11,10 +11,10 @@
 						<text>¥</text>
 						<text>{{goodsDetail.price}}</text>
 					</view>
-					<text>S级</text>
+					<!-- <text>S级</text> -->
 				</view>
 				<view class="coupon">
-					<text>原价 ¥2400 / 市场价 ¥1000</text>
+					<text>运费: {{goodsDetail.express_type_text}}, 来源: {{goodsDetail.source}}, 成色: {{goodsDetail.state}}</text>
 					<text>{{goodsDetail.like_nums}}人想要</text>
 				</view>
 				<view class="desc">
@@ -34,25 +34,24 @@
 					<image src="/static/shop/leave_go.png" mode=""></image>
 				</view>
 			</view>
-			<view class="report">
+			<!-- <view class="report">
 				<image style="width: 100%;" src="/static/leave/baogao.png" mode="widthFix"></image>
-			</view>
+			</view> -->
 			<view class="goodsDetail">
 				<text class="title">商品详情</text>
-				<image style="width: 100%;" src="/static/shop/detail.png" mode="widthFix"></image>
+				<image style="width: 100%;" v-for="(item,index) in goodsDetail.images.split(',')" :src="ImgUrl + item" mode="widthFix"></image>
 			</view>
-			<view class="recommend">
+			
+			<!-- <view class="recommend">
 				<view class="title">
 					<text></text>
 					<text>相关推荐</text>
 					<text></text>
 				</view>
 				<view class="goodsList">
-					<!-- 瀑布流 -->
 					<u-waterfall v-model="flowList" ref="uWaterfall">
 						<template v-slot:left="{leftList}">
 							<view class="demo-warter" v-for="(item, index) in leftList" :key="index" @click="go('./goodsDetail/goodsDetail')">
-								<!-- 警告：微信小程序中需要hx2.8.11版本才支持在template中结合其他组件，比如下方的lazy-load组件 -->
 								<u-lazy-load threshold="-450" border-radius="10" :image="item.image" img-mode="widthFix" :index="index"></u-lazy-load>
 								<view class="demo-title">
 									{{item.title}}
@@ -76,14 +75,13 @@
 							</view>
 						</template>
 					</u-waterfall>
-				</view>
-				<!-- 加载更多 -->
 				<u-loadmore bg-color="#F6F5FA" :status="loadStatus" @loadmore="addRandomData"></u-loadmore>
-			</view>
+			</view> -->
+			
 		</view>
 		<view class="bottom" v-if="userInfo.id == goodsDetail.user_id">
-			<view class="b_left" @click="collect = !collect">
-				<image v-if="collect" src="/static/shop/collect_on.png" mode=""></image>
+			<view class="b_left" @click="collect">
+				<image v-if="true" src="/static/shop/collect_on.png" mode=""></image>
 				<image v-else src="/static/shop/collect.png" mode=""></image>
 				<text>收藏</text>
 			</view>
@@ -92,70 +90,20 @@
 			</view>
 		</view>
 		<view class="bottom" v-else>
-			<view class="b_left" @click="collect = !collect">
-				<image v-if="collect" src="/static/shop/collect_on.png" mode=""></image>
+			<view class="b_left" @click="collect">
+				<image v-if="true" src="/static/shop/collect_on.png" mode=""></image>
 				<image v-else src="/static/shop/collect.png" mode=""></image>
 				<text>收藏</text>
 			</view>
-			<view class="b_mid">
+		<!-- 	<view class="b_mid">
 				<text>卖同款</text>
-			</view>
-			<view class="b_right" @click="go('../confirmOrder/confirmOrder?type=1&goods_id=' + goodsDetail.id)">
+			</view> -->
+			<!-- 购买寄卖商品 -->
+			<view class="b_right" @click="go('../confirmOrder/confirmOrder?type=consign&pay=buy&goods_id=' + goodsDetail.id)">
 				<text>立即购买</text>
 			</view>
 		</view>
 		
-		<!-- 选择规格弹窗 -->
-		<u-popup v-model="popupShow" mode="bottom" border-radius="20"  @touchmove.native.stop.prevent> 
-			<view class="popupCon">
-				<view class="top">
-					<image class="avatar" src="/static/pub/bbt.png" mode=""></image>
-					<view class="selected">
-						<view class="price">
-							<text>¥</text>
-							<text>899</text>
-						</view>
-						<text>已选 黑色XL</text>
-					</view>
-					<image class="close" src="/static/my/close.png" mode="" @click="popupShow = false"></image>
-				</view>
-				<view class="color">
-					<text class="title">颜色</text>
-					<scroll-view scroll-x="true" >
-						<view class="items">
-							<image 
-								v-for="(item,index) in 5" :key="index" 
-								src="/static/pub/ttq.png" mode=""
-								:class="colorCheck == index ? 'active': ''"
-								@click="colorCheck = index"
-							></image>
-						</view>
-					</scroll-view>
-				</view>
-				<view class="size">
-					<text class="title">尺码</text>
-					<scroll-view scroll-x="true" >
-						<view class="items">
-							<view 
-								class=""
-								v-for="(item,index) in 5" :key="index" 
-								src="/static/pub/ttq.png" mode=""
-								:class="sizeCheck == index ? 'active': ''"
-								@click="sizeCheck = index"
-							>
-								<text>S</text>
-								<text>¥456</text>
-							</view>
-						</view>
-					</scroll-view>
-				</view>
-				<view class="b_right">
-					<text>¥849</text>
-					<text></text>
-					<text>约五天到</text>
-				</view>
-			</view>
-		</u-popup>
 		<!-- 返回顶部 -->
 		<u-back-top :scroll-top="scrollTop" top="1200" :duration="300"></u-back-top>
 	</view>
@@ -167,6 +115,7 @@
 		components:{imgsBanner},
 		data() {
 			return {
+				id: '',
 				userInfo: uni.getStorageSync('userInfo'),
 				imgList: [
 					require('@/static/pub/bbt.png'),
@@ -193,8 +142,6 @@
 				RTop: '', // 推荐top
 				GTop: '', // 详情top
 				scrollTop: '' ,// 当前滚动top值
-				collect: false, // 收藏状态
-				popupShow: false, // 规格弹窗状态
 				colorCheck: 0, // 颜色选中
 				sizeCheck: 0, // 尺码选中
 				flowList: [], // 推荐列表
@@ -283,53 +230,72 @@
 			this.loadStatus = 'loading';
 			// 模拟数据加载
 			setTimeout(() => {
-				this.addRandomData();
 				this.loadStatus = 'loadmore';
 			}, 1000)
 		},
 		onReady() {
-			let timer = setTimeout(()=>{
-				const query = uni.createSelectorQuery().in(this);
-				query.select('.report').boundingClientRect(res => {
-					this.CTop = res.top - 40
-				}).exec();
-				query.select('.goodsDetail').boundingClientRect(res => {
-					this.GTop = res.top - 40
-				}).exec();
-				query.select('.recommend').boundingClientRect(res => {
-					this.RTop = res.top - 40
-				}).exec();
-				clearTimeout(timer)
-			},500)
+			// let timer = setTimeout(()=>{
+			// 	const query = uni.createSelectorQuery().in(this);
+			// 	query.select('.report').boundingClientRect(res => {
+			// 		this.CTop = res.top - 40
+			// 	}).exec();
+			// 	query.select('.goodsDetail').boundingClientRect(res => {
+			// 		this.GTop = res.top - 40
+			// 	}).exec();
+			// 	query.select('.recommend').boundingClientRect(res => {
+			// 		this.RTop = res.top - 40
+			// 	}).exec();
+			// 	clearTimeout(timer)
+			// },500)
 		},
 		onLoad(option) {
-			this.addRandomData()
-			this.getData(option.id)
+			this.id = option.id
+			// this.addRandomData()
+			this.getData()
 		},
 		onPageScroll(e) {
-			this.scrollTop = e.scrollTop
-			const query = uni.createSelectorQuery().in(this);
-			query.select('.tabs').boundingClientRect(data => {
-				this.opacity = e.scrollTop/data.height/7
-			}).exec();
-			if(e.scrollTop < this.CTop){
-				this.cut = 0
-			}else if(this.CTop <= e.scrollTop && e.scrollTop < this.GTop){
-				this.cut = 1
-			}else if(this.GTop <= e.scrollTop && e.scrollTop < this.RTop){
-				this.cut = 2
-			}else if(this.RTop <= e.scrollTop){
-				this.cut = 3
-			}
+			// this.scrollTop = e.scrollTop
+			// const query = uni.createSelectorQuery().in(this);
+			// query.select('.tabs').boundingClientRect(data => {
+			// 	this.opacity = e.scrollTop/data.height/7
+			// }).exec();
+			// if(e.scrollTop < this.CTop){
+			// 	this.cut = 0
+			// }else if(this.CTop <= e.scrollTop && e.scrollTop < this.GTop){
+			// 	this.cut = 1
+			// }else if(this.GTop <= e.scrollTop && e.scrollTop < this.RTop){
+			// 	this.cut = 2
+			// }else if(this.RTop <= e.scrollTop){
+			// 	this.cut = 3
+			// }
 		},
 		methods:{
+			// 收藏
+			collect(){
+				this.request({
+					url: 'idle/goods/collect',
+					data: {
+						token: uni.getStorageSync('userInfo').token,
+						goods_id: this.goodsDetail.id,
+						type: 'want'
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						uni.showToast({
+							title: res.data.msg,
+							icon: 'none'
+						})
+						this.getData()
+					}
+				})
+			},
 			// 闲置商品详情
-			getData(e){
+			getData(){
 				this.request({
 					url: 'idle/consign/detail',
 					data: {
 						token: uni.getStorageSync('userInfo').token,
-						id: e
+						id: this.id
 					}
 				}).then(res=>{
 					console.log(res, '111')
@@ -631,7 +597,7 @@
 				color: #000000;
 			}
 			.b_right{
-				width: 457rpx;
+				width: 560rpx;
 				height: 74rpx;
 				background: #F35455;
 				border-radius: 6rpx;

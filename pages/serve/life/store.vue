@@ -52,6 +52,7 @@
 		},
 		onLoad(option) {
 			this.detail = JSON.parse(option.detail)
+			this.detail.content = this.detail.content.replace(/<img /g,"<img width='100%'")
 			this.detail.images.split(',').forEach(elem=>{
 				this.swiperList.push({image: this.ImgUrl + elem})
 			})
@@ -70,9 +71,9 @@
 				})
 				
 			},
-			call(e){
+			call(){
 				uni.makePhoneCall({
-				    phoneNumber: this.detail.phone //仅为示例
+				    phoneNumber: String(this.detail.phone)
 				});
 			}
 		}
@@ -167,7 +168,7 @@
 				}
 			}
 			.pro{
-				width: 550rpx;
+				width: 100%;
 				background: #F6F5FA;
 				border-radius: 10rpx;
 				margin: 20rpx auto;

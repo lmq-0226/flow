@@ -34,13 +34,14 @@
 			this.item = JSON.parse(option.address)
 		},
 		onBackPress() {
+			// 返回上一个页面携带参数
+			var pages = getCurrentPages();
+			var prevPage = pages[pages.length - 2]; //上一个页面
 			if(this.type == 'order'){
-				// 返回上一个页面携带参数
-				var pages = getCurrentPages();
-				var prevPage = pages[pages.length - 2]; //上一个页面
-				// 修改头像和背景图
 				// prevPage.$vm.type = 'order'
 				prevPage.$vm.address_id = this.item.id
+			}else if(this.type == 'leave' || this.type == 'serve'){
+				prevPage.$vm.addressData = this.item
 			}
 		},
 		onShow() {
@@ -60,13 +61,12 @@
 				})
 			},
 			setDef(e){
-				if(this.type == 'order'){
+				if(this.type == 'order' || this.type == 'leave' || this.type == 'serve'){
 					this.item = e
 					uni.navigateBack({
 						delta: 1
 					})
 				}
-				
 			},
 			go(e){
 				uni.navigateTo({

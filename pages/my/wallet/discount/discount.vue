@@ -76,6 +76,11 @@
 						this.disPopup = false
 					}
 				})
+			},
+			go(e){
+				uni.navigateTo({
+					url: e
+				})
 			}
 		}
 	}

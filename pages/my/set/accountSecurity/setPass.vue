@@ -16,8 +16,9 @@
 				</u-form-item>
 			</u-form>
 			<text>必须是6-20个字符之间，至少包含英文字母、数字、标点符号中的两种</text>
-			<button type="default" @click="submit()">完成</button>
+			<button type="default" @click="submit()" loading="loading">完成</button>
 		</view>
+		<u-toast ref="uToast" />
 	</view>
 </template>
 
@@ -25,6 +26,7 @@
 	export default {
 		data() {
 			return {
+				loading: false,
 				// 倒计时
 				timer: 60,
 				status: true,
@@ -118,6 +120,7 @@
 			submit(){
 				this.$refs.uForm.validate(valid => {
 					if (valid) {
+						this.loading = true
 						console.log("验证成功")
 						this.request({
 							url: 'wanlshop/user/resetpwd',
@@ -130,8 +133,15 @@
 							}
 						}).then(res=>{
 							if(res.data.code == 1){
-								uni.navigateBack({
-									delta: 1
+								this.$refs.uToast.show({
+									title: res.data.msg,
+									type: 'success',
+									callback: ()=>{
+										this.loading = false
+										uni.navigateBack({
+											delta: 1
+										})
+									}
 								})
 							}
 						})

@@ -8,6 +8,7 @@
 			</view>
 			<image src="/static/comm/search.png" mode=""></image>
 		</view>
+		<!-- 
 		<view class="navClass">
 			<view class="tabs">
 				<u-tabs v-if="tabsShow" :list="navClassList" :gutter="20" name="text" :is-scroll="true" :current="classCurrent" active-color="#FF4243" @change="navClassChange"></u-tabs>
@@ -30,45 +31,55 @@
 					</u-dropdown-item>
 				</u-dropdown>
 			</view>
-		</view>
+		</view> -->
+		
 		<view class="goods">
 			<!-- 瀑布流 -->
 			<u-waterfall v-model="flowList" ref="uWaterfall">
 				<template v-slot:left="{leftList}">
-					<view class="demo-warter" v-for="(item, index) in leftList" :key="index" @click="go(item.type == 'video' ? './detail/videoList' : './detail/detail')">
+					<view class="demo-warter" v-for="(item, index) in leftList" :key="index" @click="go(item.type == 'video' ? './detail/videoList' : './detail/detail?id=' + item.id)">
 						<image v-if="item.type == 'video'" class="videoPb" src="/static/comm/video_play.png" mode=""></image>
 						<!-- 警告：微信小程序中需要hx2.8.11版本才支持在template中结合其他组件，比如下方的lazy-load组件 -->
-						<u-lazy-load threshold="-450" border-radius="10" :image="item.image" img-mode="widthFix" :index="index"></u-lazy-load>
-						<view class="demo-title">
+						<u-lazy-load threshold="-450" border-radius="10" :image="ImgUrl + item.images[0]" img-mode="widthFix" :index="index"></u-lazy-load>
+						<!-- <view class="demo-title">
 							{{item.title}}
-						</view>
+						</view> -->
 						<view class="bot">
-							<view class="avatar">
-								<image src="" mode=""></image>
-								<text>珂珂</text>
+							<view class="avatar" v-if="item.user">
+								<image :src="ImgUrl + item.user.avatar" mode=""></image>
+								<text>{{item.user.nickname}}</text>
+							</view>
+							<view class="avatar" v-if="item.shop">
+								<image :src="ImgUrl + item.shop.avatar" mode=""></image>
+								<text>{{item.shop.shopname}}</text>
 							</view>
 							<view class="">
 								<image src="/static/comm/praise.png" mode=""></image>
-								<text>1542</text>
+								<text>{{item.likes}}</text>
 							</view>
 						</view>
 					</view>
 				</template>
 				<template v-slot:right="{rightList}">
-					<view class="demo-warter" v-for="(item, index) in rightList" :key="index" @click="go(item.type == 'video' ? './detail/videoList' : './detail/detail')">
+					<view class="demo-warter" v-for="(item, index) in rightList" :key="index" @click="go(item.type == 'video' ? './detail/videoList' : './detail/detail?id=' + item.id)">
 						<image v-if="item.type == 'video'" class="videoPb" src="/static/comm/video_play.png" mode=""></image>
-						<u-lazy-load threshold="-450" border-radius="10" :image="item.image" img-mode="widthFix" :index="index"></u-lazy-load>
-						<view class="demo-title">
+						<!-- 警告：微信小程序中需要hx2.8.11版本才支持在template中结合其他组件，比如下方的lazy-load组件 -->
+						<u-lazy-load threshold="-450" border-radius="10" :image="ImgUrl + item.images[0]" img-mode="widthFix" :index="index"></u-lazy-load>
+						<!-- <view class="demo-title">
 							{{item.title}}
-						</view>
+						</view> -->
 						<view class="bot">
-							<view class="avatar">
-								<image src="" mode=""></image>
-								<text>珂珂</text>
+							<view class="avatar" v-if="item.user">
+								<image :src="ImgUrl + item.user.avatar" mode=""></image>
+								<text>{{item.user.nickname}}</text>
+							</view>
+							<view class="avatar" v-if="item.shop">
+								<image :src="ImgUrl + item.shop.avatar" mode=""></image>
+								<text>{{item.shop.shopname}}</text>
 							</view>
 							<view class="">
 								<image src="/static/comm/praise.png" mode=""></image>
-								<text>1542</text>
+								<text>{{item.likes}}</text>
 							</view>
 						</view>
 					</view>
@@ -76,7 +87,7 @@
 			</u-waterfall>
 		</view>
 		<!-- 加载更多 -->
-		<u-loadmore bg-color="#F6F5FA" :status="loadStatus" @loadmore="addRandomData"></u-loadmore>
+		<u-loadmore bg-color="#F6F5FA" :status="loadStatus"></u-loadmore>
 		<!-- 返回顶部 -->
 		<u-back-top :scroll-top="scrollTop" top="1200" :duration="300"></u-back-top>
 	</view>
@@ -87,7 +98,8 @@
 		data() {
 			return {
 				navCheck: 1,
-				navList: ['关注','发现','直播'],
+				// navList: ['关注','发现','直播'],
+				navList: ['发现'],
 				classCurrent: 0,
 				navClassList:[
 					{id: 1, text: '推荐'},
@@ -101,95 +113,65 @@
 				tabsShow: true,
 				loadStatus: 'loadmore', // 加载更多状态
 				flowList: [],
-				list: [
-					{
-						price: 35,
-						title: '北国风光，千里冰封，万里雪飘',
-						shop: '李白杜甫白居易旗舰店',
-						image: 'http://pic.sc.chinaz.com/Files/pic/pic9/202002/zzpic23327_s.jpg',
-						type: 'video'
-					},
-					{
-						price: 75,
-						title: '望长城内外，惟余莽莽',
-						shop: '李白杜甫白居易旗舰店',
-						image: 'http://pic.sc.chinaz.com/Files/pic/pic9/202002/zzpic23325_s.jpg',
-						type: 'video'
-					},
-					{
-						price: 385,
-						title: '大河上下，顿失滔滔',
-						shop: '李白杜甫白居易旗舰店',
-						image: 'http://pic2.sc.chinaz.com/Files/pic/pic9/202002/hpic2119_s.jpg',
-					},
-					{
-						price: 784,
-						title: '欲与天公试比高',
-						shop: '李白杜甫白居易旗舰店',
-						image: 'http://pic2.sc.chinaz.com/Files/pic/pic9/202002/zzpic23369_s.jpg',
-					},
-					{
-						price: 7891,
-						title: '须晴日，看红装素裹，分外妖娆',
-						shop: '李白杜甫白居易旗舰店',
-						image: 'http://pic2.sc.chinaz.com/Files/pic/pic9/202002/hpic2130_s.jpg',
-					},
-					{
-						price: 2341,
-						shop: '李白杜甫白居易旗舰店',
-						title: '江山如此多娇，引无数英雄竞折腰',
-						image: 'http://pic1.sc.chinaz.com/Files/pic/pic9/202002/zzpic23346_s.jpg',
-					},
-					{
-						price: 661,
-						shop: '李白杜甫白居易旗舰店',
-						title: '惜秦皇汉武，略输文采',
-						image: 'http://pic1.sc.chinaz.com/Files/pic/pic9/202002/zzpic23344_s.jpg',
-					},
-					{
-						price: 1654,
-						title: '唐宗宋祖，稍逊风骚',
-						shop: '李白杜甫白居易旗舰店',
-						image: 'http://pic1.sc.chinaz.com/Files/pic/pic9/202002/zzpic23343_s.jpg',
-					},
-					{
-						price: 1678,
-						title: '一代天骄，成吉思汗',
-						shop: '李白杜甫白居易旗舰店',
-						image: 'http://pic1.sc.chinaz.com/Files/pic/pic9/202002/zzpic23343_s.jpg',
-					},
-					{
-						price: 924,
-						title: '只识弯弓射大雕',
-						shop: '李白杜甫白居易旗舰店',
-						image: 'http://pic1.sc.chinaz.com/Files/pic/pic9/202002/zzpic23343_s.jpg',
-					},
-					{
-						price: 8243,
-						title: '俱往矣，数风流人物，还看今朝',
-						shop: '李白杜甫白居易旗舰店',
-						image: 'http://pic1.sc.chinaz.com/Files/pic/pic9/202002/zzpic23343_s.jpg',
-					},
-				],
+				list: [],
 				scrollTop: 0,
+				last_page: 0,
+				page: 1
 			};
 		},
 		onLoad() {
-			this.addRandomData()
+			this.getData()
+			this.getCate()
+			// this.addRandomData()
 		},
 		onPageScroll(e) {
 			this.scrollTop = e.scrollTop
 		},
 		// 触底加载更多，切换加载更多loading
 		onReachBottom() {
-			this.loadStatus = 'loading';
-			// 模拟数据加载
-			setTimeout(() => {
-				this.addRandomData();
-				this.loadStatus = 'loadmore';
-			}, 2000)
+			
+			if(this.page < this.last_page ){
+				this.page ++
+				this.getData()
+			}
 		},
 		methods:{
+			getData(){
+				this.loadStatus = 'loading';
+				this.request({
+					url: 'wanlshop/find/find/getList?type=find&page=1',
+					header: {
+						token: uni.getStorageSync('userInfo').token
+					},
+					data:{
+						type: 'find',
+						page: 1
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.flowList = res.data.data.data
+						this.last_page = res.data.data.last_page
+						if(this.page >= this.last_page){
+							this.loadStatus = 'nomore';
+						}else{
+							this.loadStatus = 'loadmore'
+						}
+					}
+				})
+			},
+			getCate(){
+				this.request({
+					url: 'wanlshop/find/find/get_topic',
+					data: {
+						token: uni.getStorageSync('userInfo').token,
+						keywords: ''
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.navClassList = res.data.data
+					}
+				})
+			},
 			change(e){
 				// 默认选中
 				var check = this.navList[this.navCheck]
@@ -245,12 +227,16 @@
 			view{
 				width: 255rpx;
 				display: flex;
-				justify-content: space-between;
+				justify-content: center;
 				align-items: center;
 				text{
-					font-size: 30rpx;
+					// font-size: 30rpx;
+					// font-family: PingFang SC;
+					// font-weight: 500;
+					// color: #000000;
+					font-size: 34rpx;
 					font-family: PingFang SC;
-					font-weight: 500;
+					font-weight: bold;
 					color: #000000;
 				}
 				.navChecked{

@@ -7,7 +7,7 @@
 		<view class="scan">
 			<text>扫码查询</text>
 			<text>扫描鉴定卡或鉴定师证书，可查询结果</text>
-			<text>立即查询</text>
+			<text @click="scanCode">立即查询</text>
 		</view>
 		<view class="search">
 			<view class="">
@@ -23,14 +23,14 @@
 					<text>01.鉴定证书</text>
 					<text>查询在线/实物鉴定报告，可追溯鉴定结果</text>
 				</view>
-				<image src="" mode=""></image>
+				<image src="/static/serve/1.jpg" mode=""></image>
 			</view>
 			<view class="">
 				<view class="">
 					<text>02.鉴定师证书</text>
 					<text>国字头鉴定师能力认证证书，可查询真伪</text>
 				</view>
-				<image src="" mode=""></image>
+				<image src="/static/serve/2.jpg" mode=""></image>
 			</view>
 		</view>
 	</view>
@@ -44,6 +44,15 @@
 			};
 		},
 		methods:{
+			scanCode(){
+				uni.scanCode({
+				    success:(res)=>{
+						uni.showToast({
+							title: '证书为真'
+						})
+				    }
+				});
+			},
 			query(){
 				this.request({
 					url: 'service/index/query_cert',
@@ -52,7 +61,19 @@
 						cert_no: this.cert_no
 					}
 				}).then(res=>{
-					
+					if(res.data.code == 1){
+						if(res.data.data != null){
+							uni.showToast({
+								title: '证书为真',
+								icon: 'none'
+							})
+						}else{
+							uni.showToast({
+								title: '找不到证书信息',
+								icon: 'none'
+							})
+						}
+					}
 				})
 			},
 		}

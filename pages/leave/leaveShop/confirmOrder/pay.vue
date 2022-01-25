@@ -33,7 +33,7 @@
 				</view>
 			</view>
 		</view>
-		<u-button class="pay" :loading="loading" @click="pay">立即支付</u-button>
+		<u-button class="pay" :loading="loading" @click="payfor">立即支付</u-button>
 		<!-- <view class="pay" @click="pay">
 			<text>立即支付</text>
 		</view> -->
@@ -46,7 +46,6 @@
 		data() {
 			return {
 				loading: false,
-				type: '',
 				payMethed: 'alipay',
 				payInfo: {
 					price: 0
@@ -55,19 +54,23 @@
 				token: '',
 				order_id: '',
 				total_amount: 0,
-				type: ''
+				type: '', // consign 寄卖，sale 拍图， kind 实物鉴定， line 在线鉴定
+				pay: '' // buy买， sell 卖
 			};
 		},
 		onLoad(option) {
 			this.order_id = option.order_id
-			if(option.type == 'consign'){
-				this.type = option.type
-				this.payInfo.price = option.total_amount
-			}else{
+			this.pay = option.pay
+			this.type = option.type
+			// if(option.type == 'consign'){
+			if(option.total_amount == 0){
 				this.rePay()
+			}else{
+				this.payInfo.price = option.total_amount
 			}
-			
-			
+			// }else{
+			// 	this.rePay()
+			// }
 		},
 		onShow() {
 			// var timestamp = Date.parse(new Date())
@@ -83,9 +86,10 @@
 			end(e){
 				console.log(e)
 			},
-			pay(){
+			payfor(){
 				this.loading = true
-				if(this.type == 'consign'){
+				if(this.type == 'consign' && this.pay == 'sell'){
+					// 寄卖服务费支付
 					this.request({
 						url: 'idle/pay/assess_pay',
 						data: {
@@ -95,13 +99,17 @@
 						}
 					}).then(res=>{
 						if(res.data.code == 1){
-							console.log(JSON.parse(res.data.data))
-							if(this.payMethed = 'wechat'){
+							// if(this.payMethed = 'wechat'){
+							if(this.payMethed == 'wechat'){
 								this.wxpay(JSON.parse(res.data.data))
+							}else if(this.payMethed == 'alipay'){
+								this.wxpay(res.data.data)
 							}
+							// }
 						}
 					})
-				}else{
+				}else if(this.pay == 'buy'){
+					// 用户购买拍图、寄卖商品
 					this.request({
 						url: 'idle/pay/to_pay',
 						data: {
@@ -111,10 +119,11 @@
 						}
 					}).then(res=>{
 						if(res.data.code == 1){
-							console.log(res)
-							if(this.payMethed = 'wechat'){
-								
+							console.log(res, '111111')
+							if(this.payMethed == 'wechat'){
 								this.wxpay(JSON.parse(res.data.data))
+							}else if(this.payMethed == 'alipay'){
+								this.wxpay(res.data.data)
 							}
 						}
 					})
@@ -135,25 +144,39 @@
 					}
 				})
 			},
-			// 微信支付
+			// 微信&支付宝支付
 			wxpay(e){
+				let meth = ''
+				if(this.payMethed == 'wechat'){
+					meth = 'wxpay'
+				}else if(this.payMethed == 'alipay'){
+					meth = 'alipay'
+				}
 				uni.requestPayment({
-				    "provider": "wxpay", 
+				    "provider": meth, 
 				    "orderInfo": e,
 				    success: res=>{
-						if(this.type == 'consign'){
-							uni.navigateBack({
-								delta: 1
-							})
-						}else{
-							uni.navigateTo({
-								url: '/pages/my/buy/idleOrders/idleOrders?type=2&order_id=' + this.order_id
-							})
-						}
 						
+						// if(this.type == 'consign'){
+						// 	uni.navigateBack({
+						// 		delta: 1
+						// 	})
+						// }else{
+							
+						// }
 					},
 				    complete: (all) => {
 				    	this.loading = false
+						if(this.pay == 'buy'){
+							uni.navigateTo({
+								url: '/pages/my/buy/idleOrders/idleOrders?order_id=' + this.order_id
+							})
+							// 寄卖支付服务费
+						}if(this.type == 'consign' && this.pay == 'sell'){
+							uni.navigateBack({
+								delta: 1
+							})
+						}
 				    }
 				})
 			},

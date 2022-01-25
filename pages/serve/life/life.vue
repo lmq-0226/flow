@@ -56,8 +56,9 @@
 					url: e
 				})
 			},
+			
 			openMap(e){
-				
+				console.log(e)
 				uni.openLocation({
 					latitude: parseFloat(e.lat),
 					longitude: parseFloat(e.lng),
@@ -72,7 +73,7 @@
 			},
 			call(e){
 				uni.makePhoneCall({
-				    phoneNumber: e //仅为示例
+				    phoneNumber: String(e)
 				});
 			}
 		}
@@ -90,7 +91,7 @@
 				padding: 30rpx 0;
 				border-bottom: solid 1px #F7F7FB;
 				>image{
-					width: 160rpx;
+					width: 200rpx;
 					height: 160rpx;
 					min-width: 160rpx;
 					background: #F4F4F4;

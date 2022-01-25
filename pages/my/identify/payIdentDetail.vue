@@ -30,7 +30,7 @@
 			</view>
 		</view>
 		<view class="items">
-			<view class="item" @click="go('/pages/my/buy/logistics/logistics')">
+			<view class="item" v-if="detail.state != 1" @click="go('/pages/my/buy/logistics/logistics?id=' + detail.id)">
 				<view class="lettle">
 					<text>物流详情</text>
 					<view class="">

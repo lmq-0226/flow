@@ -11,8 +11,13 @@
 				value: ''
 			};
 		},
-		onLoad() {
-			this.getData()
+		onLoad(option) {
+			console.log(option)
+			if(option.url == 'index/agreement'){
+				this.getData2(option)
+			}else{
+				this.getData()
+			}
 		},
 		methods:{
 			getData(){
@@ -23,7 +28,19 @@
 						this.value = res.data.data
 					}
 				})
-			}
+			},
+			getData2(e){
+				this.request({
+					url: 'index/agreement',
+					data: {
+						cate: e.type
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.value = res.data.data.content
+					}
+				})
+			},
 		}
 	}
 </script>

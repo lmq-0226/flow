@@ -3,10 +3,11 @@
 		<view class="items">
 			<view class="item" @click="upload(1)">
 				<text>头像</text>
-				<image style="border-radius: 50%;" :src="avatar" mode="heightFix" @click.stop="pvew(avatar)"></image>
+				 <!-- @click.stop="pvew(avatar)" -->
+				<image style="border-radius: 50%;" :src="ImgUrl + avatar" mode="heightFix"></image>
 			</view>
 			<view class="item">
-				<text>名字</text>
+				<text>昵称</text>
 				<u-input v-model="name" type="text" placeholder="请输入姓名" input-align="right" :clearable="false" />
 			</view>
 			<view class="item" @click="genderPopup = true">
@@ -34,7 +35,7 @@
 				<image style="border-radius: 10rpx;" :src="topbg" mode="heightFix" @click.stop="pvew(topbg)"></image>
 			</view>
 		</view>
-		<view class="save">
+		<view class="save" @click="uploadData()">
 			<text>保存</text>
 		</view>
 		<u-popup v-model="genderPopup" mode="center" border-radius="20">
@@ -97,8 +98,8 @@
 					},
 					success: res => {
 						if(this.imgType == 1){
-							console.log(res)
-							// this.avatar = res
+							console.log(JSON.parse(res.data).data.url)
+							this.avatar = JSON.parse(res.data).data.url
 						}else{
 							this.topbg = res
 						}
@@ -116,15 +117,43 @@
 		},
 		onLoad() {
 			this.sex = this.gender
+			this.getUser()
 		},
 		methods:{
-			// 修改个人信息
-			uploadData(e){
+			getUser(){
 				this.request({
-					url: '',
-					data: e
+					url: 'wanlshop/user/refresh',
+					data: {
+						token: uni.getStorageSync('userInfo').token
+					}
 				}).then(res=>{
-					console.log(res)
+					if(res.data.code == 1){
+						console.log()
+						let data = res.data.data.userinfo
+						this.avatar = data.avatar
+						this.name = data.nickname
+						this.sign = data.bio
+					}
+				})
+			},
+			// 修改个人信息
+			uploadData(){
+				this.request({
+					url: 'wanlshop/user/profile',
+					data: {
+						token: uni.getStorageSync('userInfo').token,
+						avatar: this.avatar, // 头像
+						nickname: this.name, //
+						bio: this.sign // 签名
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						uni.showToast({
+							title: '保存成功',
+							icon: 'none'
+						})
+						this.getUser()
+					}
 				})
 			},
 			// 选择生日
@@ -153,16 +182,15 @@
 			},
 			// 性别
 			sure(){
-				console.log(this.sex, '****')
 				this.genderPopup = false
 				if(this.gender == this.sex){
 					return
 				}else{
 					this.gender = this.sex
-					uni.showToast({
-						title: '设置成功',
-						icon: 'none'
-					})
+					// uni.showToast({
+					// 	title: '设置成功',
+					// 	icon: 'none'
+					// })
 				}
 			},
 			upload(e){

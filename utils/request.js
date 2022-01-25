@@ -6,9 +6,9 @@ import store from '../store/store.js'
 let token = uni.getStorageSync('userInfo').token || ''
 export default (options) => {
 	return new Promise((resolved, rejected) => {
-		uni.showLoading({
-			title: '加载中...'
-		})
+		// uni.showLoading({
+		// 	title: '加载中...'
+		// })
 		console.log('------------------------start------------------');
 		console.log('接口地址:' + url + options.url);
 		if (JSON.stringify(options.data) !== '{}') {
@@ -30,7 +30,7 @@ export default (options) => {
 			success: (res) => {
 				console.log(res.data.msg, res)
 				if(res.statusCode == 200){
-					if(res.data.code != 1){
+					if(res.data.code != 1 && options.url != 'userauth/info'){
 						uni.showToast({
 							title: res.data.msg,
 							icon: 'none'
@@ -54,7 +54,7 @@ export default (options) => {
 			},
 			complete(all) {
 				// 关闭加载中的特效
-				uni.hideLoading()
+				// uni.hideLoading()
 				console.log('------------------------end------------------');
 			}
 		})

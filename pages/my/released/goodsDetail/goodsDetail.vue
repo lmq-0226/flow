@@ -151,18 +151,19 @@
 			</view>
 			<view class="btns" v-else>
 				<text>卖同款</text>
-				<text @click="go('/pages/leave/leaveShop/confirmOrder/confirmOrder?type=2&goods_id=' + goodsDetail.id)">我想要</text>
+				<!-- 购买拍图商品 -->
+				<text @click="go('/pages/leave/leaveShop/confirmOrder/confirmOrder?type=sale&pay=buy&goods_id=' + goodsDetail.id)">我想要</text>
 			</view>
 		</view>
 		<u-popup v-model="sharePopup" mode="bottom" border-radius="20" @touchmove.native.stop.prevent>
 			<view class="sharePopup">
 				<text class="title">分享至</text>
 				<view class="items">
-					<view class="">
+					<view class="" v-if="install">
 						<image src="/static/my/wx.png" mode=""></image>
 						<text>微信好友</text>
 					</view>
-					<view class="">
+					<view class="" v-if="install">
 						<image src="/static/my/wxc.png" mode=""></image>
 						<text>朋友圈</text>
 					</view>
@@ -192,11 +193,11 @@
 				</view>
 				<view class="">
 					<view class="items">
-						<view class="">
+						<view class="" v-if="install">
 							<image src="/static/my/wx.png" mode=""></image>
 							<text>微信好友</text>
 						</view>
-						<view class="">
+						<view class="" v-if="install">
 							<image src="/static/my/wxc.png" mode=""></image>
 							<text>朋友圈</text>
 						</view>
@@ -267,7 +268,8 @@
 					goods_id: '',
 					content: ''
 				},
-				Ain: false // 当前商品是否为自己发布
+				Ain: false,// 当前商品是否为自己发布
+				install: uni.getStorageSync('install')
 			};
 		},
 		onReady() {

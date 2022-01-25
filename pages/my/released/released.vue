@@ -48,20 +48,28 @@
 			}else{
 				this.statusCurrent = 0
 			}
-			// if(option.current){
-			// if(option.current){
-			// 	this.statusCurrent = option.current
-			// }else{
-			// 	this.statusCurrent = option.statusCurrent // 0拍卖 1寄卖
-			// }
 			this.current = option.current || 0
 			this.pCut = option.current || 0
-			// }
+		},
+		onBackPress() {
+			uni.switchTab({
+				url: '../my'
+			})
+			return true
+		},
+		watch:{
+			statusCurrent(newVal, oldVal){
+				if(newVal == 0){
+					this.$refs.sale.getData()
+				}else{
+					this.$refs.sale.getData()
+				}
+			}
 		},
 		onShow(){
 			let timer = setTimeout(()=>{
 				this.$refs.sale.getData()
-				this.$refs.consign.getData()
+				c
 			}, 50)
 		},
 		methods:{

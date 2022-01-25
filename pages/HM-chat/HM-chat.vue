@@ -289,7 +289,7 @@
 									<text class="wanl-gray-dark text-sm">{{stateText[item.state-1]}}</text>
 								</view>
 								<view class="goods" v-for="(goods, key) in item.goods" :key="key">
-									<image class="radius" :src="$wanlshop.oss(goods.image,100,100)" mode="aspectFill"></image>
+									<image class="radius" :src="$wanlshop.oss(ImgUrl + goods.image,100,100)" mode="aspectFill"></image>
 									<view class="details">
 										<view class="text-cut-2 title wanl-gray-dark">
 											<text>{{goods.title}}</text>
@@ -852,33 +852,62 @@ export default {
 		browsing(){
 			//隐藏抽屉
 			this.hideDrawer(); 
-			this.$api.post({
-				url: '/wanlshop/product/getBrowsingToShop',
-				data: {shop_id: this.shop_id},
-				success: res => {
-					this.goodsData = res;
+			this.request({
+				url: 'wanlshop/product/getBrowsingToShop',
+				header: {
+					token: uni.getStorageSync('userInfo').token
+				},
+				data: {
+					shop_id: this.shop_id,
+				},
+			}).then(res=>{
+				if(res.data.code == 1){
+					this.goodsData = res.data.data
 					this.modalName = 'goods';
 				}
-			});
+			})
+			// this.$api.post({
+			// 	url: '/wanlshop/product/getBrowsingToShop',
+			// 	data: {shop_id: this.shop_id},
+			// 	success: res => {
+			// 		this.goodsData = res;
+			// 		this.modalName = 'goods';
+			// 	}
+			// });
 		},
 		// 查询订单
 		order(){
 			//隐藏抽屉
 			this.hideDrawer(); 
-			this.$api.post({
-				url: '/wanlshop/order/getOrderListToShop',
-				data: {shop_id: this.shop_id},
-				success: res => {
-					this.orderData = res;
+			this.request({
+				url: 'wanlshop/order/getOrderListToShop',
+				header: {
+					token: uni.getStorageSync('userInfo').token
+				},
+				data: {
+					shop_id: this.shop_id,
+				},
+			}).then(res=>{
+				if(res.data.code == 1){
+					this.orderData = res.data.data
 					this.modalName = 'order';
 				}
-			});
+			})
+			// this.$api.post({
+			// 	url: '/wanlshop/order/getOrderListToShop',
+			// 	data: {shop_id: this.shop_id},
+			// 	success: res => {
+			// 		this.orderData = res;
+			// 		this.modalName = 'order';
+			// 	}
+			// });
 		},
 		hideModal() {
 			this.modalName = null;
 		},
 		// 播放语音
 		playVoice(message) {
+			console.log(message, '111')
 			this.playMsgid = message.id;
 			this.AUDIO.src = message.content.url;
 			this.$nextTick(() => {
@@ -940,27 +969,56 @@ export default {
 		recordEnd(e) {
 			clearInterval(this.recordTimer);
 			if (!this.willStop) {
-				this.$api.get({
-					url: '/wanlshop/common/uploadData',
-					success: updata => {
-						this.$api.upload({
-							url: updata.uploadurl,
-							filePath: e.tempFilePath,
-							name: 'file',
-							formData: updata.storage == 'local' ? null : updata.multipart,
-							success: data => {
-								let msg = {length: 0, url: data.fullurl};
-								msg.length = this.recordLength % 60;
-								if (msg.length > 0) {
-									this.sendMsg(msg, 'voice');
-								}
-							},
-							fail: error =>{
-								this.$wanlshop.msg(JSON.parse(error.data).msg);
-							}
-						});
+				this.request({
+					url: 'wanlshop/common/uploadData',
+					methods: 'GET',
+					header: {
+						token: uni.getStorageSync('userInfo').token
 					}
-				});
+				}).then(res=>{
+					console.log(res, '1111111111111')
+					uni.uploadFile({
+						url: res.data.data.uploadurl, //仅为示例，非真实的接口地址
+						header:{
+							token: uni.getStorageSync('userInfo').token
+						},
+						filePath: e.tempFilePath,
+						name: 'file',
+						formData: res.data.data.storage == 'local' ? null : res.data.data.multipart,
+						success: (data) => {
+							console.log(JSON.parse(data.data).data.fullurl, '11111')
+							let msg = {length: 0, url: JSON.parse(data.data).data.fullurl};
+							msg.length = this.recordLength % 60;
+							if (msg.length > 0) {
+								this.sendMsg(msg, 'voice');
+							}
+						},
+						fail: error =>{
+							this.$wanlshop.msg(JSON.parse(error.data).msg);
+						}
+					});
+				})
+				// this.$api.get({
+				// 	url: '/wanlshop/common/uploadData',
+				// 	success: updata => {
+				// 		this.$api.upload({
+				// 			url: updata.uploadurl,
+				// 			filePath: e.tempFilePath,
+				// 			name: 'file',
+				// 			formData: updata.storage == 'local' ? null : updata.multipart,
+				// 			success: data => {
+				// 				let msg = {length: 0, url: data.fullurl};
+				// 				msg.length = this.recordLength % 60;
+				// 				if (msg.length > 0) {
+				// 					this.sendMsg(msg, 'voice');
+				// 				}
+				// 			},
+				// 			fail: error =>{
+				// 				this.$wanlshop.msg(JSON.parse(error.data).msg);
+				// 			}
+				// 		});
+				// 	}
+				// });
 			} else {
 				console.log('取消发送录音');
 			}

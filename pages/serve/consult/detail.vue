@@ -147,7 +147,7 @@
 				pid: 0,
 				detail: {},
 				goodsDetail: {},
-				total_count: 0
+				totalCount: 0
 			};
 		},
 		onLoad(option) {
@@ -165,7 +165,9 @@
 					}
 				}).then(res=>{
 					if(res.data.code == 1){
+						res.data.data.content = res.data.data.content.replace(/<img /g,"<img width='100%'")
 						this.detail = res.data.data
+						
 					}
 				})
 			},
@@ -344,6 +346,7 @@
 		
 		.rich{
 			min-height: 60vh;
+			padding: 20rpx;
 		}
 		
 		.comment{

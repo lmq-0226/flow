@@ -1,13 +1,13 @@
 <template>
 	<view class="content" @click.stop="">
 		<view class="popup" v-if="plan">
-			<text class="title">流象法律条款及隐私政策</text>
+			<text class="title">流象用户协议及隐私政策</text>
 			<scroll-view scroll-y="true" class="desc">
 				<mp-html :content="htmls" />
 			</scroll-view>
 			<view class="pro">
-				<text class="pro_text">《法律条款》</text>
-				<text class="pro_text">《隐私政策》</text>
+				<text class="pro_text" @click="next('user_agreement')">《用户协议》</text>
+				<text class="pro_text" @click="next('privacy_protection')">《隐私政策》</text>
 			</view>
 			<view class="consent" @click.stop="consent()">
 				<text class="con_text">同意</text>
@@ -80,7 +80,12 @@
 				uni.navigateTo({ 
 					url: '/pages/my/set/newInfor/newInfor'
 				})
-			}
+			},
+			next(e){
+				uni.navigateTo({
+					url: '/pages/public/richtext?url=index/agreement&type=' + e
+				})
+			},
 		}
 	}
 </script>

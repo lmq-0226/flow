@@ -2,7 +2,7 @@
 	<view class="content">
 		<view class="top">
 			<view class="top-left">
-				<text>755</text>
+				<text>{{total}}</text>
 				<text>可使用积分兑换商品哦~</text>
 			</view>
 			<view class="top-right">
@@ -51,13 +51,28 @@
 				loadStatus: 'loadmore', // 加载更多状态
 				flowList: [],
 				list: [],
+				total: 0
 			}
 		},
 		onLoad() {
 			this.getData()
+			this.getGlod()
 			// this.addRandomData()
 		},
 		methods: {
+			getGlod(){
+				this.request({
+					url: 'wanlshop/user/scoreLog',
+					data: {
+						token: uni.getStorageSync('userInfo').token,
+						page: 1
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.total = res.data.data.total
+					}
+				})
+			},
 			getData(){
 				this.request({
 					url: 'integral/index/index',

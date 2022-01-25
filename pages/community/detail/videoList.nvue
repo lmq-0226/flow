@@ -147,14 +147,20 @@
 						src: require('@/static/comm/photo.png'),
 						text: '生成分享图'
 					}
-				]
+				],
+				install: false
 			};
 		},
 		onReady() {
 			this.wHeight = uni.getSystemInfoSync().windowHeight
 			this.boxStyle.height = this.wHeight
 		},
-		
+		onShow() {
+			this.install = uni.getStorageSync('install')
+			if(!this.install){
+				this.shareList.splice(0, 2)
+			}
+		},
 		methods:{
 			shot(){
 				console.log(1111)

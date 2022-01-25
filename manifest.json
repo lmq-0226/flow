@@ -2,8 +2,8 @@
     "name" : "流象",
     "appid" : "__UNI__8603AD5",
     "description" : "流象APP",
-    "versionName" : "1.0.0",
-    "versionCode" : 100,
+    "versionName" : "1.0.2",
+    "versionCode" : 102,
     "transformPx" : false,
     /* 5+App特有相关 */
     "app-plus" : {
@@ -18,10 +18,12 @@
         },
         /* 模块配置 */
         "modules" : {
-            "LivePusher" : {},
             "VideoPlayer" : {},
             "Payment" : {},
-            "Maps" : {}
+            "Maps" : {},
+            "FaceID" : {},
+            "LivePusher" : {},
+            "Push" : {}
         },
         /* 应用发布信息 */
         "distribute" : {
@@ -30,13 +32,17 @@
                 "permissions" : [
                     "<uses-feature android:name=\"android.hardware.camera\"/>",
                     "<uses-feature android:name=\"android.hardware.camera.autofocus\"/>",
+                    "<uses-permission android:name=\"android.permission.ACCESS_COARSE_LOCATION\"/>",
+                    "<uses-permission android:name=\"android.permission.ACCESS_FINE_LOCATION\"/>",
                     "<uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\"/>",
                     "<uses-permission android:name=\"android.permission.ACCESS_WIFI_STATE\"/>",
+                    "<uses-permission android:name=\"android.permission.CALL_PHONE\"/>",
                     "<uses-permission android:name=\"android.permission.CAMERA\"/>",
                     "<uses-permission android:name=\"android.permission.CHANGE_NETWORK_STATE\"/>",
                     "<uses-permission android:name=\"android.permission.CHANGE_WIFI_STATE\"/>",
                     "<uses-permission android:name=\"android.permission.FLASHLIGHT\"/>",
                     "<uses-permission android:name=\"android.permission.GET_ACCOUNTS\"/>",
+                    "<uses-permission android:name=\"android.permission.INTERNET\"/>",
                     "<uses-permission android:name=\"android.permission.MODIFY_AUDIO_SETTINGS\"/>",
                     "<uses-permission android:name=\"android.permission.MOUNT_UNMOUNT_FILESYSTEMS\"/>",
                     "<uses-permission android:name=\"android.permission.READ_LOGS\"/>",
@@ -44,9 +50,18 @@
                     "<uses-permission android:name=\"android.permission.RECORD_AUDIO\"/>",
                     "<uses-permission android:name=\"android.permission.VIBRATE\"/>",
                     "<uses-permission android:name=\"android.permission.WAKE_LOCK\"/>",
+                    "<uses-permission android:name=\"android.permission.WRITE_EXTERNAL_STORAGE\"/>",
                     "<uses-permission android:name=\"android.permission.WRITE_SETTINGS\"/>"
                 ],
-                "abiFilters" : [ "armeabi-v7a", "arm64-v8a" ]
+                "abiFilters" : [ "armeabi-v7a", "arm64-v8a" ],
+                "permissionExternalStorage" : {
+                    "request" : "none",
+                    "prompt" : "应用保存运行状态等信息，需要获取读写手机存储（系统提示为访问设备上的照片、媒体内容和文件）权限，请允许。"
+                },
+                "permissionPhoneState" : {
+                    "request" : "none",
+                    "prompt" : "为保证您正常、安全地使用，需要获取设备识别码（部分手机提示为获取手机号码）使用权限，请允许。"
+                }
             },
             /* ios打包配置 */
             "ios" : {
@@ -60,7 +75,7 @@
             "sdkConfigs" : {
                 "ad" : {},
                 "maps" : {
-                    "baidu" : {
+                    "amap" : {
                         "appkey_ios" : "f887ef3ff44cb395b38f21f070d886ee",
                         "appkey_android" : "faea28e5e10063025169a8c599c93221"
                     }
@@ -80,6 +95,36 @@
                 },
                 "oauth" : {},
                 "geolocation" : {}
+            }
+        },
+        "nativePlugins" : {
+            "DC-WBFaceService" : {
+                "__plugin_info__" : {
+                    "name" : "DC-WBFaceService",
+                    "description" : "人脸识别 SDK。",
+                    "platforms" : "Android,iOS",
+                    "url" : "https://ext.dcloud.net.cn/plugin?id=1300",
+                    "android_package_name" : "app.liuxiangkeji.com",
+                    "ios_bundle_id" : "app.liuxiangkeji.com",
+                    "isCloud" : true,
+                    "bought" : 1,
+                    "pid" : "1300",
+                    "parameters" : {}
+                }
+            },
+            "DC-WBOCRService" : {
+                "__plugin_info__" : {
+                    "name" : "DC-WBOCRService",
+                    "description" : "OCR 识别SDK，支持银行卡、身份证、驾驶证和行驶证识别。",
+                    "platforms" : "Android,iOS",
+                    "url" : "https://ext.dcloud.net.cn/plugin?id=1233",
+                    "android_package_name" : "app.liuxiangkeji.com",
+                    "ios_bundle_id" : "app.liuxiangkeji.com",
+                    "isCloud" : true,
+                    "bought" : 1,
+                    "pid" : "1233",
+                    "parameters" : {}
+                }
             }
         }
     },

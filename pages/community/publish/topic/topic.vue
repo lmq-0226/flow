@@ -22,10 +22,11 @@
 							<text></text>
 						</view>
 						<view class="items">
-							<view class="item" v-for="(item,index) in 15" :key="index" @click="go('./house')">
+							 <!-- @click="go('./house')" -->
+							<view class="item" v-for="(item,index) in list" :key="index" @click="back(item)">
 								<image src="" mode=""></image>
 								<view class="">
-									<text>#学生党最爱黑色潮鞋合集</text>
+									<text>#{{item.name}}</text>
 									<text>热度44.8w</text>
 								</view>
 							</view>
@@ -43,7 +44,9 @@
 			return {
 				active: 1,
 				scrollTop: 300,
-				timer: ''
+				timer: '',
+				list: [],
+				topic_id: ''
 			};
 		},
 		onNavigationBarSearchInputClicked(){
@@ -51,7 +54,35 @@
 				url: './search'
 			})
 		},
+		onBackPress() {
+			// 返回上一个页面携带参数
+			var pages = getCurrentPages();
+			var prevPage = pages[pages.length - 2]; //上一个页面
+			prevPage.$vm.topic_id = this.topic_id
+		},
+		onLoad() {
+			this.getData()
+		},
 		methods:{
+			getData(){
+				this.request({
+					url: 'wanlshop/find/find/get_topic',
+					data: {
+						token: uni.getStorageSync('userInfo').token,
+						keywords: ''
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.list = res.data.data
+					}
+				})
+			},
+			back(e){
+				this.topic_id = e.id
+				uni.navigateBack({
+					delta: 1
+				})
+			},
 			scrollpage(e){
 				this.scrollTop = e.detail.scrollTop
 			},

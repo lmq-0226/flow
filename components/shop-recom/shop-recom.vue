@@ -10,15 +10,17 @@
 						<scroll-view :scroll-x="true" class="scroll-view_H" @scroll="scrollChange" @touchmove.stop.prevent="">
 							<view class="items">
 								<view class="" v-for="(item,index) in topMenuList" :key="index"
-									@click="go('/pages/public/public?category_id=' + item.id)">
-									<image :src="ImgUrl + item.iconImage" mode=""></image>
-									<text>{{item.text}}</text>
+									>
+									<image :src="ImgUrl + item.media" mode=""></image>
+									<text>{{item.title}}</text>
 								</view>
 							</view>
-							<view class="items items2" @click="go('/pages/public/public')">
+							<!-- @click="go('/pages/public/public?category_id=' + item.id)" -->
+							 <!-- @click="go('/pages/public/public')" -->
+							<view class="items items2">
 								<view class="" v-for="(item,index) in botMenuList" :key="index">
-									<image :src="ImgUrl + item.iconImage" mode=""></image>
-									<text>{{item.text}}</text>
+									<image :src="ImgUrl + item.media" mode=""></image>
+									<text>{{item.title}}</text>
 								</view>
 							</view>
 						</scroll-view>
@@ -36,11 +38,11 @@
 									</view>
 									<text class="sub">{{item.describe}}</text>
 								</view>
-								<!-- <view class="classIfy">
-									<view class="" v-for="(elem,cut) in item.list" :key="cut">
+								<view class="classIfy">
+									<view class="" v-for="(elem,cut) in item.images" :key="cut">
 										<image :src="ImgUrl + elem.image" mode="widthFix"></image>
 									</view>
-								</view> -->
+								</view>
 							</view>
 						</view>
 					</view>
@@ -122,7 +124,9 @@
 				scrollTop: 0,
 				initClassify: [],
 				topMenuList: [],
-				botMenuList: []
+				botMenuList: [],
+				total: 0,
+				page: 1
 			};
 		},
 		created() {
@@ -130,28 +134,22 @@
 		},
 		mounted() {
 			this.$nextTick(()=>{
-				if(this.menuList.length >= 10){
-					if(this.menuList.length % 2 == 0){
-						this.topMenuList = this.menuList.slice(0,this.menuList.length/2)
-						this.botMenuList = this.menuList.slice(this.menuList.length/2)
-					}else{
-						this.topMenuList = this.menuList.slice(0,(this.menuList.length/2) + 1)
-						this.botMenuList = this.menuList.slice((this.menuList.length/2) + 1)
-					}
-				}else if(5 < this.menuList.length <= 10){
-					this.topMenuList = this.menuList.slice(0,5)
-					this.botMenuList = this.menuList.slice(5)
-				}
+				
 				// this.flowList = this.goodsList
 				this.getGoods()
 				this.getCategory()
 				this.getBanner()
+				this.getCateList()
 				console.log(this.category)
 			})
 		},
 		methods:{
+			// 首页商品触底加载
 			onRachBoom(e){
-				console.log(e)
+				if(this.flowList.length <= this.total){
+					this.page ++
+					this.getGoods()
+				}
 				// this.getGoods()
 			},
 			// 商品列表
@@ -161,12 +159,13 @@
 					method: "GET",
 					data: {
 						id: this.cid,
-						page: 1
+						page: this.page
 					},
 				}).then(res => {
 					if (res.data.code == 1) {
+						this.total = res.data.data.goods.data.total
 						console.log(res)
-						this.flowList = res.data.data.goods.data
+						this.flowList = [...this.flowList, ...res.data.data.goods.data]
 					}
 				})
 			},
@@ -189,6 +188,7 @@
 							res.data.data.forEach((elem,cut)=>{
 								if(index == cut){
 									item.name = elem.name
+									item.images = elem.list
 								}
 							})
 						})
@@ -210,14 +210,30 @@
 					}
 				})
 			},
-			// getCateList(){
-			// 	this.request({
-			// 		url: 'wanlshop/common/cate_list',
-			// 		data: {
-			// 			token: uni.getStorageSync('userInfo').token
-			// 		}
-			// 	}).then(res=>{})
-			// },
+			getCateList(){
+				this.request({
+					url: 'wanlshop/common/index_adverts',
+					data: {
+						token: uni.getStorageSync('userInfo').token,
+						type: 'menu'
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						if(res.data.data.length > 10){
+							if(res.data.data.length % 2 == 0){
+								res.data.data = res.data.data.slice(0,res.data.data.length/2)
+								this.botMenuList = res.data.data.slice(res.data.data.length/2)
+							}else{
+								this.topMenuList = res.data.data.slice(0,(res.data.data.length/2) + 1)
+								this.botMenuList = res.data.data.slice((res.data.data.length/2) + 1)
+							}
+						}else if(5 < res.data.data.length <= 10){
+							this.topMenuList = res.data.data.slice(0,5)
+							this.botMenuList = res.data.data.slice(5)
+						}
+					}
+				})
+			},
 			scrollChange(e) {
 				// scroll可视区域的宽
 				let obj = uni.createSelectorQuery().select('.scroll-view_H')

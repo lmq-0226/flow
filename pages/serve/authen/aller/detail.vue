@@ -28,8 +28,9 @@
 				<template v-slot:left="{leftList}">
 					<view class="demo-warter" v-for="(item, index) in leftList" :key="index" @click="go('./identDetail?id=' + item.id)">
 						<u-lazy-load threshold="-450" border-radius="10" :image="ImgUrl + item.image" img-mode="widthFix" :index="index"></u-lazy-load>
-						<text class="true" v-if="item.result == 1">鉴别为真</text>
-						<text class="false" v-else>鉴别为假</text>
+						<text class="ing" v-if="item.result == 1">待鉴定</text>
+						<text class="true" v-else-if="item.result == 2">鉴别为真</text>
+						<text class="false" v-else-if="item.result == 3">鉴别为假</text>
 						<view class="bot">
 							<text>{{item.brand_name}}</text>
 							<text>{{item.category_name}}</text>
@@ -39,8 +40,9 @@
 				<template v-slot:right="{rightList}">
 					<view class="demo-warter" v-for="(item, index) in rightList" :key="index" @click="go('./identDetail?id=' + item.id)">
 						<u-lazy-load threshold="-450" border-radius="10" :image="ImgUrl + item.image" img-mode="widthFix" :index="index"></u-lazy-load>
-						<text class="true" v-if="item.result == 1">鉴别为真</text>
-						<text class="false" v-else>鉴别为假</text>
+						<text class="ing" v-if="item.result == 1">待鉴定</text>
+						<text class="true" v-else-if="item.result == 2">鉴别为真</text>
+						<text class="false" v-else-if="item.result == 3">鉴别为假</text>
 						<view class="bot">
 							<text>{{item.brand_name}}</text>
 							<text>{{item.category_name}}</text>
@@ -339,6 +341,9 @@
 					color: #FFFFFF;
 					padding: 7rpx 10rpx;
 					border-radius: 10rpx 0 10rpx 0;
+				}
+				.ing{
+					background: #2979FF;
 				}
 				.true{
 					background: #F55454;

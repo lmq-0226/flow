@@ -1,6 +1,6 @@
 <template>
 	<view class="content">
-		<view class="top" @click="go('/pages/my/set/address/address')">
+		<view class="top" @click="go('/pages/my/set/address/address?type=leave&address=' + JSON.stringify(addressData))">
 			<view class="" v-if="addressShow">
 				<text>{{addressData.formatted_address + addressData.address}}</text>
 				<text>{{addressData.name}}  {{addressData.mobile}}</text>
@@ -36,10 +36,10 @@
 					<text>运费</text>
 					<text>¥{{goodsDetail.express_fee}}</text>
 				</view>
-				<view class="discount" @click="disPopup = true">
+				<!-- <view class="discount" @click="disPopup = true">
 					<text>优惠劵</text>
 					<text>无可用优惠劵</text>
-				</view>
+				</view> -->
 				<view class="leave">
 					<text>留言</text>
 					<u-input v-model="remarks" type="text" placeholder="请输入您的留言" input-align="right" />
@@ -138,32 +138,34 @@
 				goodsDetail: {},
 				addressData: {},
 				remarks: '',// 留言
-				type: ''
+				type: '', // consign 寄卖，sale 拍图， kind 实物鉴定， line 在线鉴定
+				pay: '' // buy买， sell 卖
 			};
 		},
 		onLoad(option) {
 			console.log(option)
 			this.goods_id = option.goods_id
+			this.pay = option.pay
 			this.type = option.type
-			if(option.type == 2){
+			this.getAddressData()
+			if(option.type == 'sale'){
 				// 拍图
 				this.getGoodsDetail('idle/goods/detail')
-			}else{
+			}else if (option.type == 'consign'){
 				// 平台寄卖
 				this.getGoodsDetail('idle/consign/detail')
 			}
+			
 		},
 		onShow(){
-			this.getAddressData()
+			
 		},
 		methods:{
 			subOrder(){
-				console.log(this.type)
-				return
-				if(this.type == 1){
-					
-					
-				}else{
+				// console.log(this.type)
+				// return
+				// 买家购买拍图商品=>提交订单
+				if(this.pay == 'buy'){
 					this.loading = true
 					this.request({
 						url: 'idle/order/add_order',
@@ -175,13 +177,33 @@
 						}
 					}).then(res=>{
 						this.loading = false
+						console.log(res, '11111111111')
 						if(res.data.code == 1){
 							uni.navigateTo({
-								url: './pay?order_id=' + res.data.data.orderInfo.id
+								url: './pay?order_id=' + res.data.data.orderInfo.id + '&type=' + this.type + '&pay=' + this.pay + '&total_amount=' + res.data.data.payInfo.total_amount
 							})
 						}
 					})
 				}
+				// }else{
+				// 	this.loading = true
+				// 	this.request({
+				// 		url: 'idle/order/add_order',
+				// 		data: {
+				// 			token: this.token,
+				// 			goods_id: this.goods_id,
+				// 			address_id: this.addressData.id,
+				// 			remarks: this.remarks
+				// 		}
+				// 	}).then(res=>{
+				// 		this.loading = false
+				// 		if(res.data.code == 1){
+				// 			uni.navigateTo({
+				// 				url: './pay?type=pay&order_id=' + res.data.data.orderInfo.id
+				// 			})
+				// 		}
+				// 	})
+				// }
 				
 			},
 			// 商品详情

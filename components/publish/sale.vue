@@ -124,7 +124,7 @@
 		height: calc(100vh - 88rpx - 90rpx);
 		/* #endif */
 		/* #ifdef APP-PLUS */
-		height: 100vh;
+		height: calc(100vh - 88rpx - 90rpx - var(--status-bar-height));
 		/* #endif */
 	}
 

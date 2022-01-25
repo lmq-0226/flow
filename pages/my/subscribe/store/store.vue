@@ -1,5 +1,5 @@
 <template>
-	<view class="content">
+	<view class="content" v-if="contentShow">
 		<view class="nav">
 			<view class="status_bar" :style="{backgroundColor: 'rgba(255,66,67,' + opacity + ')'}"></view>
 			<view class="col_flex">
@@ -7,7 +7,7 @@
 					<image src="/static/my/back.png" mode="" @click="back"></image>
 					<view class="">
 						<image src="/static/my/service2.png" mode="" @click="go('/pages/HM-chat/HM-chat?shop_id=' + storeDetail.id)"></image>
-						<image src="/static/my/wShare.png" mode=""></image>
+						<image src="/static/my/wShare.png" mode="" @click="share()"></image>
 					</view>
 				</view>
 				<view class="stopHeader">
@@ -66,7 +66,7 @@
 				</template>
 			</u-waterfall>
 			<!-- 加载更多 -->
-			<u-loadmore bg-color="#F6F5FA" :status="loadStatus" @loadmore="addRandomData"></u-loadmore>
+			<!-- <u-loadmore bg-color="#F6F5FA" :status="loadStatus" @loadmore="addRandomData"></u-loadmore> -->
 		</view>
 		<u-popup v-model="show" mode="right" width="670" @close="popupClose" :safe-area-inset-bottom="true" @touchmove.native.stop.prevent>
 			<view class="popup">
@@ -136,7 +136,7 @@
 					{text: '销量', url: ''},
 					{text: '价格', url: require('@/static/pub/updown.png')},
 					{text: '新品', url: ''},
-					{text: '筛选', url: require('@/static/filter.png')}
+					// {text: '筛选', url: require('@/static/filter.png')}
 				],
 				sortIndex: 0,
 				sort: 'weigh',	
@@ -209,7 +209,8 @@
 						]
 					}
 				],
-				storeDetail: {}
+				storeDetail: {},
+				contentShow: false
 			};
 		},
 		// 导航栏背景及字体颜色初始化
@@ -254,12 +255,15 @@
 						this.storeDetail = res.data.data
 						this.tabList = res.data.data.category
 						this.shop_category_id = res.data.data.categoryStyle
+						this.contentShow = true
 					}
 				})
 			},
 			// 店铺商品列表
 			getDataList(){
-				this.$refs.uWaterfall.clear()
+				let timer = setTimeout(()=>{
+					this.$refs.uWaterfall.clear()
+				}, 100)
 				this.request({
 					url: 'wanlshop/product/lists',
 					method: 'GET',
@@ -311,6 +315,12 @@
 			back(){
 				uni.navigateBack({
 					delta: 1
+				})
+			},
+			share(){
+				uni.showToast({
+					title: '该功能暂未开通',
+					icon: 'none'
 				})
 			},
 			// 分类

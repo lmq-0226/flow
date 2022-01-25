@@ -1,11 +1,16 @@
 <template>
 	<view class="content">
 		<view class="auth">
-			<view class="">
+			<view class="" @click="go('../authen/authen')" v-if="authen">
 				<text>实名认证</text>
-				<text>王*明</text>
+				<text>去认证</text>
 			</view>
-			<view class="" @click="go('./bindPhone')">
+			<view class="" v-else>
+				<text>实名认证</text>
+				<text>{{authenInfo.name}}</text>
+			</view>
+			<!-- @click="go('./bindPhone')" -->
+			<view class="">
 				<text>绑定手机</text>
 				<text>{{userInfo.mobile}}</text>
 			</view>
@@ -13,7 +18,7 @@
 				<text>设置登录密码</text>
 			</view>
 		</view>
-		<view class="gap">
+		<!-- <view class="gap">
 			<text>第三方账号绑定</text>
 		</view>
 		<view class="wx">
@@ -25,7 +30,7 @@
 		</view>
 		<view class="cancel">
 			<text>账户注销</text>
-		</view>
+		</view> -->
 	</view>
 </template>
 
@@ -33,13 +38,31 @@
 	export default {
 		data() {
 			return {
-				userInfo: uni.getStorageSync('userInfo') || {}
+				userInfo: uni.getStorageSync('userInfo') || {},
+				authenInfo: {},
+				authen: false
 			};
 		},
 		onLoad() {
 			console.log(uni.getStorageSync('userInfo'))
+			this.getData()
 		},
 		methods:{
+			getData(){
+				this.request({
+					url: 'userauth/info',
+					data: {
+						token: uni.getStorageSync('userInfo').token
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.authenInfo = res.data.data
+						this.authen = false
+					}else{
+						this.authen = true
+					}
+				})
+			},
 			go(e){
 				uni.navigateTo({
 					url: e

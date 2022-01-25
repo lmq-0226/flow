@@ -131,13 +131,18 @@
 				category_id: '', // 分类id
 				express_type: 2, // 1包邮/2距离估算/3固定运费
 				status: 1,// 1=在售 4=存草稿
-				area: '未知'
+				area: '未知',
+				site: ''
 				// }
 			};
 		},
 		onLoad(option) {
+			console.log(option)
 			this.getConfig()
 			this.type = option.type
+			if(option.site){
+				this.site = option.site
+			}
 			// 先获取闲置发布草稿箱 如果是1就是编辑进来的，就不请求草稿箱
 			if(option.current != 1){
 				this.getDraft(option.type)
@@ -242,7 +247,7 @@
 				})
 			},
 			// 提交发布
-			publish(e, n){
+			publish(e){
 				this.status = e // 存草稿/发布
 				this.source = this.activeList[0]
 				this.state = this.activeList[1]
@@ -323,7 +328,7 @@
 			// 拍卖
 			aucPush(){
 				// 编辑
-				if(this.id){
+				if(this.id && this.site == ''){
 					this.request({
 						url: 'idle/goods/edit',
 						data: {
@@ -379,8 +384,10 @@
 			},
 			// 寄卖
 			conPush(){
+				// console.log(this.id, this.site)
+				// return
 				// 编辑
-				if(this.id){
+				if(this.id && this.site == ''){
 					this.request({
 						url: 'idle/goods/edit',
 						data: {

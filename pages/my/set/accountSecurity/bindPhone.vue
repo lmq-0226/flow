@@ -79,23 +79,23 @@
 		methods:{
 			// 获取验证码
 			getCode(){
-				if(/^1[3|4|5|6|7|8|9][0-9]{9}$/.test(this.tell)){
-					this.status = false
-					var time = setInterval(()=>{
-						if(this.timer > 1){
-							this.timer --
-						}else{
-							this.status = false
-							this.timer = 60
-							clearInterval(time)
-						}
-					}, 1000)
-				}else{
-					uni.showToast({
-						title: '手机号为空或格式错误',
-						icon: 'none'
-					})
-				}
+				// if(/^1[3|4|5|6|7|8|9][0-9]{9}$/.test(this.tell)){
+				this.status = false
+				var time = setInterval(()=>{
+					if(this.timer > 1){
+						this.timer --
+					}else{
+						this.status = true
+						this.timer = 60
+						clearInterval(time)
+					}
+				}, 1000)
+				// }else{
+				// 	uni.showToast({
+				// 		title: '手机号为空或格式错误',
+				// 		icon: 'none'
+				// 	})
+				// }
 			},
 		}
 	}

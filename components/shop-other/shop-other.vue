@@ -93,12 +93,14 @@
 				loadStatus: 'loadmore', // 加载更多状态
 				flowList: [],
 				topMenuList: [],
-				botMenuList: []
+				botMenuList: [],
+				page: 1,
+				total: 0,
 			};
 		},
 		mounted() {
 			this.$nextTick(() => {
-				if(this.menuList.length >= 10){
+				if(this.menuList.length > 10){
 					if(this.menuList.length % 2 == 0){
 						this.topMenuList = this.menuList.slice(0,this.menuList.length/2)
 						this.botMenuList = this.menuList.slice(this.menuList.length/2)
@@ -117,7 +119,10 @@
 		},
 		methods: {
 			onRachBoom(e) {
-				console.log(e, '111')
+				if(this.flowList.length <= this.total){
+					this.page ++
+					this.getGoods()
+				}
 				// this.getGoods()
 			},
 			// 商品列表
@@ -127,11 +132,13 @@
 					method: "GET",
 					data: {
 						id: this.cid,
-						page: 1
+						page: this.page
 					},
 				}).then(res => {
 					if (res.data.code == 1) {
-						this.flowList = res.data.data.goods.data
+						this.total = res.data.data.goods.data.total
+						console.log(res)
+						this.flowList = [...this.flowList, ...res.data.data.goods.data]
 					}
 				})
 			},

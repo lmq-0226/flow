@@ -31,7 +31,7 @@
 					<text>0</text>
 					<text>关注</text>
 				</view>
-				<view class="">
+				<view class="" @click="go('/pages/my/homePage/homePage?type=1')">
 					<text>0</text>
 					<text>动态</text>
 				</view>
@@ -79,15 +79,15 @@
 					</view>
 				</view>
 				<view class="wRight">
-					<view class="">
+					<view class="" @click="go('./wallet/wallet')">
 						<text>￥{{userInfo.money || '0.00'}}</text>
 						<text>余额</text>
 					</view>
-					<view class="">
+					<view class="" @click="go('/pages/my/wallet/discount/discount')">
 						<text>{{dynamic.coupon || 0}}</text>
 						<text>优惠券</text>
 					</view>
-					<view class="">
+					<view class="" @click="go('/pages/my/wallet/gold/gold')">
 						<text>{{userInfo.score || 0}}</text>
 						<text>积分</text>
 					</view>	
@@ -177,6 +177,7 @@
 				}).then(res=>{
 					if(res.data.code == 1){
 						this.dynamic = res.data.data.statistics.dynamic
+						this.userInfo = res.data.data.userinfo
 						uni.setStorageSync('userInfo', res.data.data.userinfo)
 					}
 				})

@@ -3,7 +3,7 @@
 		<view class="tabs">
 			<u-tabs :list="list" :is-scroll="false" :current="current" @change="change" active-color="#FC493D"></u-tabs>
 		</view>
-		<scroll-view class="swiper-scroll" scroll-y="true">
+		<scroll-view class="swiper-scroll" :scroll-y="true" @scrolltolower="onRachBoom">
 			<view class="swiper-item">
 				<view class="list">
 					<view class="item" v-for="(item,index) in identList" :key="item.id" @click="next(item)">
@@ -31,6 +31,7 @@
 						<view class="bot">
 							<text>{{item.time}}</text>
 							<view class="">
+								<text class="active" v-if="item.state == 1" @click.stop="go('/pages/serve/authen/publish/pay?type=recx&id=' + item.id)">去支付</text>
 								<!-- <text @click="go('/pages/public/callCenter')">联系客服</text>
 								<text>查看物流</text>
 								<text @click="go(item.url + '?status=' + item.status)">查看详情</text> -->
@@ -41,6 +42,7 @@
 				</view>
 				<u-empty v-if="identList.length <= 0" margin-top="400" text="暂无数据" mode="data"></u-empty>
 			</view>
+			<u-loadmore :status="status" :icon-type="iconType" :load-text="loadText" />
 		</scroll-view>
 	</view>
 </template>
@@ -60,70 +62,16 @@
 				}, {
 					name: '已退款'
 				}],
-				identList: [
-					// 0 假、 1 真、 2 进行中
-					{
-						id: 2,
-						name: '李师傅',
-						price: 99,
-						status_text: '在线鉴定',
-						state_text: '进行中',
-						time: '2021.11.16',
-						url: './detail',
-						status: 2
-					},
-					{
-						id: 3,
-						name: '王师傅',
-						price: 188,
-						status_text: '在线鉴定',
-						state_text: '鉴定完成',
-						time: '2021.11.16',
-						url: '/pages/serve/authen/aller/identDetail',
-						status: 1
-					},
-					{
-						id: 8,
-						name: '王师傅',
-						price: 188,
-						status_text: '在线鉴定',
-						state_text: '鉴定完成',
-						time: '2021.11.16',
-						url: '/pages/serve/authen/aller/identDetail',
-						status: 0
-					},
-					{
-						id: 4,
-						name: '张师傅',
-						price: 88,
-						status_text: '实物鉴定',
-						state_text: '进行中',
-						time: '2021.11.16',
-						url: './payIdentDetail',
-						status: 2
-					},
-					{
-						id: 9,
-						name: '张师傅',
-						price: 88,
-						status_text: '实物鉴定',
-						state_text: '鉴定完成',
-						time: '2021.11.16',
-						url: './payIdentDetail',
-						status: 1
-					},
-					{
-						id: 5,
-						name: '李师傅',
-						price: 299,
-						status_text: '实物鉴定',
-						state_text: '鉴定完成',
-						time: '2021.11.17',
-						url: './payIdentDetail',
-						status: 0
-					}
-				],
-
+				status: 'loadmore',
+				iconType: 'flower',
+				loadText: {
+					loadmore: '轻轻上拉',
+					loading: '努力加载中',
+					nomore: '实在没有了'
+				},
+				identList: [],
+				page_count: 0, // 总页数
+				page: 1
 			};
 		},
 		onShow() {
@@ -135,19 +83,32 @@
 			})
 		},
 		methods: {
+			onRachBoom(e){
+				if(this.page < this.page_count){
+					this.page ++ 
+					this.getData()
+				}
+			},
 			getData() {
+				this.status = 'loading'
 				this.request({
 					url: 'service/order/list',
 					data: {
 						token: uni.getStorageSync('userInfo').token,
-						page_index: 1,
-						page_size: 10,
+						page_index: this.page,
+						page_size: 4,
 						type: 1,
 						keywork: ''
 					}
 				}).then(res => {
 					if (res.data.code == 1) {
-						this.identList = res.data.data.list
+						if(this.page >= this.page_count){
+							this.status = 'nomore'
+						}else{
+							this.status = 'loadmore'
+						}
+						this.page_count = res.data.data.page_count
+						this.identList = [...this.identList, ...res.data.data.list]
 						this.identList.forEach(elem=>{
 							elem.image = elem.images.split(',')[0]
 						})
@@ -307,7 +268,11 @@
 							font-weight: 500;
 							color: #686879;
 						}
-
+						.active{
+							background: #F43530;
+							color: #fff;
+							border: #fff;
+						}
 						>:nth-child(2) {
 							margin: 0 20rpx;
 						}

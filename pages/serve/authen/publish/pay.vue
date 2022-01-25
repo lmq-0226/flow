@@ -6,11 +6,10 @@
 				<text>￥</text>
 				<text>{{payInfo.total_amount}}</text>
 			</view>
-			<view class="time">
+			<!-- <view class="time">
 				<text>剩余支付时间</text>
 				<u-count-down :timestamp="timer" :show-hours="false"  color="#FF4243" separator-color="#FF4243" @end="end"></u-count-down>
-				<!-- <text>07:56</text> -->
-			</view>
+			</view> -->
 		</view>
 		<view class="payMethed">
 			<view class="item" @click="payMethed = 'alipay'">
@@ -45,7 +44,6 @@
 	export default {
 		data() {
 			return {
-				type: '',
 				payMethed: 'wechat',
 				payInfo: {
 					price: 0
@@ -53,14 +51,34 @@
 				orderInfo: {},
 				timer: '',
 				token: '',
-				order_id: ''
+				order_id: '',
+				type:'',
+				id: ''
 			};
 		},
 		onLoad(option) {
-			console.log(option)
-			this.payInfo = JSON.parse(option.payInfo)
+			if(option.payInfo){
+				this.payInfo = JSON.parse(option.payInfo)
+			}else if(option.type){
+				this.type = option.type
+				this.id = option.id
+				this.getDetail()
+			}
 		},
 		methods:{
+			getDetail(){
+				this.request({
+					url: 'service/order/detail',
+					data: {
+						token: uni.getStorageSync('userInfo').token,
+						id: this.id
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.payInfo = res.data.data.payInfo
+					}
+				})
+			},
 			getPayInfo(){
 				this.request({
 					url: 'idle/pay/service_pay',
@@ -71,33 +89,79 @@
 					}
 				}).then(res=>{
 					if(res.data.code == 1){
-						console.log(JSON.parse(res.data.data))
 						if(this.payMethed == 'wechat'){
-							uni.navigateTo({
-								url: '/pages/my/identify/identify'
-							})
 							this.wxpay(JSON.parse(res.data.data))
-							
+						}else if(this.payMethed == 'alipay'){
+							this.wxpay(res.data.data)
 						}
 					}
 				})
 			},
 			// 微信支付
 			wxpay(e){
+				let str = this.payMethed == 'wechat' ? 'wxpay' : 'alipay'
 				uni.requestPayment({
-				    "provider": "wxpay", 
+				    "provider": str, 
 				    "orderInfo": e,
 				    success: res=>{
-						// uni.navigateTo({
-						// 	url: '/pages/my/identify/identify'
-						// })
+						this.$refs.uToast.show({
+							title: '支付成功',
+							type: 'success',
+							duration: 1000,
+							callback: ()=>{
+								this.loading = false
+								if(this.type == 'recx'){
+									uni.navigateBack({
+										delta: 1
+									})
+								}else{
+									uni.navigateTo({
+										url: '/pages/my/identify/identify'
+									})
+								}
+							}
+						})
 					},
-				    complete: (all) => {
-				    	this.loading = false
-						
-				    }
+					fail: (err) => {
+						this.$refs.uToast.show({
+							title: '支付失败',
+							type: 'error',
+							duration: 1000,
+							callback: ()=>{
+								this.loading = false
+								if(this.type == 'recx'){
+									uni.navigateBack({
+										delta: 1
+									})
+								}else{
+									uni.navigateTo({
+										url: '/pages/my/identify/identify'
+									})
+								}
+							}
+						})
+					},
+					complete: (all) => {
+						console.log(all, '111111')
+					}
 				})
 			},
+			// // 微信支付
+			// wxpay(e){
+			// 	uni.requestPayment({
+			// 	    "provider": "wxpay", 
+			// 	    "orderInfo": e,
+			// 	    success: res=>{
+			// 			// uni.navigateTo({
+			// 			// 	url: '/pages/my/identify/identify'
+			// 			// })
+			// 		},
+			// 	    complete: (all) => {
+			// 	    	this.loading = false
+						
+			// 	    }
+			// 	})
+			// },
 		}
 	}
 </script>

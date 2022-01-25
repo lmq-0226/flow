@@ -4,7 +4,7 @@
 			<image :src="ImgUrl + about.logo" mode=""></image>
 		</view>
 		<view class="list">
-			<view class="" v-for="(item,index) in list" :key="index">
+			<view class="" v-for="(item,index) in list" :key="index" @click="go(item.url)">
 				<text>{{item.text}}</text>
 				<image src="/static/serve/right.png" mode=""></image>
 			</view>
@@ -18,11 +18,11 @@
 			return {
 				about: {},
 				list: [
-					{ text: '给我们打分', url: '' },
-					{ text: '公司信息', url: '' },
-					{ text: '协议与规则', url: '' },
-					{ text: '隐私政策', url: '' },
-					{ text: '检查更新', url: '' }
+					// { text: '给我们打分', url: '' },
+					// { text: '公司信息', url: '' },
+					{ text: '协议与规则', url: '/pages/public/richtext?url=index/agreement&type=user_agreement' },
+					{ text: '隐私政策', url: '/pages/public/richtext?url=index/agreement&type=privacy_protection' },
+					// { text: '检查更新', url: '' }
 				]
 			};
 		},
@@ -38,6 +38,11 @@
 					if(res.data.code == 1){
 						this.about = res.data.data
 					}
+				})
+			},
+			go(e){
+				uni.navigateTo({
+					url: e
 				})
 			}
 		}

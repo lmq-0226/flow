@@ -45,7 +45,7 @@
 		data() {
 			return {
 				type: '',
-				payMethed: 'wechat',
+				payMethed: 'alipay',
 				payInfo: {
 					price: 0
 				},
@@ -94,7 +94,7 @@
 					},
 					data: {
 						order_type: 'goods',
-						type: this.payMethed, // 余额支付
+						type: this.payMethed, // 支付方式
 						method: 'app',
 						code: '',
 						order_id: this.order_id,
@@ -102,14 +102,18 @@
 					}
 				}).then(res=>{
 					if(res.data.code == 1){
-						if(this.payMethed == 'balance'){
-							// 商品支付
-							uni.navigateTo({
-								url: '/pages/my/buy/receiving/receiving?type=pay&order_id=' + this.order_id,
-							})
-						}else{
-							this.wxpay(JSON.parse(res.data.data))
-						}
+						// if(this.payMethed == 'balance'){
+						// 	// 商品支付
+						// 	uni.navigateTo({
+						// 		url: '/pages/my/buy/receiving/receiving?type=pay&order_id=' + this.order_id,
+						// 	})
+						// }else{
+							if(this.payMethed == 'wechat'){
+								this.wxpay(JSON.parse(res.data.data))
+							}else if(this.payMethed == 'alipay'){
+								this.wxpay(res.data.data)
+							}
+						// }
 						
 						
 					}
@@ -146,7 +150,7 @@
 						}else{
 							// 寄卖支付
 							uni.navigateTo({
-								url: '/pages/leave/detail/detail?status=2',
+								url: '/pages/leave/detail/detail?status=2&type=sell',
 							})
 						}
 				    }

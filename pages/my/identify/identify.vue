@@ -41,6 +41,15 @@
 		onLoad() {
 			
 		},
+		watch:{
+			current(newVal, oldVal){
+				if(newVal == 0){
+					this.$refs.inline.getData()
+				}else{
+					this.$refs.kind.getData()
+				}
+			}
+		},
 		onShow() {
 			let timer = setTimeout(()=>{
 				this.$refs.kind.getData()
@@ -51,6 +60,11 @@
 		methods:{
 			change(e){
 				this.current = e
+				if(e == 0){
+					this.$refs.inline.getData()
+				}else{
+					this.$refs.kind.getData()
+				}
 			},
 			back(){
 				uni.switchTab({

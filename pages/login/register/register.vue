@@ -3,7 +3,7 @@
 		<!-- 适配自定义导航栏 -->
 		<view class="status_bar"></view>
 		<view class="title">
-			<text>注册流象</text>
+			<text>{{type == 'regist' ? '注册流象' : '忘记密码'}}</text>
 		</view>
 		<view class="form">
 			<!-- form表单 -->
@@ -25,20 +25,20 @@
 				<image v-if="radio" src="/static/login/radio_on.png" mode=""></image>
 				<image v-else src="/static/login/radio.png" mode=""></image>
 				<text>已经阅读同意</text>
-				<text>《用户协议》</text>
-				<text>《隐私政策》</text>
+				<text @click="go('/pages/public/richtext?url=index/agreement&type=user_agreement')">《用户协议》</text>
+				<text @click="go('/pages/public/richtext?url=index/agreement&type=privacy_protection')">《隐私政策》</text>
 				<text>和</text>
-				<text>《买家需知》</text>
+				<text @click="go('/pages/public/richtext?url=index/agreement&type=buyers_notice')">《买家需知》</text>
 			</view>
 			<!-- 登录 -->
 			<view class="register">
-				<button type="default" @click="register">注册</button>
+				<button type="default" :loading="loading" @click="register">{{type == 'regist' ? '注册' : '提交'}}</button>
 				<view class="cut">
 					<text @click="go('back')">已有账号?去登录</text>
 				</view>
 			</view>
 		</view>
-		
+		<u-toast ref="uToast" />
 		<!-- wx -->
 		<view class="wx">
 			<image src="/static/login/wx.png" mode=""></image>
@@ -51,6 +51,8 @@
 	export default {
 		data() {
 			return {
+				type: 'regist',
+				loading: false,
 				// 倒计时
 				timer: 60,
 				status: true,
@@ -114,8 +116,8 @@
 		onReady() {
 			this.$refs.uForm.setRules(this.rules);
 		},
-		onLoad() {
-			
+		onLoad(option) {
+			this.type = option.type
 		},
 		computed: {
 			
@@ -137,7 +139,7 @@
 								if(this.timer > 1){
 									this.timer --
 								}else{
-									this.status = false
+									this.status = true
 									this.timer = 60
 									clearInterval(time)
 								}
@@ -156,6 +158,7 @@
 			register(){
 				this.$refs.uForm.validate(valid => {
 					if (valid) {
+						this.loading = true
 						this.request({
 							url: 'wanlshop/user/resetpwd',
 							data: {
@@ -166,9 +169,17 @@
 							}
 						}).then(res=>{
 							if(res.data.code == 1){
-								// uni.navigateTo({
-								// 	url: '../forget/newPass?type=register'
-								// })
+								this.$refs.uToast.show({
+									title: res.data.msg,
+									type: 'success',
+									duration: 1000,
+									callback: ()=>{
+										this.loading = false
+										uni.navigateBack({
+											delta: 1
+										})
+									}
+								})
 							}
 						})
 					} else {

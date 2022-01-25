@@ -72,7 +72,7 @@
 				</view>
 			</view>
 		</view>
-		<image class="publish" src="/static/serve/publish.png" mode="" @click="go('./publish/publish')"></image>
+		<!-- <image class="publish" src="/static/serve/publish.png" mode="" @click="go('./publish/publish')"></image> -->
 	</view>
 </template>
 
@@ -230,10 +230,10 @@
 					align-items: center;
 					view{
 						text-align: center;
-						max-width: 140rpx;
+						max-width: 150rpx;
 						image{
-							width: 140rpx;
-							height: 140rpx;
+							width: 150rpx;
+							height: 120rpx;
 							background-color: #e8e8e8;
 						}
 						text{
