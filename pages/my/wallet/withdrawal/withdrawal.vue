@@ -3,24 +3,25 @@
 		<view class="">
 			<view class="top">
 				<text class="title">提现到</text>
-				<view class="" @click="go('../bankCard/bankCard')">
-					<image src="/static/my/card.png" mode=""></image>
-					<text>中国建设银行储蓄卡(5427)</text>
+				<view class="" @click="go('../bankCard/bankCard?type=select')">
+					<image :src="`/static/images/bank/${bank.bankCode}.png`"></image>
+					<!-- <image src="/static/my/card.png" mode=""></image> -->
+					<text>{{bank.bankName}}({{getCode(bank.cardCode)}})</text>
 				</view>
 			</view>
 			<view class="money">
-				<text class="title">提现金额</text>
+				<text class="title">提现金额(费率0.{{servicefee}}%)</text>
 				<view class="ip">
 					<text>¥</text>
 					<u-input v-model="money" type="number" placeholder="请输入提现金额" :custom-style="customStyle" :placeholder-style="placeholderStyle"></u-input>
 				</view>
 				<view class="hint">
-					<text>可提现 ¥1000</text>
-					<text>每日提现上限¥50000.00</text>
+					<text>可提现 ¥{{total}}</text>
+					<text>服务费¥{{totalfee}}</text>
 				</view>
 			</view>
 		</view>
-		<view class="bottom">
+		<view class="bottom" @click="deposit">
 			提现
 		</view>
 	</view>
@@ -36,21 +37,71 @@
 					letterSpacing: "5rpx"
 				},
 				placeholderStyle: "fontSize: 36rpx",
-				money: ''
+				money: '', // 提现金额
+				total: 0, // 余额
+				servicefee: 0, // 服务费
+				bank: {} // 银行卡信息
 			};
 		},
-		onLoad() {
-			
+		onLoad(option) {
+			this.getData()
 		},
 		onShow() {
 			
 		},
 		methods:{
+			deposit(){
+				this.request({
+					url: 'wanlshop/pay/withdraw',
+					header: {
+						"token": uni.getStorageSync('userInfo').token
+					},
+					data: {
+						account_id: this.bank.id,
+						money: this.money
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.getData()
+						this.money = ''
+						uni.showToast({
+							title: "提现申请发起成功",
+							icon: 'none'
+						})
+					}
+				})
+			},
+			getData(){
+				this.request({
+					url: 'wanlshop/pay/initialWithdraw',
+					header: {
+						"token": uni.getStorageSync('userInfo').token
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.total = res.data.data.money
+						this.servicefee = res.data.data.servicefee
+						this.bank = res.data.data.bank
+					}
+				})
+			},
+			// 获取尾号
+			getCode(e){
+				e = e.replace(/\s+/g,"");
+				return e.substring(e.length-4);
+			},
 			go(e){
 				uni.navigateTo({
 					url: e
 				})
 			}
+		},
+		computed:{
+			totalfee(){
+				let num = 0
+				num = (this.money * this.servicefee / 1000).toFixed(2)
+				return num
+			},
 		}
 	}
 </script>

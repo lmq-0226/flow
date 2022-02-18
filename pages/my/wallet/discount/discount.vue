@@ -25,6 +25,7 @@
 				</u-collapse>
 			</view>
 		</view>
+		<u-empty v-if="list.length <= 0" text="暂无优惠券" mode="coupon" marginTop="300"></u-empty>
 		<u-toast ref="uToast" />
 	</view>
 </template>
@@ -33,9 +34,7 @@
 	export default {
 		data() {
 			return {
-				list: [
-					
-				]
+				list: []
 			};
 		},
 		onLoad() {

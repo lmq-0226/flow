@@ -244,7 +244,6 @@
 					token: uni.getStorageSync('userInfo').token
 				},
 			}).then(res=>{
-				console.log(res, '11111')
 				if(res.data.code == 1){
 					state.list = res.data.data;
 					let count = 0;
@@ -252,15 +251,6 @@
 					dispatch('storage', {type: 'statis', number: count});
 				}
 			})
-			// api.get({
-			// 	url: '/wanlshop/chat/lists',
-			// 	success: res => {
-			// 		state.list = res;
-			// 		let count = 0;
-			// 		res.forEach(item => {count += item.count;});
-			// 		dispatch('storage', {type: 'statis', number: count});
-			// 	}
-			// });
 		},
 		// 删除指定消息
 		async del({state, dispatch, rootState}, index){

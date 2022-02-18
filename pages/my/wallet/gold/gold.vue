@@ -27,6 +27,7 @@
 		},
 		onLoad() {
 			this.getData()
+			this.total = uni.getStorageSync('userInfo').score
 		},
 		methods:{
 			go(e){
@@ -48,7 +49,7 @@
 						this.list.forEach(elem=>{
 							console.log(this.date('YmdHis',elem.createtime*1000))
 						})
-						this.total = res.data.data.total
+						// this.total = res.data.data.total
 					}
 				})
 			}

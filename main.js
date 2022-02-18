@@ -10,8 +10,8 @@ import {ImgUrl, date, socketurl} from 'utils/request.js'
 Vue.prototype.ImgUrl = ImgUrl
 Vue.prototype.date = date
 Vue.prototype.socketurl = socketurl
-// import store from 'store/store.js'
-// Vue.prototype.store = store
+import register from 'store/store.js'
+Vue.prototype.$register = register
 
 
 // 系统配置

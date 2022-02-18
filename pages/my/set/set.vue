@@ -31,7 +31,7 @@
 				setList1: [
 					{text: '账号安全', url: './accountSecurity/accountSecurity'},
 					// {text: '支付设置', url: ''},
-					// {text: '实名认证', url: './authen/authen'},
+					{text: '实名认证', url: './authen/authen'},
 					{text: '地址管理', url: './address/address'},
 					// {text: '我的尺码', url: ''}
 				],

@@ -74,13 +74,10 @@
 				page: 1
 			};
 		},
-		onShow() {
-			
-		},
 		mounted() {
-			this.$nextTick(()=>{
-				this.getData()
-			})
+			// this.$nextTick(()=>{
+			// 	this.getData()
+			// })
 		},
 		methods: {
 			onRachBoom(e){

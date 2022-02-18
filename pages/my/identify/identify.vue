@@ -42,29 +42,23 @@
 			
 		},
 		watch:{
-			current(newVal, oldVal){
-				if(newVal == 0){
-					this.$refs.inline.getData()
-				}else{
-					this.$refs.kind.getData()
-				}
-			}
+			// current(newVal, oldVal){
+			// 	if(newVal == 0){
+			// 		this.$refs.inline.getData()
+			// 	}else{
+			// 		this.$refs.kind.getData()
+			// 	}
+			// }
 		},
 		onShow() {
 			let timer = setTimeout(()=>{
 				this.$refs.kind.getData()
 				this.$refs.inline.getData()
 			}, 50)
-			
 		},
 		methods:{
 			change(e){
 				this.current = e
-				if(e == 0){
-					this.$refs.inline.getData()
-				}else{
-					this.$refs.kind.getData()
-				}
 			},
 			back(){
 				uni.switchTab({

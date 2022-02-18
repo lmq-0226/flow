@@ -2,17 +2,19 @@
 	<view class="content" :catchtouchmove="false">
 		<view class="status_bar"></view>
 		<view class="nav">
-			<view class="left" @click="go('/pages/my/homePage/homePage?type=0')">
+			<view class="left" @click="go(loginId == detail.user_id ? '/pages/my/homePage/homePage?type=myfind' : '/pages/my/homePage/homePage?type=works&id=' + detail.user_no)">
 				<image src="/static/comm/back.png" mode="" @click.stop="back"></image>
 				<image :src="ImgUrl + user.avatar" mode=""></image>
 				<view class="">
 					<text>{{user.username || user.shopname}}</text>
-					<text>9月21日·苏州市</text>
+					<text>{{detail.createtime_text}}</text>
 				</view>
 			</view>
 			<view class="right">
-				<text v-if="detail.isFollow == 1" class="attened" @click="follow">已关注</text>
-				<text v-else class="atten" @click="follow">关注</text>
+				<view class="" v-if="loginId != detail.user_id">
+					<text v-if="detail.isFollow == 1" class="attened" @click="follow">已关注</text>
+					<text v-else class="atten" @click="follow">关注</text>
+				</view>
 				<image src="/static/serve/share.png" mode="" @click="sharePopup = true"></image>
 				<image src="/static/comm/more.png" mode=""></image>
 			</view>
@@ -21,118 +23,104 @@
 			<u-swiper :list="imgList" height="750" interval="5000"></u-swiper>
 		</view>
 		<view class="made">
-			<!-- <text class="title">这双小粉我可以爱一万年</text> -->
 			<view class="desc">
 				<rich-text :nodes="detail.content"></rich-text>
-				<!-- <text>小粉色配色太好了！黑粉撞色的设计根本看不腻~甜酷甜酷的赶脚
-					麂皮的材质也为鞋子的质感加分噢~
-					用作日常的搭配也可以增加亮点
-				</text>
-				<text>@珂珂kaky @杨洋的小粉丝</text> -->
 			</view>
 			<view class="tags">
 				<view class="" v-if="detail.topic">
 					<image src="/static/comm/tag1.png" mode=""></image>
 					<text>{{detail.topic.name}}</text>
 				</view>
-				<!-- view class="">
-					<image src="/static/comm/tag2.png" mode=""></image>
-					<text>潮流圈</text>
-				</view> -->
 			</view>
-			<!-- <view class="goods">
-				<image src="/static/pub/bbt.png" mode=""></image>
-				<text>MATVUT Blood男女同款 情侣...</text>
-			</view> -->
 		</view>
 		<view class="report">
 			<image src="/static/comm/report.png" mode="" @click="showToast"></image>
 			<text @click="showToast">举报</text>
 		</view>
+		
 		<view class="comment">
 			<text class="title">{{detail.comments}}条评论</text>
 			<view class="list">
 				<!-- 评论列表 -->
 				<view class="item" v-for="(elem,cut) in comList" :key="cut">
 					<!-- 头像 -->
-					<image src="/static/comm/avatar.png" mode=""></image>
+					<image :src="ImgUrl + elem.user.avatar" mode=""></image>
 					<view class="critic">
 						<!-- 评论 -->
 						<view class="first">
 							<view class="left">
 								<view class="name">
 									<view class="">
-										<text>小马斑比</text>
-										<text class="writer" v-if="false">作者</text>
-									</view>
-									<u-icon name="play-right-fill" size="12" v-if="false"></u-icon>
-									<view class="" v-if="false">
-										<text>大马</text>
-										<text class="writer">作者</text>
+										<text>{{elem.user.nickname}}</text>
+										<text class="writer" v-if="detail.user_id == elem.user_id">作者</text>
 									</view>
 								</view>
-								<text>妈耶，这个真的好好看</text>
+								<text>{{elem.content}}</text>
 								<view class="">
-									<text>2021年9月21日</text>
-									<text>回复</text>
+									<text>{{elem.createtime_text}}</text>
+									<text class="backBt" @click="reply(elem.id)">回复</text>
 								</view>
 							</view>
-							<view class="right">
-								<image v-if="false" src="/static/comm/praise_on.png" mode=""></image>
+							<view class="right" @click="praiseCom(elem.id, cut, null)">
+								<image v-if="elem.hasLike" src="/static/comm/praise_on.png" mode=""></image>
 								<image v-else src="/static/comm/praise.png" mode=""></image>
-								<text>12</text>
+								<text>{{elem.likes}}</text>
 							</view>
 						</view>
 						<!-- 回复列表 -->
-						<view class="item" v-for="(item,index) in list" :key="index">
-							<image src="/static/comm/avatar.png" mode=""></image>
+						<view class="item" v-for="(item,index) in elem.childlist" :key="index">
+							<image :src="ImgUrl + item.user.avatar" mode=""></image>
 							<view class="critic">
 								<view class="first">
 									<view class="left">
 										<view class="name">
 											<view class="">
-												<text>小马斑比</text>
-												<text class="writer" v-if="false">作者</text>
-											</view>
-											<u-icon name="play-right-fill" size="12"></u-icon>
-											<view class="">
-												<text>大马</text>
-												<text class="writer" v-if="index == 0">作者</text>
+												<text>{{item.user.nickname}}</text>
+												<text class="writer" v-if="detail.user_id == item.user_id">作者</text>
 											</view>
 										</view>
-										<text>妈耶，这个真的好好看</text>
+										<text>{{item.content}}</text>
 										<view class="">
-											<text>2021年9月21日</text>
-											<text>回复</text>
+											<text>{{item.createtime_text}}</text>
+											<text class="backBt" @click="reply(elem.id, item.user.nickname)">回复</text>
 										</view>
 									</view>
-									<view class="right">
-										<image v-if="false" src="/static/comm/praise_on.png" mode=""></image>
+									<view class="right" @click="praiseCom(item.id, cut, index)">
+										<image v-if="item.hasLike" src="/static/comm/praise_on.png" mode=""></image>
 										<image v-else src="/static/comm/praise.png" mode=""></image>
-										<text>12</text>
+										<text>{{item.likes}}</text>
 									</view>
 								</view>
 							</view>
 						</view>
 						<!-- 加载更多回复 -->
-						<view class="" @click="load">
+						<!-- <view class="" @click="load" v-if="elem.comments > elem.children.length">
 							<u-loadmore :status="status" v-if="loadmore"/>
-						</view>
+						</view> -->
 					</view>
 				</view>
-				<view class="loading" v-if="loading">
+			<!-- 	<view class="">
+					<u-loadmore :status="comStatus" :load-text="loadText"/>
+				</view> -->
+				<!-- <view class="loading" v-if="loading">
 					<u-loading mode="flower"></u-loading>
 					<text>加载中</text>
 				</view>
-				<view class="null" v-if="comStatus">
+				<view class="null" v-else>
 					<text>暂时没有更多了~</text>
-				</view>
+				</view> -->
 			</view>
 		</view>
+		
 		<view class="bottom">
-			<u-input placeholder="来说两句..." :custom-style="customStyle" confirm-type="send" @confirm="send"/>
+			<u-input 
+				ref="reply" placeholder="来说两句..." v-model="content" 
+				:custom-style="customStyle" confirm-type="send" 
+				@confirm="send" :clearable="false" :focus="focus"
+				@click="focus = true"
+			/>
 			<view class="right">
-				<view class="" @click="praise">
+				<view class="" @click.stop="praise">
 					<image v-if="detail.isLike == 1" src="/static/my/praise_on.png" mode=""></image>
 					<image v-else src="/static/comm/praise2.png" mode=""></image>
 					<text></text>
@@ -203,6 +191,7 @@
 		</u-popup>
 		<u-toast ref="uToast" />
 		<u-back-top :scrollTop="scrollTop" top="800"></u-back-top>
+		<view class="mask" v-if="focus" @click="focus = false" @touchmove.native.stop.prevent></view>
 	</view>
 </template>
 
@@ -210,11 +199,18 @@
 	export default {
 		data() {
 			return {
+				loginId: uni.getStorageSync('userInfo').id || '', // 当前登录用户id
 				id: '',
 				scrollTop: 0,
 				imgList: [],
 				status: 'loadmore',
 				iconType: 'flower',
+				loadText: {
+					loadmore: '轻轻上拉',
+					loading: '努力加载中',
+					nomore: '实在没有了',
+					custom: ''
+				},
 				list: 2, // 回复循环数据
 				page: 0, // 分页
 				loadmore: true, // 回复列表如果加载完毕，这隐藏加载更多标签
@@ -234,7 +230,10 @@
 				collect: false, // 收藏状态
 				shareShow: uni.getStorageSync('install'),
 				detail: {},
-				user: {}
+				user: {},
+				content: '', // 评论内容
+				pid: null ,// 回复上级id
+				focus: false
 			};
 		},
 		onReady() {
@@ -242,29 +241,33 @@
 		},
 		onLoad(option) {
 			this.id = option.id
-			this.getDetail()
 		},
 		onPageScroll(e) {
 			this.scrollTop = e.scrollTop
 		},
+		onShow() {
+			this.getDetail()
+			this.getComments()
+		},
+		// 触底加载
 		onReachBottom(){
-			if(this.comList <= 0){
-				this.loading = false
-				this.comStatus = true
-				return
-			}
-			if(this.comList >= 5) return
-			this.loading = true
-			// 模拟数据加载
-			setTimeout(() => {
-				this.comList += 2;
-				if(this.comList >= 5) {
-					this.loading = false
-					this.comStatus = true
-				}else{
-					this.comStatus = false
-				} 
-			}, 2000)
+			// if(this.comList <= 0){
+			// 	this.loading = false
+			// 	this.comStatus = true
+			// 	return
+			// }
+			// if(this.comList >= 5) return
+			// this.loading = true
+			// // 模拟数据加载
+			// setTimeout(() => {
+			// 	this.comList += 2;
+			// 	if(this.comList >= 5) {
+			// 		this.loading = false
+			// 		this.comStatus = true
+			// 	}else{
+			// 		this.comStatus = false
+			// 	} 
+			// }, 2000)
 		},
 		methods:{
 			getDetail(){
@@ -290,6 +293,25 @@
 					}
 				})
 			},
+			// 获取评论列表
+			getComments(){
+				this.loading = true
+				this.request({
+					url: 'wanlshop/find/comments/getList',
+					header: {
+						token: uni.getStorageSync('userInfo').token
+					},
+					data:{
+						id: this.id
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.comList = res.data.data.list
+					}
+					this.loading = false
+				})
+			},
+			// 点赞
 			praise(){
 				this.request({
 					url: 'wanlshop/find/user/setFindUser',
@@ -302,6 +324,7 @@
 					}
 				}).then(res=>{
 					if(res.data.code == 1){
+						this.detail.isLike = res.data.data.data
 						if(res.data.data.data == 1){
 							uni.showToast({
 								title: '点赞成功',
@@ -313,10 +336,39 @@
 								icon: 'none'
 							})
 						}
-						this.getDetail()
 					}
 				})
 			},
+			// 点赞评论
+			praiseCom(e, n, m){
+				let coment = m === null ? this.comList[n] : this.comList[n].childlist[m]
+				this.request({
+					url: 'wanlshop/find/comments/likeData',
+					method: 'GET',
+					header: {
+						token: uni.getStorageSync('userInfo').token
+					},
+					data:{
+						id: e
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						coment.hasLike = res.data.data.data
+						if(res.data.data.data){
+							uni.showToast({
+								title: '点赞成功',
+								icon: 'none'
+							})
+						}else{
+							uni.showToast({
+								title: '取消成功',
+								icon: 'none'
+							})
+						}
+					}
+				})
+			},
+			// 关注
 			follow(){
 				this.request({
 					url: 'wanlshop/find/user/setFindUser',
@@ -329,6 +381,7 @@
 					}
 				}).then(res=>{
 					if(res.data.code == 1){
+						this.detail.isFollow = res.data.data.data
 						if(res.data.data.data == 1){
 							uni.showToast({
 								title: '关注成功',
@@ -340,15 +393,18 @@
 								icon: 'none'
 							})
 						}
-						this.getDetail()
 					}
 				})
 			},
+			// 举报
 			showToast() {
-				this.$refs.uToast.show({
-					title: '举报成功！',
-					type: 'success'
+				uni.navigateTo({
+					url: '/pages/public/report?article_id=' + this.detail.id + '&user_id=' + this.detail.user_id + '&type=4'
 				})
+			},
+			// 举报
+			report(){
+				
 			},
 			back(){
 				uni.navigateBack({
@@ -369,9 +425,41 @@
 					} 
 				}, 2000)
 			},
+			reply(e, n){
+				this.pid = e
+				if(n){
+					this.content = '@' + n + ' '
+					// console.log()
+				}else{
+					this.content = ''
+				}
+				this.focus = true
+			},
 			// 点击键盘右下角发送按钮
 			send(e){
-				console.log(e, '11111')
+				this.request({
+					url: 'wanlshop/find/comments/addData',
+					header: {
+						"token": uni.getStorageSync('userInfo').token,
+						"content-type": "application/json"
+					},
+					data: {
+						content: this.content,
+						find_id: this.id,
+						pid: this.pid
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						uni.showToast({
+							title: res.data.msg,
+							icon: "none"
+						})
+						this.content = ''
+						this.pid = null
+						this.focus = false
+						this.getComments()
+					}
+				})
 			},
 			go(e){
 				uni.navigateTo({
@@ -540,11 +628,13 @@
 				>:nth-child(1){
 					width: 44rpx;
 					height: 44rpx;
+					
 				}
 				>:nth-child(2){
 					width: 58rpx;
 					height: 58rpx;
 					margin: 0 11rpx 0 18rpx;
+					border-radius: 50%;
 				}
 				view{
 					height: 58rpx;
@@ -679,13 +769,15 @@
 			align-items: center;
 			padding: 20rpx;
 			image{
-				width: 44rpx;
-				height: 44rpx;
+				width: 36rpx;
+				height: 36rpx;
 				margin-right: 10rpx;
 			}
 			text{
-				font-size: 28rpx;
-				color: #333;
+				font-size: 22rpx;
+				font-family: PingFang SC;
+				font-weight: 500;
+				color: #9094A6;
 			}
 		}
 		
@@ -710,6 +802,7 @@
 					>image{
 						width: 54rpx;
 						height: 54rpx;
+						border-radius: 50%;
 						margin-right: 23rpx;
 					}
 					.critic{
@@ -730,7 +823,7 @@
 									justify-content: flex-start;
 									align-items: center;
 									
-									>view:not(:first-child){
+									view{
 										margin-left: 10rpx;
 										.writer{
 											margin-left: 5rpx;
@@ -756,13 +849,20 @@
 									color: #000000;
 								}
 								view{
-									font-size: 22rpx;
+									font-size: 24rpx;
 									font-family: PingFang SC;
 									font-weight: 500;
 									color: #9392A0;
 									display: flex;
 									justify-content: flex-start;
 									align-items: center;
+									>:nth-child(2){
+										margin-left: 20rpx;
+										font-size: 26rpx;
+										font-family: PingFang SC;
+										font-weight: boldbold;
+										color: #000000;
+									}
 								}
 							}
 							.right{
@@ -895,6 +995,78 @@
 			.close{
 				background: #fff;
 			}
+		}
+		.reportPopup{
+			padding-top: 40rpx;
+			.list{
+				padding: 28rpx 29rpx;
+				display: flex;
+				justify-content: flex-start;
+				flex-wrap: wrap;
+				text{
+					display: inline-block;
+					width: 160rpx;
+					height: 80rpx;
+					margin-top: 17rpx;
+					text-align: center;
+					line-height: 80rpx;
+					background: #F6F5FA;
+					border: 1px solid #F6F5FA;
+					border-radius: 6rpx;
+					font-size: 24rpx;
+					font-family: PingFang SC;
+					font-weight: 500;
+					color: #1C1F2F;
+				}
+				>:not(:nth-child(4n-3)){
+					margin-left: 18rpx;
+				}
+				.active{
+					background: #FFF8F7;
+					border: 1px solid #F55454;
+					color: #F55454;
+				}
+			}
+			
+			.sure{
+				margin-top: 50rpx;
+				height: 98rpx;
+				padding: 0 30rpx;
+				border-top: solid 1px #F2F2F2;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				.button{
+					display: block;
+					width: 100%;
+					height: 74rpx;
+					text-align: center;
+					line-height: 74rpx;
+					background: #F35455;
+					border-radius: 6rpx;
+					font-size: 28rpx;
+					font-family: PingFang SC;
+					font-weight: bold;
+					color: #FFFFFF;
+				}
+			}
+		
+		}
+	
+		.mask{
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100vh;
+			background: rgba(0,0,0,.5);
+		}
+		.backBt{
+			font-size: 30rpx;
+			font-family: PingFang SC;
+			font-weight: bold;
+			color: #4e4e56;
+			margin-left: 30rpx;
 		}
 	}
 </style>

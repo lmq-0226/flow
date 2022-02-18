@@ -38,10 +38,10 @@
 								<text>{{elem.content}}</text>
 								<view class="">
 									<text>{{elem.create_date}}</text>
-									<text @click="reply(elem.id)">回复</text>
+									<text class="backBt" @click="reply(elem.id)">回复</text>
 								</view>
 							</view>
-							<view class="right" @click="praise(elem.id, 'comment')">
+							<view class="right" @click="praise(elem.id, 'comment', cut, null)">
 								<image v-if="elem.likes == 1" src="/static/comm/praise_on.png" mode=""></image>
 								<image v-else src="/static/comm/praise.png" mode=""></image>
 								<text>{{elem.likes}}</text>
@@ -56,21 +56,16 @@
 										<view class="name">
 											<view class="">
 												<text>{{item.userinfo.nickname}}</text>
-												<text class="writer"  v-if="user_id == elem.user_id">作者</text>
-											</view>
-											<u-icon name="play-right-fill" size="12"></u-icon>
-											<view class="">
-												<text>大马</text>
-												<text class="writer"  v-if="user_id == elem.user_id">作者</text>
+												<text class="writer"  v-if="user_id == item.user_id">作者</text>
 											</view>
 										</view>
 										<text>{{item.content}}</text>
 										<view class="">
 											<text>{{item.create_date}}</text>
-											<text @click="reply(item.id)">回复</text>
+											<text class="backBt" @click="reply(elem.id, item.userinfo.nickname)">回复</text>
 										</view>
 									</view>
-									<view class="right" @click="praise(item.id, 'comment')">
+									<view class="right" @click="praise(item.id, 'comment', cut, index)">
 										<image v-if="item.likes == 1 " src="/static/comm/praise_on.png" mode=""></image>
 										<image v-else src="/static/comm/praise.png" mode=""></image>
 										<text>{{item.likes}}</text>
@@ -97,7 +92,7 @@
 			</view>
 		</view>
 		<view class="bottom">
-			<u-input v-model="value" placeholder="来说两句..." :custom-style="customStyle" confirm-type="send" @confirm="send"/>
+			<u-input v-model="value" placeholder="来说两句..." :custom-style="customStyle" :focus="focus" @click="focus = true" confirm-type="send" @confirm="send"/>
 			<view class="right">
 				<view class="" @click="praise(0, 'article')">
 					<image v-if="detail.isLike" src="/static/my/praise_on.png" mode=""></image>
@@ -113,6 +108,7 @@
 		</view>
 		<u-back-top :scrollTop="scrollTop" top="800"></u-back-top>
 		<u-toast ref="uToast" />
+		<view class="mask" v-if="focus" @click="focus = false" @touchmove.native.stop.prevent></view>
 	</view>
 </template>
 
@@ -134,7 +130,6 @@
 				list: 2, // 回复循环数据
 				page: 0, // 分页
 				loadmore: true, // 回复列表如果加载完毕，这隐藏加载更多标签
-				comList: 1, // 评论数据
 				loading: true ,// 评论列表加载中
 				commentList: [] ,// 评论列表
 				id: '',
@@ -147,7 +142,8 @@
 				pid: 0,
 				detail: {},
 				goodsDetail: {},
-				totalCount: 0
+				totalCount: 0, // 评论总数
+				focus: false
 			};
 		},
 		onLoad(option) {
@@ -167,7 +163,7 @@
 					if(res.data.code == 1){
 						res.data.data.content = res.data.data.content.replace(/<img /g,"<img width='100%'")
 						this.detail = res.data.data
-						
+						this.totalCount = res.data.data.comments
 					}
 				})
 			},
@@ -186,13 +182,11 @@
 				}).then(res=>{
 					if(res.data.code == 1){
 						this.commentList = res.data.data.datas
-						this.totalCount = res.data.data.totalCount
-						console.log(this.commentList)
 					}
 				})
 			},
-			
-			praise(e, n){
+			// 点赞
+			praise(e, n, x, y){
 				this.request({
 					url: 'article/index/like',
 					data: {
@@ -203,15 +197,25 @@
 					}
 				}).then(res=>{
 					if(res.data.code == 1){
+						console.log(res)
 						this.$refs.uToast.show({
 							title: res.data.msg,
 							type: 'success'
 						})
-						this.getComment()
-						this.getDetail()
+						if(e == 0){
+							this.detail.isLike = res.data.data.isLike
+							if(res.data.data.isLike){
+								this.detail.likes ++
+							}else{
+								this.detail.likes --
+							}
+						}else{
+							let coment = y === null ? this.commentList[x] : this.commentList[x].children[y]
+						}
 					}
 				})
 			},
+			// 收藏
 			collect(){
 				this.request({
 					url: 'article/index/collect',
@@ -225,7 +229,12 @@
 							title: res.data.msg,
 							type: 'success'
 						})
-						this.getDetail()
+						this.detail.isCollect = res.data.data.isCollect
+						if(res.data.data.isCollect){
+							this.detail.collections ++ 
+						}else{
+							this.detail.collections --
+						}
 					}
 				})
 			},
@@ -241,27 +250,25 @@
 					}
 				}).then(res=>{
 					if(res.data.code == 1){
-						this.getComment()
+						uni.showToast({
+							title: res.data.msg,
+							icon: "none"
+						})
 						this.value = ''
+						this.pid = 0
+						this.focus = false
+						this.getComment()
 					}
 				})
 			},
-			reply(e){
+			reply(e,n){
 				this.pid = e
-				// this.request({
-				// 	url: 'article/index/create',
-				// 	data: {
-				// 		token: uni.getStorageSync('userInfo').token,
-				// 		id: this.id,
-				// 		pid: e,
-				// 		content: this.value
-				// 	}
-				// }).then(res=>{
-				// 	if(res.data.code == 1){
-				// 		this.getComment()
-				// 		this.value = ''
-				// 	}
-				// })
+				if(n){
+					this.value = '@' + n + ' '
+				}else{
+					this.value = ''
+				}
+				this.focus = true
 			},
 			back(){
 				uni.navigateBack({
@@ -504,6 +511,21 @@
 					}
 				}
 			}
+		}
+		.mask{
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100vh;
+			background: rgba(0,0,0,.5);
+		}
+		.backBt{
+			font-size: 30rpx;
+			font-family: PingFang SC;
+			font-weight: bold;
+			color: #4e4e56;
+			margin-left: 30rpx;
 		}
 	}
 </style>

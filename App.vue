@@ -1,6 +1,20 @@
 <script>
+	// #ifdef APP-PLUS
+	var jpushModule = uni.requireNativePlugin("JG-JPush")
+	// #endif
 	export default {
 		onLaunch() {
+			// #ifdef APP-PLUS
+			jpushModule.getRegistrationID(result=>{
+				let registerID = result.registerID
+				console.log(registerID, '*************************************************************************')
+				this.$register.commit('setRegisterID', registerID)
+			})
+			// #endif
+			
+			// if(uni.getSystemInfoSync().platform == "ios"){
+				
+			// }
 			// 检测客户端更新
 			this.$store.dispatch('update/update');
 			// 仅首次打开一次性加载数据
@@ -11,14 +25,13 @@
 			this.$store.dispatch('statistics/get');
 		},
 		onShow() {
+			
 			// 启动或重启即时通讯
 			this.$store.dispatch('chat/start');
 			// #ifdef APP-PLUS
 			if(plus.runtime.isApplicationExist({ pname: 'com.tencent.mm', action: 'weixin://'})){
-				console.log(true)
 				uni.setStorageSync('install', true)
 			} else {
-				console.log(false)
 				uni.setStorageSync('install', false)
 			}
 			// #endif

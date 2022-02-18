@@ -1,17 +1,8 @@
 <template>
 	<view :class="[!tabsShow ? 'hide' : '', 'content']">
-		<view class="status_bar"></view>
-		<view class="nav">
-			<image src="/static/comm/add.png" mode="" @click="go('./publish/publish')"></image>
-			<view class="">
-				<text v-for="(item,index) in navList" :key="index" @click="change(index)" :class="navCheck == index ? 'navChecked' : ''">{{item}}</text>
-			</view>
-			<image src="/static/comm/search.png" mode=""></image>
-		</view>
-		<!-- 
 		<view class="navClass">
 			<view class="tabs">
-				<u-tabs v-if="tabsShow" :list="navClassList" :gutter="20" name="text" :is-scroll="true" :current="classCurrent" active-color="#FF4243" @change="navClassChange"></u-tabs>
+				<u-tabs v-if="tabsShow" :list="navClassList" :gutter="20" name="text" :is-scroll="true" :current="classCurrent" active-color="#FF4243" @change="change"></u-tabs>
 			</view>
 			<view class="select">
 				<u-dropdown :menu-icon-size="44" menu-icon="/static/comm/down.png" duration="300" @open="tabsShow = false" @close="tabsShow = true">
@@ -31,16 +22,17 @@
 					</u-dropdown-item>
 				</u-dropdown>
 			</view>
-		</view> -->
-		
+		</view>
 		<view class="goods">
 			<!-- 瀑布流 -->
 			<u-waterfall v-model="flowList" ref="uWaterfall">
 				<template v-slot:left="{leftList}">
-					<view class="demo-warter" v-for="(item, index) in leftList" :key="index" @click="go(item.type == 'video' ? './detail/videoList' : './detail/detail?id=' + item.id)">
-						<image v-if="item.type == 'video'" class="videoPb" src="/static/comm/video_play.png" mode=""></image>
+					<view class="demo-warter" v-for="(item, index) in leftList" :key="index"
+						@click="go(item.type == 'video' ? './detail/videoList?video=' + JSON.stringify(item) : './detail/detail?id=' + item.id)">
 						<!-- 警告：微信小程序中需要hx2.8.11版本才支持在template中结合其他组件，比如下方的lazy-load组件 -->
-						<u-lazy-load threshold="-450" border-radius="10" :image="ImgUrl + item.images[0]" img-mode="widthFix" :index="index"></u-lazy-load>
+						<u-lazy-load threshold="-450" border-radius="10"
+							:image="ImgUrl + item.images[0]"
+							img-mode="widthFix" :index="index"></u-lazy-load>
 						<!-- <view class="demo-title">
 							{{item.title}}
 						</view> -->
@@ -61,10 +53,11 @@
 					</view>
 				</template>
 				<template v-slot:right="{rightList}">
-					<view class="demo-warter" v-for="(item, index) in rightList" :key="index" @click="go(item.type == 'video' ? './detail/videoList' : './detail/detail?id=' + item.id)">
-						<image v-if="item.type == 'video'" class="videoPb" src="/static/comm/video_play.png" mode=""></image>
+					<view class="demo-warter" v-for="(item, index) in rightList" :key="index"
+						@click="go(item.type == 'video' ? './detail/videoList?video=' + JSON.stringify(item) : './detail/detail?id=' + item.id)">
 						<!-- 警告：微信小程序中需要hx2.8.11版本才支持在template中结合其他组件，比如下方的lazy-load组件 -->
-						<u-lazy-load threshold="-450" border-radius="10" :image="ImgUrl + item.images[0]" img-mode="widthFix" :index="index"></u-lazy-load>
+						<u-lazy-load threshold="-450" border-radius="10" :image="ImgUrl + item.images[0]"
+							img-mode="widthFix" :index="index"></u-lazy-load>
 						<!-- <view class="demo-title">
 							{{item.title}}
 						</view> -->
@@ -86,20 +79,36 @@
 				</template>
 			</u-waterfall>
 		</view>
+		<u-action-sheet :list="sheet_list" v-model="show" @click="next"></u-action-sheet>
 		<!-- 加载更多 -->
-		<u-loadmore bg-color="#F6F5FA" :status="loadStatus"></u-loadmore>
+		<!-- <u-loadmore bg-color="#F6F5FA" :status="loadStatus"></u-loadmore> -->
 		<!-- 返回顶部 -->
 		<u-back-top :scroll-top="scrollTop" top="1200" :duration="300"></u-back-top>
 	</view>
 </template>
 
 <script>
+	import find from '@/components/communt/find.vue'
+	import live from '@/components/communt/live.vue'
+	import imageText from '@/components/communt/image.vue'
 	export default {
+		components:{
+			find,
+			live,
+			imageText
+		},
 		data() {
 			return {
-				navCheck: 1,
-				// navList: ['关注','发现','直播'],
-				navList: ['发现'],
+				// 操作菜单
+				sheet_list: [{
+					text: '发布图文',
+				}, {
+					text: '发布视频'
+				}],
+				show: false, 
+				navCheck: 0,
+				navList: ['图文','视频'],
+				// navList: ['发现'],
 				classCurrent: 0,
 				navClassList:[
 					{id: 1, text: '推荐'},
@@ -119,17 +128,26 @@
 				page: 1
 			};
 		},
+		onPullDownRefresh() {
+			this.$refs.uWaterfall.clear()
+			this.getData()
+		},
 		onLoad() {
 			this.getData()
-			this.getCate()
-			// this.addRandomData()
+			this.getCateList()
+		},
+		onNavigationBarButtonTap(e) {
+			if(e.index == 0){
+				this.show = true
+			}else{
+				this.go('/pages/community/detail/videoList')
+			}
 		},
 		onPageScroll(e) {
 			this.scrollTop = e.scrollTop
 		},
 		// 触底加载更多，切换加载更多loading
 		onReachBottom() {
-			
 			if(this.page < this.last_page ){
 				this.page ++
 				this.getData()
@@ -139,7 +157,7 @@
 			getData(){
 				this.loadStatus = 'loading';
 				this.request({
-					url: 'wanlshop/find/find/getList?type=find&page=1',
+					url: 'wanlshop/find/find/getList',
 					header: {
 						token: uni.getStorageSync('userInfo').token
 					},
@@ -151,15 +169,21 @@
 					if(res.data.code == 1){
 						this.flowList = res.data.data.data
 						this.last_page = res.data.data.last_page
-						if(this.page >= this.last_page){
+						if (this.page >= this.last_page) {
 							this.loadStatus = 'nomore';
-						}else{
+						} else {
 							this.loadStatus = 'loadmore'
 						}
+						console.log(this.flowList)
 					}
+					let timer = setTimeout(()=>{
+						uni.stopPullDownRefresh();
+						clearTimeout(timer)
+					}, 300)
 				})
 			},
-			getCate(){
+			// 话题列表
+			getCateList(){
 				this.request({
 					url: 'wanlshop/find/find/get_topic',
 					data: {
@@ -168,40 +192,30 @@
 					}
 				}).then(res=>{
 					if(res.data.code == 1){
+						console.log(res)
+						res.data.data.unshift({
+							id: 0,
+							name: '全部'
+						})
 						this.navClassList = res.data.data
+						
 					}
 				})
 			},
 			change(e){
-				// 默认选中
-				var check = this.navList[this.navCheck]
-				// 重复点击当前选中 return
-				if(this.navList[e] == check){
-					return
-				}
-				// 当前选中 
-				this.$set(this.navList,this.navCheck,this.navList[e])
-				this.$set(this.navList,e,check)
-			},
-			navClassChange(e){
 				this.classCurrent = e
-			},
-			// 模拟数据请求
-			addRandomData() {	
-				for(let i = 0; i < 10; i++) {
-					// 产生 0 到 this.list.length - 1 的一个整数型随机数  
-					let index = this.$u.random(0, this.list.length - 1);
-					// 先转成字符串再转成对象，避免数组对象引用导致数据混乱
-					let item = JSON.parse(JSON.stringify(this.list[index]))
-					// 唯一码
-					item.id = this.$u.guid();
-					this.flowList.push(item);
-				}
 			},
 			go(e){
 				uni.navigateTo({
 					url: e
 				})
+			},
+			next(e){
+				if(e == 0){
+					this.go('/pages/community/publish/publish')
+				}else{
+					this.go('/pages/community/publish/pubVideo')
+				}
 			}
 		}
 	}
@@ -214,10 +228,11 @@
 			display: flex;
 			justify-content: space-between;
 			align-items: center;
-			padding: 0 28rpx 20rpx;
+			height: 80rpx;
+			padding: 0 20rpx;
 			position: sticky;
 			top: var(--status-bar-height);
-			z-index: 99999;
+			z-index: 999;
 			background-color: #fff;
 			border-bottom: solid 1px #f8f8f8;
 			image{
@@ -230,14 +245,11 @@
 				justify-content: center;
 				align-items: center;
 				text{
-					// font-size: 30rpx;
-					// font-family: PingFang SC;
-					// font-weight: 500;
-					// color: #000000;
 					font-size: 34rpx;
 					font-family: PingFang SC;
 					font-weight: bold;
 					color: #000000;
+					padding: 0 15rpx;
 				}
 				.navChecked{
 					font-size: 34rpx;
@@ -262,16 +274,12 @@
 				z-index: 888;
 			}
 			.select{
-				// image{
-				// 	width: 44rpx;
-				// 	height: 44rpx;
-				// }
 				/deep/ .u-dropdown__content{
 					position: fixed;
 					top: 160rpx !important;
 					height: 100vh !important;
 					/* #ifdef APP-PLUS */
-					top: 200rpx !important;
+					top: 90rpx !important;
 					/* #endif */
 					width: 750rpx;
 					right: -30rpx;
@@ -281,7 +289,7 @@
 					position: fixed;
 					top: 160rpx !important;
 					/* #ifdef APP-PLUS */
-					top: 200rpx !important;
+					top: 90rpx !important;
 					/* #endif */
 					width: 750rpx;
 					right: -30rpx;
@@ -328,6 +336,15 @@
 				}
 			}
 		}
+		.swipers{
+			/* #ifdef H5 */
+			height: calc(100vh - 186rpx);
+			/* #endif */
+			/* #ifdef APP-PLUS */
+			height: calc(100vh - 80rpx - var(--status-bar-height));
+			/* #endif */
+		}
+		
 		.demo-warter {
 			border-radius: 8px;
 			margin: 5px;

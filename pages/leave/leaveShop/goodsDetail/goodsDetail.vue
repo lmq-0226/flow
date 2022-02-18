@@ -292,13 +292,12 @@
 			// 闲置商品详情
 			getData(){
 				this.request({
-					url: 'idle/consign/detail',
+					url: 'idle/goods/detail',
 					data: {
 						token: uni.getStorageSync('userInfo').token,
 						id: this.id
 					}
 				}).then(res=>{
-					console.log(res, '111')
 					if(res.data.code == 1){
 						this.imgList = res.data.data.cdn_images
 						this.goodsDetail = res.data.data

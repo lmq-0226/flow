@@ -20,9 +20,9 @@ export default (options) => {
 		// request请求封装
 		uni.request({
 			url: url + options.url, // 请求接口地址
-			method: options.method || 'POST', // 方法从options中获取，如果没有传入method，则默认为GET，
+			method: options.method || 'POST', // 方法从options中获取，如果没有传入method，则默认为POST，
 			data: options.data, // 请求接口参数
-			dataType:'json',
+			dataType: 'json',
 			header: options.header || {
 				'content-type': 'application/x-www-form-urlencoded',
 				'Authorization': 'Bearer' + token
@@ -36,7 +36,7 @@ export default (options) => {
 							icon: 'none'
 						})
 					}
-				}else if(res.statusCode == 401){
+				}else if(res.statusCode == 401 && options.url != 'wanlshop/chat/lists' && options.url != 'wanlshop/find/find/get_topic' && options.url != 'wanlshop/user/refresh'){
 					uni.showToast({
 						title: '请登录后操作',
 						icon: 'none'

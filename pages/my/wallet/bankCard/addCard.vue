@@ -25,6 +25,7 @@
 				maxlength="18"
 				required
 			>
+				<u-icon name="camera-fill" slot="right" color="#888f8e" size="32" @click="cameraCard(0)"></u-icon>
 			</u-field>
 			<u-field
 				v-model="cardCode"
@@ -34,7 +35,10 @@
 				maxlength="16"
 				type="number"
 				required
-			></u-field>
+			>
+				<!-- <u-button size="mini" type="success">111</u-button> -->
+				<u-icon name="camera-fill" slot="right" color="#888f8e" size="32" @click="cameraBank(2)"></u-icon>
+			</u-field>
 		</view>
 		 <!--  -->
 		 <!-- <view class="next" @click="go('./verifyBank')">
@@ -49,6 +53,8 @@
 </template>
 
 <script>
+	const esandOcrModule = uni.requireNativePlugin('Esand-OcrModule');
+	const APPCODE = "b8e6f32364374130913b1877fe2098f9";
 	export default {
 		data() {
 			return {
@@ -81,6 +87,94 @@
 			};
 		},
 		methods:{
+			// 验证身份证号
+			cameraCard(e){
+				uni.request({
+					url: "http://edisocr.market.alicloudapi.com/ocr/init",
+					method: 'POST',
+					data: {
+						ocrType: e
+					},
+					header: {
+						'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+						// TODO APPCODE切勿泄漏，需替换成您的APPCODE
+						'Authorization': 'APPCODE ' + APPCODE,
+					},
+					success: (res) => {
+						uni.showLoading({
+							title: '识别中...',
+							mask: true
+						})
+						esandOcrModule.processOcr({
+							ocrType: e,
+							token: res.data.token,
+							from: 0,// 0：用相机拍摄，1：从相册中选取
+						}, result => {
+							uni.hideLoading()
+							this.idCard = JSON.parse(result.data).front.idNumber
+							this.username = JSON.parse(result.data).front.name
+						});
+					},
+					fail: (res) => {
+						uni.showToast({
+							title: '上传失败',
+							icon: 'none',
+							duration: 1500
+						})
+						return JSON.stringify(res.data);
+					},
+					complete: (res) => {
+						
+					}
+				})
+			},
+			// 验证银行卡
+			cameraBank(e){
+				uni.request({
+					// OCR 初始化后端地址, 为了您的数据安全，请保护好您的APPCODE, 最好把初始化这段逻辑放在服务器端。
+					url: "https://edisocr.market.alicloudapi.com/ocr/init",
+					method: 'POST',
+					data: {
+						ocrType: e
+					},
+					header: {
+						'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+						// TODO APPCODE切勿泄漏，需替换成您的APPCODE
+						'Authorization': 'APPCODE ' + APPCODE,
+					},
+					success: (res) => {
+						uni.showLoading({
+							title: '识别中...',
+							mask: true
+						})
+						esandOcrModule.processOcr({
+							ocrType: e,
+							token: res.data.token,
+							from: 1,// 0：用相机拍摄，1：从相册中选取
+						}, result => {
+							uni.hideLoading()
+							this.cardCode = JSON.parse(result.data).number
+							this.bankName = JSON.parse(result.data).bank
+							this.list.forEach(elem=>{
+								if(elem.bankName == this.bankName){
+									this.bankCode = elem.bankCode
+								}
+							})
+						});
+					},
+					fail: (res) => {
+						uni.showToast({
+							title: '上传失败',
+							icon: 'none',
+							duration: 1500
+						})
+						return JSON.stringify(res.data);
+					},
+					complete: (res) => {
+						
+					}
+				})
+			},
 			go(e){
 				uni.navigateTo({
 					url: e
@@ -147,7 +241,22 @@
 			sure(e){
 				this.bankCode = this.list[e].bankCode
 				this.bankName = this.list[e].bankName
-			}
+			},
+			// 图片转base64
+			urlTobase64(e){
+				return new Promise((resolved, rejected)=>{
+					uni.request({
+						url: e,
+						method: 'GET',
+						responseType: 'arraybuffer',
+						success: (res) => {
+							let base64 = wx.arrayBufferToBase64(res.data)
+							// base64 = 'data:image/jpeg;base64;' + base64
+							resolved(base64)
+						}
+					})
+				})
+			},
 		}
 	}
 </script>

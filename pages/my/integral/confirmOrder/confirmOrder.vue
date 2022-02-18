@@ -128,13 +128,24 @@
 				}).then(res=>{
 					this.loading = false
 					if(res.data.code == 1){
-						uni.navigateTo({
-							url: '/pages/my/buy/buy?current=2'
+						this.request({
+							url: 'integral/order/pay',
+							data: {
+								token: this.token,
+								order_id: res.data.data.orderid,
+								other: this.remarks,
+								address_id: this.addressData.id
+							}
+						}).then(res=>{
+							uni.navigateTo({
+								url: '/pages/my/buy/buy?current=2'
+							})
+							uni.showToast({
+								title: res.data.msg,
+								icon: 'none'
+							})
 						})
-						uni.showToast({
-							title: res.data.msg,
-							icon: 'none'
-						})
+						
 					}
 				})
 			},

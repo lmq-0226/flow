@@ -17,14 +17,17 @@
 			</view>
 		</view>
 		<view class="userList">
-			<view class="item" v-for="(item,index) in 4" :key="index" @click="go('/pages/HM-chat/HM-chat')">
-				<image src="" mode=""></image>
+			<view class="item" v-for="(item,index) in chat.list" :key="index" @click="go('/pages/HM-chat/HM-chat?shop_id=' + item.id)">
+				<image :src="ImgUrl + item.avatar" mode=""></image>
 				<view class="">
-					<view class="">
-						<text>李明</text>
-						<text>08-14</text>
+					<view class="name">
+						<text>{{item.name}}</text>
+						<text>{{$wanlshop.timeToChat(item.createtime)}}</text>
 					</view>
-					<text>您好，我马上到了，一会门口给您打电话</text>
+					<view class="content">
+						<text>{{item.content}}</text>
+						<u-badge v-if="item.count > 0" type="error" :absolute="false" :count="item.count"></u-badge>
+					</view>
 				</view>
 			</view>
 		</view>
@@ -32,6 +35,7 @@
 </template>
 
 <script>
+	import { mapState, mapActions } from 'vuex';
 	export default {
 		data() {
 			return {
@@ -45,10 +49,20 @@
 				],
 			};
 		},
+		computed: {
+			...mapState(['chat','statistics'])
+		},
+		onNavigationBarButtonTap(e){
+			this.empty()
+		},
 		onLoad() {
 			
 		},
 		methods:{
+			...mapActions({
+				del: 'chat/del', // 删除消息记录
+				empty: 'chat/empty', // 清空角标
+			}),
 			go(e){
 				uni.navigateTo({
 					url: e
@@ -142,6 +156,7 @@
 				justify-content: space-between;
 				align-items: center;
 				padding: 28rpx 0;
+				border-bottom: solid 1px #F6F5FA;
 				image{
 					width: 80rpx;
 					height: 80rpx;
@@ -157,10 +172,11 @@
 					flex-direction: column;
 					justify-content: space-between;
 					view{
-						
 						display: flex;
 						justify-content: space-between;
 						align-items: center;
+					}
+					.name{
 						>:nth-child(1){
 							font-size: 28rpx;
 							font-family: PingFang SC;
@@ -174,16 +190,18 @@
 							color: #6A6F7B;
 						}
 					}
-					>text{
-						font-size: 24rpx;
-						font-family: PingFang SC;
-						font-weight: 500;
-						color: #6A6F7B;
-						overflow: hidden;
-						-webkit-line-clamp: 1;
-						text-overflow: ellipsis;
-						display: -webkit-box;
-						-webkit-box-orient: vertical;
+					.content{
+						text{
+							font-size: 24rpx;
+							font-family: PingFang SC;
+							font-weight: 500;
+							color: #6A6F7B;
+							overflow: hidden;
+							-webkit-line-clamp: 1;
+							text-overflow: ellipsis;
+							display: -webkit-box;
+							-webkit-box-orient: vertical;
+						}
 					}
 				}
 			}

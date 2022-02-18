@@ -1,11 +1,13 @@
 <template>
 	<view class="content">
 		<view class="nav" :style="'background: url(' + bgimg + ') no-repeat;'">
-			<view class="status_bar"></view>
+			<view class="status_bar" :style="{backgroundColor: 'rgba(255,66,67,' + opacity + ')'}"></view>
 			<view class="top">
 				<view class="nav-bar" :style="{backgroundColor: 'rgba(255,66,67,' + opacity + ')'}">
-					<image src="/static/my/back.png" mode="" @click="back"></image>
 					<view class="">
+						<image src="/static/my/back.png" mode="" @click="back"></image>
+					</view>
+					<view class="nav_right">
 						<image src="/static/my/share2.png" mode="" @click="sharePopup = true"></image>
 						<image src="/static/my/more.png" mode=""></image>
 					</view>
@@ -33,14 +35,14 @@
 							<text>账号昵称</text>
 							<text>美妆类 | 流象号：{{userInfo.user_no}}</text>
 						</view>
-						<view v-if="type == 1" class="edit" @click="go('./edit')">
+						<view v-if="type == 'myfind'" class="edit" @click="go('./edit')">
 							<text>编辑资料</text>
 						</view>
 						<view class="atten" v-else>
-							<view class="added" v-if="atten" @click="atten = false">
+							<view class="added" v-if="userInfo.isFollow == 1" @click="follow">
 								<text>已关注</text>
 							</view>
-							<view class="add" v-else @click="atten = true">
+							<view class="add" v-else @click="follow">
 								<image src="/static/my/add.png" mode=""></image>
 								<text>关注</text>
 							</view>
@@ -60,9 +62,9 @@
 				<u-tabs :list="tabList" :is-scroll="false" active-color="#FC493D" :current="current" @change="change"></u-tabs>
 			</view>
 			<!-- 动态、赞过、小店组件 -->
-			<Dynamic ref="dynamic" v-show="current == 0"/>
-			<Liked ref="liked" v-show="current == 1" />
-			<Shop ref="shop" v-show="current == 2"/>
+			<Dynamic ref="dynamic" :type="type" :user_no="userInfo.user_no" v-show="current == 0"/>
+			<Liked ref="liked" :user_no="userInfo.user_no" v-show="current == 1" />
+			<!-- <Shop ref="shop" v-show="current == 2"/> -->
 		</view>
 		<u-popup v-model="sharePopup" mode="bottom" border-radius="20" @touchmove.native.stop.prevent>
 			<view class="sharePopup">
@@ -136,15 +138,14 @@
 		},
 		data() {
 			return {
-				type: 1, // 本人
+				type: 'myfind', // 1 本人 0 其他用户
+				user_id: '', // 用户id
 				atten: false,
 				opacity: 0 ,// 导航栏背景透明度
 				tabList: [{
 					name: '动态'
 				}, {
 					name: '赞过'
-				}, {
-					name: '小店'
 				}],
 				current: 0,
 				avatar: require('@/static/comm/avatar.png'),
@@ -166,6 +167,9 @@
 				backgroundColor: 'rgba($color: #fff, $alpha: 0)'
 			})
 		},
+		onPullDownRefresh() {
+			console.log(this.current)
+		},
 		// 监听页面滚动，动态设置导航栏背景
 		onPageScroll(e) {
 			this.opacity = (e.scrollTop - 80) / 125
@@ -181,6 +185,7 @@
 		},
 		// 触底加载更多，切换加载更多loading
 		onReachBottom() {
+			return
 			// 子组件触底加载操作
 			if(this.current == 0){
 				console.log('dynamic', this.$refs.dynamic)
@@ -210,7 +215,12 @@
 			}
 		},
 		onLoad(option) {
-			this.type = option.type
+			if(option.type){
+				this.type = option.type
+			}
+			if(option.id){
+				this.user_id = option.id
+			}
 		},
 		onShow() {
 			this.getUser()
@@ -221,13 +231,13 @@
 					url: 'wanlshop/find/user/userInfo',
 					data: {
 						token: uni.getStorageSync('userInfo').token,
-						id: ''
+						id: this.user_id
 					}
 				}).then(res=>{
 					if(res.data.code == 1){
 						this.userInfo = res.data.data
 						this.user = this.userInfo.user
-						
+						console.log(res)
 					}
 				})
 			},
@@ -236,6 +246,7 @@
 				// 切换tabs的时候，滚动到子组件当时切换关闭时的位置
 				if(e == 0){
 					console.log(this.$refs.dynamic.scrollTop)
+					
 					uni.pageScrollTo({
 						scrollTop: this.$refs.dynamic.scrollTop || 0
 					})
@@ -252,6 +263,34 @@
 						scrollTop: this.$refs.shop.scrollTop || 0
 					})
 				}
+			},
+			// 关注
+			follow(){
+				this.request({
+					url: 'wanlshop/find/user/setFindUser',
+					header: {
+						token: uni.getStorageSync('userInfo').token
+					},
+					data:{
+						id: this.userInfo.user_no,
+						type: 'follow'
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.userInfo.isFollow = res.data.data.data
+						if(res.data.data.data == 1){
+							uni.showToast({
+								title: '关注成功',
+								icon: 'none'
+							})
+						}else{
+							uni.showToast({
+								title: '取消成功',
+								icon: 'none'
+							})
+						}
+					}
+				})
 			},
 			go(e){
 				uni.navigateTo({
@@ -385,7 +424,11 @@
 		}
 	}
 </script>
-
+<style>
+	page{
+		background: #F6F5FA
+	}
+</style>
 <style lang="scss" scoped>
 	.content{
 		.nav{
@@ -410,11 +453,16 @@
 					z-index: 999;
 					display: flex;
 					justify-content: space-between;
-					align-content: enter;
-					padding: 20rpx;
+					align-content: center;
+					// padding: 20rpx;
+					line-height: 80rpx;
+					height: 80rpx;
 					image{
 						width: 44rpx;
 						height: 44rpx;
+					}
+					.nav_right{
+						padding-right: 30rpx;
 					}
 					view{
 						display: flex;
@@ -429,7 +477,7 @@
 					display: flex;
 					justify-content: space-between;
 					align-items: center;
-					padding: 120rpx 30rpx 0;
+					padding: 180rpx 30rpx 0;
 					image{
 						min-width: 156rpx;
 						width: 156rpx;
@@ -575,7 +623,7 @@
 				width: 100%;
 				border-radius: 20rpx 20rpx 0px 0px;
 				position: sticky;
-				top: 84rpx;
+				top: calc(80rpx + var(--status-bar-height));
 				z-index: 999;
 				border-bottom: solid 1px #F2F2F2;
 				padding: 0 100rpx;

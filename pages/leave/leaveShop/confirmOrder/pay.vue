@@ -1,7 +1,10 @@
 <template>
 	<view class="content">
 		<view class="top">
-			<text>实付金额</text>
+			<view class="detail" @click="popupShow = true">
+				<text>实付金额</text>
+				<image src="/static/leave/qmark.png" mode=""></image>
+			</view>
 			<view class="price">
 				<text>￥</text>
 				<text>{{payInfo.price}}</text>
@@ -37,6 +40,27 @@
 		<!-- <view class="pay" @click="pay">
 			<text>立即支付</text>
 		</view> -->
+		<u-popup v-model="popupShow" mode="bottom" border-radius="20" @touchmove.native.stop.prevent>
+			<view class="popup">
+				<view class="title">
+					<image src="" mode=""></image>
+					<text>总服务费</text>
+					<image src="/static/my/close.png" mode="" @click="popupShow = false"></image>
+				</view>
+				<view class="detailed">
+					<view class="item" v-for="(item,index) in priceList" :key="index">
+						<view class="left">
+							<text>{{index == 0 ? item.text : '-' + item.text}}</text>
+							<text v-if="item.type == 1" class="active">活动减免</text>
+						</view>
+						<view class="right">
+							<text v-if="item.op" class="op">{{item.op}}</text>
+							<text>{{item.money}}</text>
+						</view>
+					</view>
+				</view>
+			</view>
+		</u-popup>
 		<u-toast ref="uToast" />
 	</view>
 </template>
@@ -55,10 +79,15 @@
 				order_id: '',
 				total_amount: 0,
 				type: '', // consign 寄卖，sale 拍图， kind 实物鉴定， line 在线鉴定
-				pay: '' // buy买， sell 卖
+				pay: '',// buy买， sell 卖
+				popupShow: false,
+				priceList: [], // 费用详细列表
 			};
 		},
 		onLoad(option) {
+			if(option.priceList){
+				this.priceList = JSON.parse(option.priceList)
+			}
 			this.order_id = option.order_id
 			this.pay = option.pay
 			this.type = option.type
@@ -197,12 +226,23 @@
 		justify-content: space-between;
 		.top{
 			text-align: center;
-			>text{
-				font-size: 30rpx;
-				font-family: PingFang SC;
-				font-weight: 500;
-				color: #000000;
+			.detail{
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				text{
+					font-size: 30rpx;
+					font-family: PingFang SC;
+					font-weight: bold;
+					color: #000000;
+				}
+				image{
+					width: 36rpx;
+					height: 36rpx;
+					margin-left: 5rpx;
+				}
 			}
+			
 			.price{
 				padding: 20rpx 0;
 				text{
@@ -271,6 +311,104 @@
 			font-family: PingFang SC;
 			font-weight: bold;
 			color: #FFFFFF;
+		}
+		
+		.popup{
+			.title{
+				padding: 30rpx;
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				border-bottom: solid 1px #F6F5FB;
+				image{
+					width: 44rpx;
+					height: 44rpx;
+				}
+				text{
+					font-size: 30rpx;
+					font-family: PingFang SC;
+					font-weight: bold;
+					color: #000000;
+				}
+			}
+			.detailed{
+				padding: 35rpx 40rpx;
+				.item{
+					display: flex;
+					justify-content: space-between;
+					align-items: center;
+					padding: 10rpx 0;
+					text{
+						font-size: 22rpx;
+						font-family: PingFang SC;
+						font-weight: 500;
+						color: #6A6A79;
+					}
+					.left{
+						display: flex;
+						justify-content: flex-start;
+						align-items: center;
+						.active{
+							font-size: 18rpx;
+							color: #FF4243;
+							padding: 3rpx 6rpx;
+							border: 1px solid #FF4243;
+							border-radius: 2rpx;
+							margin-left: 7rpx;
+						}
+					}
+					.right{
+						display: flex;
+						justify-content: flex-end;
+						align-items: center;
+						.op{
+							margin-right: 7rpx;
+							text-decoration: line-through;
+						}
+					}
+				}
+				>:nth-child(1){
+					.left{
+						text{
+							font-size: 26rpx !important;
+							font-family: PingFang SC;
+							font-weight: 500;
+							color: #6A6A79;
+						}
+						
+					}
+					.right{
+						text{
+							font-size: 24rpx !important;
+							font-family: PingFang SC;
+							font-weight: 500;
+							color: #6A6A79;
+						}	
+					}
+				}
+				.bot{
+					width: 100%;
+					height: 115rpx;
+					background: url(@/static/leave/servicebg.png) no-repeat;
+					background-size: 100%;
+					display: flex;
+					justify-content: space-between;
+					align-items: center;
+					padding: 0 30rpx;
+					>:nth-child(1){
+						font-size: 30rpx;
+						font-family: PingFang SC;
+						font-weight: bold;
+						color: #000000;
+					}
+					>:nth-child(2){
+						font-size: 22rpx;
+						font-family: PingFang SC;
+						font-weight: 500;
+						color: #9094A6;
+					}
+				}
+			}
 		}
 	}
 </style>

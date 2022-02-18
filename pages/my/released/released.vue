@@ -62,14 +62,14 @@
 				if(newVal == 0){
 					this.$refs.sale.getData()
 				}else{
-					this.$refs.sale.getData()
+					this.$refs.consign.getData()
 				}
 			}
 		},
 		onShow(){
 			let timer = setTimeout(()=>{
 				this.$refs.sale.getData()
-				c
+				this.$refs.consign.getData()
 			}, 50)
 		},
 		methods:{

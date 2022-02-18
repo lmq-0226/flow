@@ -1,12 +1,17 @@
 <template>
 	<view class="content">
-		<view class="item" v-for="(item,index) in attenList" :key="item.id" @click="go('/pages/my/homePage/homePage?type=0')">
-			<view class="item_left">
-				<image :src="item.avatar" mode=""></image>
-				<text>{{item.name}}</text>
+		<view class="item" v-for="(item,index) in attenList" :key="item.id" 
+		@click="go(item.shop == null ? '/pages/my/homePage/homePage?type=works&id=' + item.user_no : '/pages/my/subscribe/store/store?id=' + item.shop.id)">
+			<view class="item_left" v-if="item.shop == null">
+				<image :src="ImgUrl + item.user.avatar" mode=""></image>
+				<text>{{item.user.username}}</text>
+			</view>
+			<view class="item_left" v-else>
+				<image :src="ImgUrl + item.shop.avatar" mode=""></image>
+				<text>{{item.shop.shopname}}</text>
 			</view>
 			<view class="item_right">
-				<text @click="show = true,cut = index">已关注</text>
+				<text @click="authen(item)">已关注</text>
 			</view>
 		</view>
 		<u-modal v-model="show" title="" content="确定取消关注吗？" :show-cancel-button="true" @confirm="sure"></u-modal>
@@ -27,10 +32,80 @@
 				cut: 0
 			};
 		},
-		onLoad() {
-			
+		onLoad(option) {
+			this.getData()
 		},
 		methods:{
+			authen(e){
+				return
+				if(e.shop == null){
+					this.request({
+						url: 'wanlshop/find/user/setFindUser',
+						data: {
+							id: e.user_no,
+							type: "follow"
+						}
+					}).then(res=>{
+						if(res.data.code == 1){
+							this.getData()
+							uni.showToast({
+								title: "取关成功",
+								icon: 'none'
+							})
+						}
+					})
+				}else{
+					this.request({
+						url: 'wanlshop/find/user/setFindUser',
+						data: {
+							id: e,
+							token: uni.getStorageSync('userInfo').token,
+							type: follow,
+						}
+					}).then(res=>{
+						if(res.data.code == 1){
+							this.getData()
+							uni.showToast({
+								title: "取关成功",
+								icon: 'none'
+							})
+						}
+					})
+				}
+				
+			},
+			getData(){
+				this.request({
+					url: "wanlshop/find/user/userInfo",
+					header: {
+						"content-type": "application/json;charset=UTF-8",
+						"token": uni.getStorageSync('userInfo').token
+					},
+					data: {
+						"token": uni.getStorageSync('userInfo').token
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.request({
+							url: "wanlshop/find/user/getList",
+							header: {
+								"content-type": "application/json;charset=UTF-8",
+								"token": uni.getStorageSync('userInfo').token
+							},
+							data: {
+								id: res.data.data.user_no,
+								page: 1,
+								type: "follow"
+							}
+						}).then(res=>{
+							if(res.data.code == 1){
+								this.attenList = res.data.data.data
+							}
+						})
+					}
+				})
+				
+			},
 			sure(){
 				this.attenList.splice(this.cut,1)
 				uni.showToast({

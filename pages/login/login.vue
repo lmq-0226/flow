@@ -61,6 +61,7 @@
 
 <script>
 	import {throttle,debounce} from '@/utils/throttle.js'
+	
 	export default {
 		data() {
 			return {
@@ -216,7 +217,8 @@
 								url: 'wanlshop/user/mobilelogin',
 								data: {
 									mobile: this.form1.tell,
-									captcha: this.form1.code
+									captcha: this.form1.code,
+									registration_id: this.$register.state.registerID
 								}
 							}).then(res=>{
 								if(res.data.code == 1){
@@ -224,7 +226,7 @@
 									this.$store.commit('setUserInfo', res.data.data.userinfo)
 									uni.setStorageSync('userInfo', res.data.data.userinfo)
 									uni.switchTab({
-										url: '../shop/shop'
+										url: '/pages/my/my'
 									})
 								}
 							})
@@ -239,7 +241,8 @@
 								data: {
 									account: this.form2.tell,
 									password: this.form2.pass,
-									client_id: uni.getStorageSync("wanlshop:chat_client_id")?uni.getStorageSync("wanlshop:chat_client_id") : ''
+									client_id: uni.getStorageSync("wanlshop:chat_client_id") ? uni.getStorageSync("wanlshop:chat_client_id") : '',
+									registration_id: this.$register.state.registerID
 								}
 							}).then(res=>{
 								if(res.data.code == 1){
@@ -249,7 +252,7 @@
 									// this.$store.commit('setUserInfo', res.data.data.userinfo)
 									uni.setStorageSync('userInfo', res.data.data.userinfo)
 									uni.switchTab({
-										url: '../shop/shop'
+										url: '/pages/my/my'
 									})
 								}
 							})

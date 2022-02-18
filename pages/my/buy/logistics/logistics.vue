@@ -35,35 +35,58 @@
 		data() {
 			return {
 				rate: [],
-				kuaidi: {}
+				kuaidi: {},
+				type: 'shop'
 			};
 		},
 		onLoad(option) {
+			if(option.type){
+				this.type = option.type
+			}
 			this.getData(option.id)
 		},
 		methods:{
 			getData(e){
-				this.request({
-					url: 'wanlshop/order/getLogistics',
-					header: {
-						token: uni.getStorageSync('userInfo').token
-					},
-					data: {
-						id: e
-					}
-				}).then(res=>{
-					if(res.data.code == 1){
-						this.rate = res.data.data.express
-						this.rate.unshift({
-							icon: res.data.data.kuaidi.logo,
-							title: '',
-							status: res.data.data.kuaidi.name,
-							context: res.data.data.order_no,
-							time: '',
-							copy: res.data.data.order_no
-						})
-					}
-				})
+				// 商城订单查询快递
+				if(this.type == 'shop'){
+					this.request({
+						url: 'wanlshop/order/getLogistics',
+						header: {
+							token: uni.getStorageSync('userInfo').token
+						},
+						data: {
+							id: e
+						}
+					}).then(res=>{
+						if(res.data.code == 1){
+							this.rate = res.data.data.express
+							this.rate.unshift({
+								icon: res.data.data.kuaidi.logo,
+								title: '',
+								status: res.data.data.kuaidi.name,
+								context: res.data.data.order_no,
+								time: '',
+								copy: res.data.data.order_no
+							})
+						}
+					})
+					// 积分商城查询快递
+				}else{
+					this.request({
+						url: 'integral/order/relative',
+						header: {
+							token: uni.getStorageSync('userInfo').token
+						},
+						data: {
+							token: uni.getStorageSync('userInfo').token,
+							order_id: e
+						}
+					}).then(res=>{
+						if(res.data.code == 1){
+							this.rate = res.data.data.list
+						}
+					})
+				}
 			},
 			copy(e){
 				setText(e)

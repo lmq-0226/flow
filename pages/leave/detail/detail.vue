@@ -72,7 +72,8 @@
 		</view>
 		<view class="bottom" v-else-if="assessInfo.state == 2">
 			<text @click="cancel()">取消寄卖</text>
-			<text class="active" @click="sure">确认寄卖</text>
+			<text class="active" @click="sure" v-if="goodsDetail.payInfo == null">确认寄卖</text>
+			<text class="active" v-else @click="go('/pages/leave/leaveShop/confirmOrder/pay?type=consign&pay=sell&order_id=' + goodsDetail.payInfo.order_id + '&total_amount=' + goodsDetail.payInfo.total_amount + '&priceList=' + JSON.stringify(priceList))">去支付</text>
 		</view>
 		<view class="bottom" v-else-if="assessInfo.state == 3">
 			<text @click="refund()">申请退款</text>
@@ -251,12 +252,9 @@
 								})
 							}
 						})
-						
 					}
-					
 				})
 			},
-			
 			// 申请退款
 			refund(){
 				this.request({
@@ -310,7 +308,6 @@
 					if(res.data.code == 1){
 						this.go('/pages/leave/leaveShop/confirmOrder/pay?type=consign&pay=sell&order_id=' + res.data.data.pay_info.order_id + '&total_amount=' + res.data.data.pay_info.total_amount)
 					}
-					
 				})
 			},
 			getEnterAddress(){
@@ -567,9 +564,9 @@
 				}
 				>:nth-child(2){
 					>:nth-child(1){
-						padding-right: 45rpx;
+						padding-right: 40rpx;
 						background: url(@/static/leave/qmark.png) no-repeat right center;
-						background-size: 50rpx;
+						background-size: 30rpx;
 					}
 				}
 				>:nth-child(3){

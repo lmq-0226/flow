@@ -28,7 +28,7 @@
 		</view>
 		<view class="bottom">
 			<text @click="call">专属热线</text>
-			<text @click="go('/pages/HM-chat/HM-chat')">在线客服</text>
+			<text @click="go('/pages/public/service')">在线客服</text>
 		</view>
 	</view>
 </template>

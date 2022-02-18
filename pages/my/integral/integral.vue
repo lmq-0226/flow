@@ -5,9 +5,9 @@
 				<text>{{total}}</text>
 				<text>可使用积分兑换商品哦~</text>
 			</view>
-			<view class="top-right">
+			<!-- <view class="top-right">
 				<text>去分享获积分</text>
-			</view>
+			</view> -->
 		</view>
 		<view class="goodsList">
 			<!-- 瀑布流 -->
@@ -39,7 +39,7 @@
 				</template>
 			</u-waterfall>
 			<!-- 加载更多 -->
-			<u-loadmore bg-color="#F6F5FA" :status="loadStatus" @loadmore="addRandomData"></u-loadmore>
+			<!-- <u-loadmore bg-color="#F6F5FA" :status="loadStatus" @loadmore="addRandomData"></u-loadmore> -->
 		</view>
 	</view>
 </template>
@@ -56,23 +56,10 @@
 		},
 		onLoad() {
 			this.getData()
-			this.getGlod()
+			this.total = uni.getStorageSync('userInfo').score
 			// this.addRandomData()
 		},
 		methods: {
-			getGlod(){
-				this.request({
-					url: 'wanlshop/user/scoreLog',
-					data: {
-						token: uni.getStorageSync('userInfo').token,
-						page: 1
-					}
-				}).then(res=>{
-					if(res.data.code == 1){
-						this.total = res.data.data.total
-					}
-				})
-			},
 			getData(){
 				this.request({
 					url: 'integral/index/index',

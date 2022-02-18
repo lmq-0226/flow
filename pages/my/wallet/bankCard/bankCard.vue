@@ -1,19 +1,15 @@
 <template>
 	<view class="content">
-		<view class="cardList">
-			<view class="item" v-for="(item,index) in bankCardList" :key="index" @click="go('./bankCardDetail?detail=' + JSON.stringify(item))">
-				<view class="type">
-					<image :src="'/static/bank/' + item.bankCode +'.png'" mode=""></image>
-					<text>{{item.bankName}}</text>
-					<text></text>
-					<text>{{item.cardType == 0 ? '储蓄卡' : ''}}</text>
-				</view>
-				<view class="number">
-					<text>**** **** **** {{item.cardCode.slice(item.cardCode.length - 4)}}</text>
-				</view>
+		<view class="margin-bj">
+			<view class="item" v-for="(item, key) in bankList" :key="item.id" @click="go('./bankCardDetail?detail=' + JSON.stringify(item))">
+				<wanl-bank :bankCode="item.bankCode" :bankName="item.bankName" :cardCode="item.cardCode" />
+				<!-- <view class="choice text-xl">
+					<text class="wlIcon-xuanze-danxuan" v-if="index == key"></text>
+					<text class="wlIcon-xuanze" v-else></text>
+				</view> -->
 			</view>
 		</view>
-		<u-empty v-if="bankCardList.length <= 0" text="暂无数据" mode="list"></u-empty>
+		<u-empty v-if="bankList.length <= 0" text="暂无数据" mode="list"></u-empty>
 		<view class="add" @click="go('./addCard')">
 			<image src="/static/my/add2.png" mode=""></image>
 			<text>添加银行卡</text>
@@ -22,119 +18,64 @@
 </template>
 
 <script>
-	export default {
-		data() {
-			return {
-				bankCardList: []
-			};
-		},
-		onLoad() {
-			console.log(1)
-			
-		},
-		onShow() {
-			console.log(2)
-			this.getBankCard()
-			
-		},
-		methods:{
-			go(e){
-				uni.navigateTo({
-					url: e
-				})
-			},
-			getBankCard(){
-				this.request({
-					url: 'wanlshop/pay/getPayAccount',
-					data: {
-						token: uni.getStorageSync('userInfo').token
-					}
-				}).then(res=>{
-					if(res.data.code == 1){
-						this.bankCardList = res.data.data
-						this.bankCardList.forEach(elem=>{
-							uni.getImageInfo({
-								src: '/static/bank/' + elem.bankCode +'.png',
-								success: res => {
-									console.log(res)
-								}
-							});
-						})
-					}
-				})
-			}
+export default {
+	data() {
+		return {
+			bankList: [],
+			index: null,
+			type: ''
+		};
+	},
+	onLoad(option) {
+		if(option.type){
+			this.type = option.type
 		}
+	},
+	onShow() {
+		this.getData()
+	},
+	methods: {
+		go(e){
+			uni.navigateTo({
+				url: e
+			})
+		},
+		getData() {
+			this.request({
+				url: 'wanlshop/pay/getPayAccount',
+				data: {
+					token: uni.getStorageSync('userInfo').token
+				}
+			}).then(res=>{
+				if(res.data.code == 1){
+					this.bankList = res.data.data
+				}
+			})
+		},
+		
 	}
+};
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 	.content{
-		padding: 20rpx 40rpx;
+		padding: 0 20rpx 20rpx;
 		height: 100vh;
 		/* #ifdef H5 */
 		height: calc(100vh - 100rpx);
 		/* #endif */
 		display: flex;
 		flex-direction: column;
+		align-items: center;
 		justify-content: space-between;
-		.cardList{
+		.margin-bj{
+			width: 100%;
 			.item{
 				width: 100%;
-				height: 170rpx;
-				padding: 30rpx;
-				margin-bottom: 20rpx;
-				background: #5468FF;
-				border-radius: 10px;
-				display: flex;
-				flex-direction: column;
-				justify-content: space-between;
-				.type{
-					display: flex;
-					justify-content: flex-start;
-					align-items: center;
-					image{
-						width: 50rpx;
-						height: 50rpx;
-						background: #fff;
-						padding: 10rpx;
-						border-radius: 50%;
-					}
-					text{
-						margin-left: 15rpx;
-					}
-					>:nth-child(2){
-						font-size: 30rpx;
-						font-family: PingFang SC;
-						font-weight: bold;
-						color: #FFFFFF;
-					}
-					>:nth-child(3){
-						display: inline-block;
-						width: 1rpx;
-						height: 20rpx;
-						background: #FFFFFF;
-					}
-					>:nth-child(4){
-						font-size: 24rpx;
-						font-family: PingFang SC;
-						font-weight: 400;
-						color: #FFFFFF;
-					}
-				}
-				.number{
-					width: 100%;
-					text-align: center;
-					text{
-						font-size: 38rpx;
-						font-family: PingFang SC;
-						font-weight: bold;
-						color: #FFFFFF;
-					}
-				}
 			}
 		}
 		.add{
-			width: 100%;
+			width: 90%;
 			height: 90rpx;
 			display: flex;
 			justify-content: center;

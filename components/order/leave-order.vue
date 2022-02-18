@@ -1,9 +1,9 @@
 <template>
 	<!-- 闲置订单详情 -->
 	<view>
-		<view class="tabs">
+		<!-- <view class="tabs">
 			<u-tabs :list="list" :is-scroll="false" :current="current" @change="change" active-color="#FC493D"></u-tabs>
-		</view>
+		</view> -->
 		<scroll-view class="swiper-scroll" :scroll-y="true">
 			<view class="list">
 				<view class="item" v-for="(item,index) in orderList" :key="item.id"
@@ -28,14 +28,14 @@
 					</view>
 					<view class="bot" >
 						<text v-if="item.state == 7" @click.stop="cancel(item.id)">删除订单</text>
-						<text v-if="item.state == 2" @click.stop="report(item.id)">申请退款</text>
+						<text v-else-if="item.state == 2" @click.stop="report(item.id)">申请退款</text>
+						<text v-else-if="item.state == 3" @click.stop="go('/pages/my/sell/logistics/logistics?order_id=' + item.id)">查询物流</text>
 						<text 
-							v-if="item.state == 1" 
+							v-else-if="item.state == 1" 
 							@click.stop="go('/pages/leave/leaveShop/confirmOrder/pay?order_id=' + item.id + '&type=' + item.type + '&pay=buy&total_amount=0')"
 						>立即支付</text>
 						
 						<text v-else-if="item.state == 2" @click.stop="go('/pages/HM-chat/HM-chat')">联系商家</text>
-						<text v-else-if="item.state == 7" @click.stop="del(item.id)">删除订单</text>
 					</view>
 				</view>
 			</view>
@@ -71,6 +71,7 @@
 			})
 		},
 		methods: {
+			// 获取列表
 			getData() {
 				this.request({
 					url: 'idle/order/order_list',
@@ -85,6 +86,7 @@
 					}
 				})
 			},
+			// 取消订单
 			cancel(e){
 				uni.showModal({
 					title: '是否取消订单',
@@ -114,21 +116,28 @@
 			},
 			// 申请退款
 			report(e){
-				this.request({
-					url: 'idle/order/apply_refund',
-					data: {
-						token: uni.getStorageSync('userInfo').token,
-						id: e,
-						reason: 0,
-						refund_content: ''
-					}
-				}).then(res=>{
-					if(res.data.code == 1){
-						this.$refs.uToast.show({
-							title: '申请成功',
-							type: 'success'
-						})
-						this.getData()
+				uni.showModal({
+					title: '是否申请退款？',
+					success: (res) => {
+						if(res.confirm){
+							this.request({
+								url: 'idle/order/apply_refund',
+								data: {
+									token: uni.getStorageSync('userInfo').token,
+									id: e,
+									reason: 0,
+									refund_content: ''
+								}
+							}).then(res=>{
+								if(res.data.code == 1){
+									this.$refs.uToast.show({
+										title: '申请成功',
+										type: 'success'
+									})
+									this.getData()
+								}
+							})
+						}
 					}
 				})
 			},
@@ -160,8 +169,7 @@
 			},
 			change(e){
 				this.current = e
-				return
-				// this.getData()
+				this.getData()
 			},
 			go(e){
 				uni.navigateTo({

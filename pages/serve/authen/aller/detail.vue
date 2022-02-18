@@ -52,7 +52,7 @@
 			</u-waterfall>
 			<u-empty v-if="flowList.length <= 0" text="暂无数据" mode="list" margin-top="200"></u-empty>
 		</view>
-		<view class="bottom">
+		<view class="bottom" v-if="type == 'line' || type == 'kind'">
 			<view class="left">
 				<image src="/static/serve/service.png" mode=""></image>
 				<text>等待人数(4)</text>
@@ -148,7 +148,6 @@
 			};
 		},
 		onLoad(option) {
-			this.type = option.type
 			this.type = option.type
 			this.category_id = option.category_id
 			this.category_name = option.category_name

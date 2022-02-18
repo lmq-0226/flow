@@ -2,12 +2,17 @@
 	<view class="content">
 		<view class="logo">
 			<image :src="ImgUrl + about.logo" mode=""></image>
+			<text>{{about.name}}</text>
 		</view>
 		<view class="list">
 			<view class="" v-for="(item,index) in list" :key="index" @click="go(item.url)">
 				<text>{{item.text}}</text>
 				<image src="/static/serve/right.png" mode=""></image>
 			</view>
+		</view>
+		<view class="copyright">
+			<text>{{about.name}} 版权所有</text>
+			<text>Copyright © {{about.copyright}}</text>
 		</view>
 	</view>
 </template>
@@ -65,6 +70,13 @@
 				width: 110rpx;
 				height: 110rpx;
 			}
+			text{
+				display: block;
+				font-size: 48rpx;
+				font-family: PingFang SC;
+				font-weight: bold;
+				color: #000000;
+			}
 		}
 		.list{
 			padding: 0 30rpx;
@@ -84,6 +96,14 @@
 					width: 44rpx;
 					height: 44rpx;
 				}
+			}
+		}
+		.copyright{
+			text-align: center;
+			text{
+				display: block;
+				font-size: 24rpx;
+				color: #aaa;
 			}
 		}
 	}

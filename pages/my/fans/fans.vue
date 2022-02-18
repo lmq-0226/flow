@@ -1,55 +1,102 @@
 <template>
 	<view class="content">
-		<view class="item" v-for="(item,index) in attenList" :key="item.id" @click="go('/pages/my/homePage/homePage?type=0')">
-			<view class="item_left">
-				<image :src="item.avatar" mode=""></image>
-				<text>{{item.name}}</text>
+		<view class="item" v-for="(item,index) in attenList" :key="item.id" @click="go()">
+			<view class="item_left" v-if="item.user">
+				<image :src="ImgUrl + item.user.avatar" mode=""></image>
+				<text>{{item.user.nickname}}</text>
 			</view>
-			<view class="item_right null" v-if="item.status">
-				<text @click.stop="modelShow(index,1)">已关注</text>
+			<view class="item_right null" v-if="item.isFollow == 1">
+				<text @click.stop="modelShow(item.user_no, 1, index)">已关注</text>
 			</view>
 			<view class="item_right" v-else>
 				<image src="/static/my/add.png" mode=""></image>
-				<text @click.stop="modelShow(index,2)">关注</text>
+				<text @click.stop="modelShow(item.user_no, 2, index)">关注</text>
 			</view>
 		</view>
 		<u-modal v-model="show" title="" :content="content" :show-cancel-button="true" @confirm="sure"></u-modal>
+		<u-empty v-if="attenList.length <= 0" text="还没有人关注您" mode="list" marginTop="300"></u-empty>
 	</view>
 </template>
 
 <script>
 	export default {
 		data() {
-			return {
-				attenList:[
-					{id: 1, avatar: require('@/static/avatar.png'), name: '每天打篮球', status: false},
-					{id: 2, avatar: require('@/static/avatar2.png'), name: '斑马芭比', status: false},
-					{id: 3, avatar: require('@/static/avatar.png'), name: '彩虹~·~', status: false},
-					{id: 4, avatar: require('@/static/avatar2.png'), name: 'ranran', status: false}
-				],
+			return {	
+				attenList:[],
 				show:false,
-				cut: 0, // 当前点击操作下标
-				content: '确定取消关注吗？'
+				user_id: '',
+				user_no: '', // 当前点击操作下标
+				content: '确定取消关注吗？',
+				page: 1,
+				cut: 0
 			};
 		},
 		onLoad() {
-			
+			this.getData()
 		},
 		methods:{
-			modelShow(e,n){
+			getData(){
+				this.request({
+					url: "wanlshop/find/user/userInfo",
+					header: {
+						"content-type": "application/json;charset=UTF-8",
+						"token": uni.getStorageSync('userInfo').token
+					},
+					data: {
+						"token": uni.getStorageSync('userInfo').token
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.request({
+							url: 'wanlshop/find/user/getList',
+							data: {
+								id: res.data.data.user_no,
+								page: this.page,
+								type: "fans"
+							}
+						}).then(res=>{
+							this.attenList = res.data.data.data
+						})
+					}
+				})
+			},
+			modelShow(e, n, m){
 				if(n == 1){
 					this.content = '确定取消关注吗？'
 				}else{
 					this.content = '确定关注该用户吗？'
 				}
-				this.cut = e
+				this.user_no = e
+				this.cut = m
 				this.show = true
+				
 			},
 			sure(){
-				this.attenList[this.cut].status = !this.attenList[this.cut].status
-				uni.showToast({
-					title: "操作成功",
-					icon: 'none'
+				// 关注/取消关注
+				this.request({
+					url: 'wanlshop/find/user/setFindUser',
+					header: {
+						token: uni.getStorageSync('userInfo').token
+					},
+					data:{
+						id: this.user_no,
+						type: 'follow'
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.attenList[this.cut].isFollow = res.data.data.data
+						if(res.data.data.data == 1){
+							uni.showToast({
+								title: '关注成功',
+								icon: 'none'
+							})
+						}else{
+							uni.showToast({
+								title: '取消成功',
+								icon: 'none'
+							})
+						}
+					}
 				})
 			},
 			go(e){

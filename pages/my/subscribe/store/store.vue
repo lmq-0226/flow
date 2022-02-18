@@ -111,26 +111,8 @@
 			return {
 				id: '',
 				shop_category_id: '',
-				current: 0,
-				tabList: [
-					{
-						name: '推荐'
-					}, {
-						name: '电影'
-					}, {
-						name: '电视剧'
-					}, {
-						name: '小视频'
-					}, {
-						name: '游戏'
-					}, {
-						name: '校园'
-					}, {
-						name: '影视'
-					}, {
-						name: '音乐'
-					},
-				],
+				current: 0, // tab索引
+				tabList: [], // 分类tabs
 				sortList: [
 					{text: '综合', url: ''},
 					{text: '销量', url: ''},
@@ -264,32 +246,34 @@
 				let timer = setTimeout(()=>{
 					this.$refs.uWaterfall.clear()
 				}, 100)
-				this.request({
-					url: 'wanlshop/product/lists',
-					method: 'GET',
-					header: {
-						'token': uni.getStorageSync('userInfo').token,
-						'Content-Type': 'application/json;charset=UTF-8'
-					},
-					data: {
-						search: '',
-						sort: this.sort,
-						order: this.order,
-						page: 1,
-						filter: {
-							"shop_id": this.id,
-							"shop_category_id": this.shop_category_id
+				let timer2 = setTimeout(()=>{
+					this.request({
+						url: 'wanlshop/product/lists',
+						method: 'GET',
+						header: {
+							'token': uni.getStorageSync('userInfo').token,
+							'Content-Type': 'application/json;charset=UTF-8'
 						},
-						op: {
-							"shop_category_id": "FIND_IN_SET"
-						},
-						type: 'goods'
-					}
-				}).then(res=>{
-					if(res.data.code == 1){
-						this.flowList = res.data.data.data
-					}
-				})
+						data: {
+							search: '',
+							sort: this.sort,
+							order: this.order,
+							page: 1,
+							filter: {
+								"shop_id": this.id,
+								"shop_category_id": this.shop_category_id
+							},
+							op: {
+								"shop_category_id": "FIND_IN_SET"
+							},
+							type: 'goods'
+						}
+					}).then(res=>{
+						if(res.data.code == 1){
+							this.flowList = res.data.data.data
+						}
+					})
+				}, 120)
 			},
 			// 订阅&取消订阅
 			sub(e){

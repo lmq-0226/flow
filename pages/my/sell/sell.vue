@@ -21,7 +21,8 @@
 				</view>
 				<view class="bot">
 					<text v-if="item.state == 7" @click.stop="del(item.id)">删除订单</text>
-					<text v-if="item.type == 'sale'" @click.stop="go('/pages/my/sell/deliver/deliver?order_id=' + item.id)">去发货</text>
+					<text v-else-if="item.state == 3" @click.stop="go('/pages/my/sell/logistics/logistics?order_id=' + item.id)">查询物流</text>
+					<text v-else-if="item.type == 'sale' && item.state == 2" @click.stop="go('/pages/my/sell/deliver/deliver?order_id=' + item.id)">去发货</text>
 				</view>
 			</view>
 		</view>
@@ -44,6 +45,9 @@
 			return true
 		},
 		onLoad() {
+			
+		},
+		onShow() {
 			this.getData()
 		},
 		methods:{

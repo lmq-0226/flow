@@ -38,6 +38,9 @@
 			})
 		},
 		onLoad() {
+			
+		},
+		onShow() {
 			this.getBalance()
 		},
 		methods:{

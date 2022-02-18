@@ -86,7 +86,7 @@
 					{text: '销量', url: ''},
 					{text: '价格', url: require('@/static/pub/updown.png')},
 					{text: '新品', url: ''},
-					{text: '筛选', url: require('@/static/filter.png')}
+					// {text: '筛选', url: require('@/static/filter.png')}
 				],
 				sortIndex: 0,
 				loadStatus: 'loadmore', // 加载更多状态

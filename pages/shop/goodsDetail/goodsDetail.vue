@@ -163,7 +163,7 @@
 		</view>
 		<view class="bottom">
 			<view class="b_left" @click="collect">
-				<image v-if="goodsDetail.like" src="/static/shop/collect_on.png" mode=""></image>
+				<image v-if="goodsDetail.follow" src="/static/shop/collect_on.png" mode=""></image>
 				<image v-else src="/static/shop/collect.png" mode=""></image>
 				<text>收藏</text>
 			</view>
@@ -416,6 +416,11 @@
 			getData(){
 				this.request({
 					url: 'wanlshop/product/goods',
+					header: {
+						'content-type': 'application/json;charset=UTF-8',
+						token: uni.getStorageSync('userInfo').token
+					},
+					method: 'GET',
 					data: {
 						id: this.id
 					}
@@ -451,17 +456,28 @@
 			collect(){
 				this.request({
 					url: 'wanlshop/product/follow',
-					data: {
+					method: 'POST',
+					header: {
 						token: uni.getStorageSync('userInfo').token,
-						id: this.id
+						'content-type': 'application/json;charset=UTF-8'
+					},
+					data: {
+						id: Number(this.id)
 					}
 				}).then(res=>{
 					if(res.data.code == 1){
-						this.$refs.uToast.show({
-							title: res.data.msg,
-							type: 'success'
-						})
-						this.getData()
+						if(res.data.data){
+							this.$refs.uToast.show({
+								title: '关注成功',
+								type: 'success'
+							})
+						}else{
+							this.$refs.uToast.show({
+								title: '取消成功',
+								type: 'success'
+							})
+						}
+						this.goodsDetail.follow = res.data.data
 					}
 				})
 			},

@@ -8,46 +8,50 @@
 			<!-- 瀑布流 -->
 			<u-waterfall v-model="flowList" ref="uWaterfall">
 				<template v-slot:left="{leftList}">
-					<view class="demo-warter" v-for="(item, index) in leftList" :key="index" @click="go('./goodsDetail/goodsDetail')">
+					<view class="demo-warter" v-for="(item, index) in leftList" :key="index" @click="go(item)">
 						<!-- 警告：微信小程序中需要hx2.8.11版本才支持在template中结合其他组件，比如下方的lazy-load组件 -->
-						<u-lazy-load threshold="-450" border-radius="10" :image="item.image" img-mode="widthFix" :index="index"></u-lazy-load>
+						<u-lazy-load v-if="item.type == 'want'" threshold="-450" border-radius="10" :image="ImgUrl + item.images[0]" img-mode="widthFix" :index="index"></u-lazy-load>
+						<u-lazy-load v-else threshold="-450" border-radius="10" :image="ImgUrl + item.video_url + '?x-oss-process=video/snapshot,t_1000,f_jpg'" img-mode="widthFix" :index="index"></u-lazy-load>
 						<view class="demo-title">
 							{{item.title}}
 						</view>
 						<text class="first" v-if="index == 0">置顶</text>
 						<view class="bot">
 							<view class="avatar">
-								<image src="" mode=""></image>
-								<text>珂珂</text>
+								<!-- <image src="" mode=""></image> -->
+								<text>{{item.createtime_text}}</text>
 							</view>
 							<view class="">
 								<image src="/static/comm/praise.png" mode=""></image>
-								<text>1542</text>
+								<text>{{item.likes}}</text>
 							</view>
 						</view>
+						<image v-if="item.type == 'video'" class="video" src="/static/serve/player.png" mode=""></image>
 					</view>
 				</template>
 				<template v-slot:right="{rightList}">
-					<view class="demo-warter" v-for="(item, index) in rightList" :key="index" @click="go('./goodsDetail/goodsDetail')">
-						<u-lazy-load threshold="-450" border-radius="10" :image="item.image" img-mode="widthFix" :index="index"></u-lazy-load>
+					<view class="demo-warter" v-for="(item, index) in rightList" :key="index" @click="go(item)">
+						<u-lazy-load v-if="item.type == 'want'" threshold="-450" border-radius="10" :image="ImgUrl + item.images[0]" img-mode="widthFix" :index="index"></u-lazy-load>
+						<u-lazy-load v-else threshold="-450" border-radius="10" :image="ImgUrl + item.video_url + '?x-oss-process=video/snapshot,t_1000,f_jpg'" img-mode="widthFix" :index="index"></u-lazy-load>
 						<view class="demo-title">
 							{{item.title}}
 						</view>
 						<view class="bot">
 							<view class="avatar">
-								<image src="" mode=""></image>
-								<text>珂珂</text>
+								<!-- <image src="" mode=""></image> -->
+								<text>{{item.createtime_text}}</text>
 							</view>
 							<view class="">
 								<image src="/static/comm/praise.png" mode=""></image>
-								<text>1542</text>
+								<text>{{item.likes}}</text>
 							</view>
 						</view>
+						<image v-if="item.type == 'video'" class="video" src="/static/serve/player.png" mode=""></image>
 					</view>
 				</template>
 			</u-waterfall>
 			<!-- 加载更多 -->
-			<u-loadmore v-if="flowList.length > 0" bg-color="#F6F5FA" :status="loadStatus" @loadmore="addRandomData"></u-loadmore>
+			<!-- <u-loadmore v-if="flowList.length > 0" bg-color="#F6F5FA" :status="loadStatus" @loadmore="addRandomData"></u-loadmore> -->
 			<!-- 返回顶部 -->
 			<u-back-top :scroll-top="scrollTop" top="1000" :duration="300"></u-back-top>
 		</view>
@@ -58,87 +62,58 @@
 
 <script>
 	export default {
+		name: 'dynamic',
+		props:{
+			user_no: {
+				type: [String,Number],
+				default: ''
+			},
+			type: {
+				type: String,
+				default: 'myfind'
+			}
+		},
 		data() {
 			return {
 				loadStatus: 'loadmore', // 加载更多状态 loading加载中 nomore没有更多了
 				dynamic: 1,
 				flowList: [],
-				list: [
-					{
-						price: 35,
-						title: '北国风光，千里冰封，万里雪飘',
-						shop: '李白杜甫白居易旗舰店',
-						image: 'http://pic.sc.chinaz.com/Files/pic/pic9/202002/zzpic23327_s.jpg',
-					},
-					{
-						price: 75,
-						title: '望长城内外，惟余莽莽',
-						shop: '李白杜甫白居易旗舰店',
-						image: 'http://pic.sc.chinaz.com/Files/pic/pic9/202002/zzpic23325_s.jpg',
-					},
-					{
-						price: 385,
-						title: '大河上下，顿失滔滔',
-						shop: '李白杜甫白居易旗舰店',
-						image: 'http://pic2.sc.chinaz.com/Files/pic/pic9/202002/hpic2119_s.jpg',
-					},
-					{
-						price: 784,
-						title: '欲与天公试比高',
-						shop: '李白杜甫白居易旗舰店',
-						image: 'http://pic2.sc.chinaz.com/Files/pic/pic9/202002/zzpic23369_s.jpg',
-					},
-					{
-						price: 7891,
-						title: '须晴日，看红装素裹，分外妖娆',
-						shop: '李白杜甫白居易旗舰店',
-						image: 'http://pic2.sc.chinaz.com/Files/pic/pic9/202002/hpic2130_s.jpg',
-					},
-					{
-						price: 2341,
-						shop: '李白杜甫白居易旗舰店',
-						title: '江山如此多娇，引无数英雄竞折腰',
-						image: 'http://pic1.sc.chinaz.com/Files/pic/pic9/202002/zzpic23346_s.jpg',
-					},
-					{
-						price: 661,
-						shop: '李白杜甫白居易旗舰店',
-						title: '惜秦皇汉武，略输文采',
-						image: 'http://pic1.sc.chinaz.com/Files/pic/pic9/202002/zzpic23344_s.jpg',
-					},
-					{
-						price: 1654,
-						title: '唐宗宋祖，稍逊风骚',
-						shop: '李白杜甫白居易旗舰店',
-						image: 'http://pic1.sc.chinaz.com/Files/pic/pic9/202002/zzpic23343_s.jpg',
-					},
-					{
-						price: 1678,
-						title: '一代天骄，成吉思汗',
-						shop: '李白杜甫白居易旗舰店',
-						image: 'http://pic1.sc.chinaz.com/Files/pic/pic9/202002/zzpic23343_s.jpg',
-					},
-					{
-						price: 924,
-						title: '只识弯弓射大雕',
-						shop: '李白杜甫白居易旗舰店',
-						image: 'http://pic1.sc.chinaz.com/Files/pic/pic9/202002/zzpic23343_s.jpg',
-					},
-					{
-						price: 8243,
-						title: '俱往矣，数风流人物，还看今朝',
-						shop: '李白杜甫白居易旗舰店',
-						image: 'http://pic1.sc.chinaz.com/Files/pic/pic9/202002/zzpic23343_s.jpg',
-					},
-				],
-				scrollTop: 0
+				list: [],
+				scrollTop: 0,
 			};
 		},
 		created() {
-			this.addRandomData()
-			console.log('dynamic 动态组件')
+			
+		},
+		mounted() {
+			this.$nextTick(()=>{
+				let timer = setTimeout(()=>{
+					console.log(this.user_no, '11111')
+					this.getData()
+				}, 200)
+			})
 		},
 		methods:{
+			getData(){
+				this.request({
+					url: 'wanlshop/find/find/getList',
+					method: 'GET',
+					header: {
+						"content-type": "application/json;charset=UTF-8",
+						"token": uni.getStorageSync('userInfo').token
+					},
+					data: {
+						type: this.type,
+						user_no: this.user_no,
+						page: 1
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						console.log(res)
+						this.flowList = res.data.data.data
+					}
+				})
+			},
 			// 模拟数据请求
 			addRandomData() {	
 				for(let i = 0; i < 10; i++) {
@@ -152,9 +127,16 @@
 				}
 			},
 			go(e){
-				uni.navigateTo({
-					url: e
-				})
+				console.log(e)
+				if(e.type == 'want'){
+					uni.navigateTo({
+						url: "/pages/community/detail/detail?id=" + e.id
+					})
+				}else{
+					uni.navigateTo({
+						url: "/pages/community/detail/videoList?video=" + JSON.stringify(e)
+					})
+				}
 			}
 		},
 		
@@ -170,6 +152,7 @@
 			display: flex;
 			justify-content: flex-start;
 			align-items: center;
+			background: #fff;
 			text{
 				font-size: 22rpx;
 				font-family: PingFang SC;
@@ -186,12 +169,20 @@
 		}
 		.goods{
 			background-color: #F6F5FA;
+			
 			.demo-warter {
 				border-radius: 8px;
 				margin: 5px;
 				background-color: #ffffff;
 				padding: 8px;
 				position: relative;
+				.video{
+					position: absolute;
+					width: 44rpx;
+					height: 44rpx;
+					top: 20rpx;
+					right: 20rpx;
+				}
 				.first{
 					position: absolute;
 					top: 30rpx;

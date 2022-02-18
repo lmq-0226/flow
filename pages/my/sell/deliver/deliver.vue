@@ -8,7 +8,6 @@
 			</u-field>
 			<u-field
 				v-model="express_no"
-				type="number"
 				label="快递单号"
 				placeholder="请填写快递单号"
 			>

@@ -6,14 +6,14 @@
 		<scroll-view class="swiper-scroll" :scroll-y="true" @scrolltolower="onRachBoom">
 			<view class="list">
 				<view class="item" v-for="(item,index) in orderList" :key="index"
-					@click="go('/pages/my/buy/receiving/receiving?order_id=' + item.id)">
-					<!-- <view class="title">
+					@click="go('/pages/my/integral/orderDetail/orderDetail?order_id=' + item.id + '&status=' + item.status)">
+					<view class="title">
 						<view class="">
-							<text>{{item.shop.shopname}}</text>
+							<!-- <text>{{item.shop.shopname}}</text> -->
 						</view>
 						<text
-							class="ing">{{item.state == 1 ? '待付款' : (item.state == 2 ? '待发货' : (item.state == 3 ? '待收货' : (item.state == 7 ? '已取消' : (item.state == 6 ? '已完成' : ''))))}}</text>
-					</view> -->
+							class="ing">{{item.status == 0 ? '未支付' : (item.status == 1 ? '待发货' : (item.status == 2 ? '待收货' : (item.status == 3 ? '已签收' : '')))}}</text>
+					</view>
 					<view class="goods" v-for="(elem, cut) in item.order_goods" :key="cut">
 						<view class="avatar">
 							<image :src="ImgUrl + elem.goods_thumb" mode=""></image>
@@ -24,22 +24,15 @@
 							<text>¥{{elem.score}}</text>
 						</view>
 					</view>
-					<view class="bot" v-if="item.state == 1">
+					<view class="bot" v-if="item.status == 0">
 						<text @click.stop="cancel(item.id)">取消订单</text>
 						<text @click.stop="go('/pages/shop/goodsDetail/confirmOrder/pay?order_id=' + item.id)">立即支付</text>
 					</view>
-					<view class="bot" v-else-if="item.state == 2">
-						<text @click.stop="go('/pages/HM-chat/HM-chat?shop_id=' + item.shop_id)">联系商家</text>
-					</view>
-					<view class="bot" v-else-if="item.state == 3">
-						<text @click.stop="go('./logistics/logistics?id=' + item.id)">查看物流</text>
+					<view class="bot" v-else-if="item.status == 2">
+						<text @click.stop="go('/pages/my/buy/logistics/logistics?id=' + item.id + '&type=integral')">查看物流</text>
 						<text class="active">确认收货</text>
 					</view>
-					<view class="bot" v-else-if="item.state == 4">
-						<text @click.stop="go('./logistics/logistics?id=' + item.id)">查看物流</text>
-						<text class="active" @click.stop="go('/pages/my/buy/comment/comment?order_id=' + item.id)">评价订单</text>
-					</view>
-					<view class="bot" v-else-if="item.state == 7">
+					<view class="bot" v-else-if="item.status == 7">
 						<text @click.stop="del(item.id)">删除订单</text>
 					</view>
 				</view>
@@ -62,9 +55,9 @@
 					{
 						name: '全部'
 					}, {
-						name: '待兑换'
+						name: '未支付'
 					}, {
-						name: '已兑换'
+						name: '已支付'
 					},{
 						name: '已发货'
 					},{
@@ -83,7 +76,7 @@
 		methods: {
 			
 			onRachBoom(){
-				
+				console.log(111)
 			},
 			getData() {
 				this.request({
@@ -98,7 +91,6 @@
 				}).then(res => {
 					if (res.data.code == 1) {
 						this.orderList = res.data.data.list
-						console.log(this.orderList, '111111111')
 					}
 				})
 			},

@@ -6,11 +6,15 @@ Vue.use(Vuex)
 
 const store = new Vuex.Store({
 	state: {
-		userInfo: uni.getStorageSync('userInfo') || {} // 登录用户信息
+		userInfo: uni.getStorageSync('userInfo') || {}, // 登录用户信息
+		registerID: '' // 极光注册id
 	},
 	mutations: {
 		setUserInfo(state, data){
 			state.userInfo = data
+		},
+		setRegisterID(state, data){
+			state.registerID = data
 		}
 	},
 	getters: {

@@ -1,0 +1,491 @@
+<template>
+	<view class="container">
+		<list @loadmore="getData" :loadmoreoffset="wHeight" :pagingEnabled="true" :scrollable="true" :show-scrollbar="false">
+		    <!-- 注意事项: 不能使用 index 作为 key 的唯一标识 模拟数据,接口数据使用id-->
+			<cell :recycle="true" v-for="(item, cut) in dataList" :key="cut" @appear="apear(item,cut)">
+				<!-- <block v-if="Math.abs(index - cut)<=1"> -->
+					<view class="item" :style="boxStyle" >
+						<chunlei-video class="video" :src="item.video_url" :height="height" :width="width"
+							:play="item.flag" v-if="Math.abs(index - cut)<=1" :gDuration="item.duration"
+							:initialTime="item.initialTime" @pause="pauseVideo" :objectFit="item.objectFit"
+							@playEnd="playEnd" @add="commentAdd">
+						</chunlei-video>
+						<!-- <video v-if="Math.abs(index - cut)<=1" ref="myVideos" :id="item.videoId" :src="item.videoSrc" :enable-progress-gesture="false"
+							:page-gesture="false" :controls="true" :show-fullscreen-btn="false" :show-center-play-btn="true"
+							:style="boxStyle" object-fit="fill" :poster="item.videoSrc+'?x-oss-process=video/snapshot,t_1000,f_jpg'" 
+							@play="play" :loop="true" 
+						></video> -->
+						<view class="right">
+							<view class="avatar">
+								<image class="avatarImg" src="/static/comm/avatar.png" mode=""></image>
+								<image v-if="attenList.indexOf(item.id) > -1"  class="add" src="/static/comm/atten.png" mode="" @click="atten(item.id,$event)"></image>
+								<image v-else class="add" src="/static/comm/add2.png" mode="" @click="atten(item.id,$event)"></image>
+							</view>
+							<view class="opera" @click="praise(item.id,$event)">
+								<image class="opera_img" v-if="praiseList.indexOf(item.id) > -1" src="/static/comm/videoPraiseOn.png" mode=""></image>
+								<image class="opera_img" v-else src="/static/comm/videoPraise.png" mode=""></image>
+								<text class="opera_text">{{item.like}}</text>
+							</view>
+							<view class="opera" @click="open">
+								<image class="opera_img" src="/static/comm/videoComment.png" mode=""></image>
+								<text class="opera_text">{{item.comment}}</text>
+							</view>
+							<view class="opera" @click="shareShow">
+								<image class="opera_img" src="/static/comm/videoShare.png" mode=""></image>
+								<text class="opera_text">转发</text>
+							</view>
+						</view>
+						<view class="info">
+							<view class="lettle">
+								<text class="nickname">@不是肥肥肥肥</text>
+								<view class="eye">
+									<image class="eye_img" src="/static/comm/eye.png" mode=""></image>
+									<text class="eye_num">231</text>
+								</view>
+							</view>
+							<view class="darg">
+								<text class="darg_text">#</text>
+								<text class="darg_text">高级穿搭</text>
+								<text class="darg_text">初秋穿搭</text>
+								<text class="darg_text">粉棕色高级感美式复古INS风</text>
+							</view>
+							<view class="desc">
+								<text :class="['desc_text']">{{item.status ? item.desc.substr(0, 55) + '· · ·' : item.desc }}</text>
+								<text class="open" v-if="item.status && item.desc.length > 55" @click.stop="item.status = false,$event.stopPropagation()">展开</text>
+								<text class="open" v-else-if="!item.status && item.desc.length > 55" @click="item.status = true,$event.stopPropagation()">收起</text>
+							</view>
+						</view>
+					</view>
+				<!-- </block> -->
+			</cell>
+		</list>
+		<view class="mask" :style="{'height': wHeight}" v-if="sharePopup" @click="hideSharePopup"></view>
+		<view :class="['popup', sharePopup ? 'showPopup' : '']" @click="">
+			<view class="title">
+				<text class="title_text">分享至</text>
+			</view>
+			<view class="shares">
+				<view class="share_item" v-for="(elem,index) in shareList" :key="index">
+					<image class="share_img" :src="elem.src" mode=""></image>
+					<text class="share_text">{{elem.text}}</text>
+				</view>
+			</view>
+			<view class="cancel" @click="hideSharePopup">
+				<text class="cancel_text">取消</text>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	import chunleiVideo from '@/components/chunlei-video/chunlei-video'
+	import {
+		request,
+		ImgUrl
+	} from '@/utils/request.js'
+	export default {
+		components: {
+			chunleiVideo
+		},
+		data() {
+			return {
+				index: 0,
+				dataList: [
+					{
+						id: 1, 
+						state : 'pause', 
+						like: 9865,
+						comment: 1588,
+						videoId: 'video1',
+						videoSrc: 'http://app.51liuxiang.com/uploads/20220210/16903ad8c3f05f0d8b21193ffb7e8ee3.mp4',
+						desc:'这件菱格深得我心 搭配同色系同材这件菱格深得我心 搭配同色系同材这件菱格深得我心 搭配同色系同材这件菱格深得我心 搭配同色系同材这件菱格深得我心 搭配同色系同材这件菱格深得我心 搭配同色系同材',
+						status: true
+					}, 
+					{
+						id: 2, 
+						state : 'pause', 
+						like: '3.2W',
+						comment: 5888,
+						videoId: 'video2',
+						videoSrc: 'http://app.51liuxiang.com/uploads/20220210/16903ad8c3f05f0d8b21193ffb7e8ee3.mp4',
+						desc:'搭配同色系同材这件菱格深得我心 搭配同色系同材这件菱格深得我心 搭配同色系同材这件菱格深得我心 搭配同色系同材',
+						status: false
+					}, 
+					{
+						id: 3, 
+						state : 'pause', 
+						like: 5,
+						comment: 58,
+						videoId: 'video3',
+						videoSrc: 'http://app.51liuxiang.com/uploads/20220210/16903ad8c3f05f0d8b21193ffb7e8ee3.mp4',
+						desc:'这件菱格深得我心 搭配同色系同材这件菱格深得我心 搭配同色系同材这件菱格深得我心 搭配同色系同材这件菱格深得我心 搭配同色系同材这件菱格深得我心 搭配同色系同材这件菱格深得我心 搭配同色系同材',
+						status: true
+					}
+				],
+				wHeight:0,
+				boxStyle:{
+					'height': 0,
+					'width':'750rpx',
+				},
+				obj: {},
+				cut: 0,
+				touchNum: 0, // 双击
+				praiseList: [], // 点赞过的数据id
+				attenList: [], // 关注列表
+				sharePopup: false,// 分享弹窗
+				shareList: [
+					{
+						src: require('@/static/comm/wxfriend.png'),
+						text: '微信好友'
+					},
+					{
+						src: require('@/static/comm/wxcircle.png'),
+						text: '朋友圈'
+					},
+					{
+						src: require('@/static/comm/copy.png'),
+						text: '复制链接'
+					},
+					{
+						src: require('@/static/comm/downLoad.png'),
+						text: '下载至相册'
+					},
+					{
+						src: require('@/static/comm/photo.png'),
+						text: '生成分享图'
+					}
+				],
+				install: false,
+				videoId: '',
+				videoSrc: ''
+			};
+		},
+		onReady() {
+			this.wHeight = uni.getSystemInfoSync().windowHeight
+			this.boxStyle.height = this.wHeight
+		},
+		onLoad(option) {
+			this.dataList[0].videoSrc = 'http://app.51liuxiang.com' + option.video_url
+			console.log(this.dataList[0].videoSrc)
+		},
+		onShow() {
+			this.install = uni.getStorageSync('install')
+			if(!this.install){
+				this.shareList.splice(0, 2)
+			}
+		},
+		methods:{
+			shot(){
+				console.log(1111)
+			},
+			getData(){
+				for (let i = 0; i < 2; i++) {
+					this.dataList.push({
+						id: this.dataList.length+1,
+						state : 'pause', 
+						like: this.dataList.length,
+						comment: 1588,
+						videoId: 'video' + (this.dataList.length+1),
+						videoSrc: 'http://app.51liuxiang.com/uploads/20220210/16903ad8c3f05f0d8b21193ffb7e8ee3.mp4',
+						desc:'这件菱格深得我心 搭配同色系同材这件菱格深得我心 搭配同色系同材这件菱格深得我心 搭配同色系同材这件菱格深得我心 搭配同色系同材这件菱格深得我心 搭配同色系同材这件菱格深得我心 搭配同色系同材',
+						status: true
+					});
+				}
+				console.log(this.dataList.length)
+			},
+			// 当前滑块即当前播放的视频
+			apear(e,n){
+				this.index = n
+				// this.videoId = e.videoId
+				// this.videoSrc = e.videoSrc
+				
+				this.$refs.myVideos.forEach(elem=>{
+					if(elem.attr.id != e.videoId){
+						// 关闭其他视频
+						uni.createVideoContext(elem.attr.id).pause()
+						uni.createVideoContext(elem.attr.id).seek(0)
+					}else{
+						this.show = elem.attr.id
+						// 播放当前视频
+						uni.createVideoContext(elem.attr.id).play()
+					}
+				})
+			},
+			// 点赞
+			praise(e,n){
+				if(this.praiseList.indexOf(e) > -1){
+					let index = this.praiseList.indexOf(e)
+					this.praiseList.splice(index, 1)
+				}else{
+					this.praiseList.push(e)
+				}
+				// #ifdef APP-NVUE
+				n.stopPropagation()
+				// #endif
+			},
+			// 关注
+			atten(e,n){ 	
+				if(this.attenList.indexOf(e) > -1){
+					let index = this.attenList.indexOf(e)
+					this.attenList.splice(index, 1)
+				}else{
+					this.attenList.push(e)
+				}
+				// #ifdef APP-NVUE
+				n.stopPropagation()
+				// #endif
+			},
+			open(e){
+				// #ifdef APP-PLUS
+				// 通过 id 获取 nvue 子窗体
+				const subNVue = uni.getSubNVueById('comment')  
+				// 打开 nvue 子窗体  
+				subNVue.show('slide-in-bottom', 300, function(){});  
+				// #endif
+				e.stopPropagation()
+			},
+			shareShow(e){
+				this.sharePopup = true
+				e.stopPropagation()
+			},
+			hideSharePopup(e){
+				this.sharePopup = false
+				e.stopPropagation()
+			},
+			// 双击暂停、开始播放
+			dblclick(e,n){
+				console.log(e)
+				this.touchNum ++
+				let timer = setTimeout(()=>{
+					if(this.touchNum == 1){
+						// 单击
+						console.log(e, 111)
+					}
+					if(this.touchNum >= 2){
+						console.log(e, 222)
+						// 双击
+						if(this.praiseList.indexOf(e) > -1){
+							let index = this.praiseList.indexOf(e)
+							this.praiseList.splice(index, 1)
+						}else{
+							this.praiseList.push(e)
+						}
+					}
+					this.touchNum = 0
+					clearTimeout(timer)
+				},250)
+				// #ifdef APP-NVUE
+				n.stopPropagation()
+				// #endif
+			}
+		}
+	}
+</script>
+
+<style lang="scss" scoped>
+	.container{
+		flex: 1;
+		.item {
+			width : 750rpx;
+			flex: 1;
+			align-items: center;
+			justify-content: center;
+			position: relative;
+			border: solid 1px #fff;
+			.right{
+				position: absolute;
+				/* #ifdef !APP-NVUE */
+				right: 20rpx;
+				top: 50%;
+				transform: translateY(-50%);
+				/* #endif */
+				/* #ifdef APP-NVUE */
+				width: 730rpx;
+				justify-content: flex-start;
+				align-items: flex-end;
+				/* #endif */
+				z-index: 99999;
+				.avatar{
+					display: flex;
+					justify-content: flex-start;
+					align-items: center;
+					.avatarImg{
+						width: 80rpx;
+						height: 80rpx;
+						border-bottom-left-radius: 50%;
+						border-bottom-right-radius: 50%;
+						border-top-left-radius: 50%;
+						border-top-right-radius: 50%;
+					}
+					.add{
+						width: 44rpx;
+						height: 44rpx;
+						margin-top: -19rpx;
+						border-bottom-left-radius: 50%;
+						border-bottom-right-radius: 50%;
+						border-top-left-radius: 50%;
+						border-top-right-radius: 50%;
+					}
+				}
+				.opera{
+					display: flex;
+					justify-content: flex-start;
+					align-items: center;
+					margin-top: 20rpx;
+					.opera_img{
+						width: 70rpx;
+						height: 70rpx;
+					}
+					.opera_text{
+						font-size: 24rpx;
+						font-family: PingFang SC;
+						font-weight: 500;
+						color: #FFFFFF;
+					}
+				}
+			}
+			
+			.info{
+				position: absolute;
+				left: 25rpx;
+				bottom: 150rpx;
+				width: 580rpx;
+				.lettle{
+					flex-direction: row;
+					justify-content: flex-start;
+					align-items: center;
+					.nickname{
+						font-size: 36rpx;
+						font-family: PingFang SC;
+						font-weight: bold;
+						color: #F6F5FA;
+					}
+					.eye{
+						flex-direction: row;
+						justify-content: flex-start;
+						align-items: center;
+						margin-left: 24rpx;
+						padding: 0 18rpx;
+						background: #000000;
+						opacity: 0.3;
+						border-radius: 20rpx;
+						.eye_img{
+							width: 40rpx;
+							height: 40rpx;
+						}
+						.eye_num{
+							font-size: 20rpx;
+							font-family: PingFang SC;
+							font-weight: 500;
+							color: #FFFFFF;
+						}
+					}
+				}
+				.darg{
+					flex-direction: row;
+					flex-wrap: wrap;
+					margin: 20rpx 0;
+					.darg_text{
+						font-size: 30rpx;
+						font-family: PingFang SC;
+						font-weight: bold;
+						color: #FFFFFF;
+					}
+				}
+				.desc{
+					position: relative;
+					// flex-direction: row;
+					justify-content: flex-start;
+					align-items: flex-start;
+					flex-wrap: wrap;
+					.desc_text{
+						font-size: 30rpx;
+						font-family: PingFang SC;
+						font-weight: bold;
+						color: #FFFFFF;
+					}
+					.open{
+						position: absolute;
+						right: 0;
+						bottom: 0;
+						font-size: 30rpx;
+						font-family: PingFang SC;
+						font-weight: bold;
+						color: #FFFFFF;
+					}
+				}
+			}
+		}
+		
+		// 分享弹窗
+		
+		.popup{
+			background: #fff;
+			width: 750rpx;
+			height: 400rpx;
+			position: fixed;
+			bottom: 0;
+			border-top-left-radius: 20rpx;
+			border-top-right-radius: 20rpx;
+			transform: translateY(400rpx);
+			transition: transform 0.3s;
+			justify-content: space-between;
+			.title{
+				padding: 40rpx 0;
+				align-items: center;
+				.title_text{
+					font-size: 30rpx;
+					font-family: PingFang SC;
+					font-weight: bold;
+					color: #000000;
+				}
+			}
+			
+			.shares{
+				flex-direction: row;
+				padding: 0 50rpx;
+				justify-content: space-between;
+				.share_item{
+					align-items: center;
+					.share_img{
+						width: 88rpx;
+						height: 88rpx;
+					}
+					.share_text{
+						margin-top: 17rpx;
+						font-size: 22rpx;
+						font-family: PingFang SC;
+						font-weight: 500;
+						color: #333333;
+					}
+				}
+			}
+			
+			.cancel{
+				height: 97rpx;
+				justify-content: center;
+				align-items: center;
+				border-top: solid 1px #F2F2F2;
+				.cancel_text{
+					font-size: 30rpx;
+					font-family: PingFang SC;
+					font-weight: 500;
+					color: #333333;
+				}
+			}
+		}
+		.showPopup{
+			transform: translateY(0rpx);
+			transition-property:transform;
+			transition-duration: 0.3s;
+		}
+		// 遮罩
+		.mask{
+			flex: 1;
+			position: absolute;
+			width: 750rpx;
+			background: rgba(0,0,0,0.5);
+		}
+		
+	}
+</style>

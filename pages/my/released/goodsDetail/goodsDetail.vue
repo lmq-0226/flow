@@ -2,7 +2,7 @@
 	<view class="content" :catchtouchmove="false">
 		<view class="status_bar"></view>
 		<view class="nav">
-			<view class="left" @click="go('/pages/my/homePage/homePage?type=0')">
+			<view class="left" @click="go(loginId == goodsDetail.user_id ? '/pages/my/homePage/homePage?type=myfind' : '/pages/my/homePage/homePage?type=works&id=' + goodsDetail.user_no)">
 				<image src="/static/comm/back.png" mode="" @click.stop="back"></image>
 				<image :src="user.url" mode=""></image>
 				<view class="">
@@ -11,8 +11,10 @@
 				</view>
 			</view>
 			<view class="right">
-				<text v-if="atten" class="attened" @click="atten = false">已关注</text>
-				<text v-else class="atten" @click="atten = true">关注</text>
+				<!-- <view class="" v-if="loginId != goodsDetail.user_id">
+					<text v-if="goodsDetail.isFollow == 1" class="attened" @click="follow">已关注</text>
+					<text v-else class="atten" @click="follow">关注</text>
+				</view> -->
 				<image src="/static/serve/share.png" mode="" @click="sharePopup = true"></image>
 				<image src="/static/comm/more.png" mode=""></image>
 			</view>
@@ -46,7 +48,14 @@
 			</view>
 			<view class="detail">
 				<image v-for="(item,index) in goodsDetail.cdn_images" :key="index" :src="item" mode="widthFix" @click="pvew(index,goodsDetail.cdn_images)"></image>
-				<text>{{goodsDetail.like_nums}}人想要·浏览{{goodsDetail.view_nums}}</text>
+				<view class="delBot">
+					<!-- {{goodsDetail.like_nums}}人想要· -->
+					<text>浏览{{goodsDetail.view_nums}}</text>
+					<view class="report" @click="go('/pages/public/report?goods_id=' + goodsDetail.id + '&user_id=' + goodsDetail.user_id + '&type=3')">
+						<image src="/static/comm/report.png" mode=""></image>
+						<text>举报</text>
+					</view>
+				</view>
 			</view>
 		</view>
 		
@@ -66,16 +75,11 @@
 										<text>{{elem.user.nickname}}</text>
 										<text class="writer" v-if="goodsDetail.user_id == elem.user_id">作者</text>
 									</view>
-									<u-icon name="play-right-fill" size="12" v-if="false"></u-icon>
-									<view class="" v-if="false">
-										<text>大马</text>
-										<text class="writer">作者</text>
-									</view>
 								</view>
 								<text>{{elem.content}}</text>
 								<view class="">
 									<text>{{elem.createtime}}</text>
-									<text @click="reply(elem.id)">回复</text>
+									<text class="backBt" @click="reply(elem.id)">回复</text>
 								</view>
 							</view>
 							<view class="right">
@@ -86,7 +90,7 @@
 						</view>
 						<!-- 回复列表 -->
 						<view class="item" v-for="(item,index) in elem.children" :key="index">
-							<image :src="item.user.avatar" mode=""></image>
+							<image :src="ImgUrl + item.user.avatar" mode=""></image>
 							<view class="critic">
 								<view class="first">
 									<view class="left">
@@ -95,16 +99,11 @@
 												<text>{{item.user.nickname}}</text>
 												<text class="writer" v-if="goodsDetail.user_id == item.user_id">作者</text>
 											</view>
-											<u-icon name="play-right-fill" size="12"></u-icon>
-											<view class="">
-												<text>大马</text>
-												<text class="writer" v-if="index == 0">作者</text>
-											</view>
 										</view>
 										<text>{{item.content}}</text>
 										<view class="">
 											<text>{{item.createtime}}</text>
-											<text @click="reply(item.id)">回复</text>
+											<text class="backBt" @click="reply(elem.id, item.user.nickname)">回复</text>
 										</view>
 									</view>
 									<view class="right">
@@ -136,10 +135,15 @@
 		<view class="bottom">
 			<!-- <u-input placeholder="来说两句..." :custom-style="customStyle" confirm-type="send" @confirm="send"/> -->
 			<view class="right">
-				<view class="" @click="enshrine">
+				<view class="" @click="enshrine('collect')">
 					<image v-if="goodsDetail.isCollect" src="/static/my/collect_on.png" mode=""></image>
 					<image v-else src="/static/comm/collect.png" mode=""></image>
 					<text>收藏</text>
+				</view>
+				<view class="" @click="enshrine('want')">
+					<image v-if="goodsDetail.isLikes" src="/static/my/praise_on.png" mode=""></image>
+					<image v-else src="/static/comm/praise2.png" mode=""></image>
+					<text>想要</text>
 				</view>
 				<view class="" @click="reply(0)">
 					<image src="/static/my/mes_comment.png" mode=""></image>
@@ -150,9 +154,7 @@
 				<text>{{goodsDetail.status_text}}</text>
 			</view>
 			<view class="btns" v-else>
-				<text>卖同款</text>
-				<!-- 购买拍图商品 -->
-				<text @click="go('/pages/leave/leaveShop/confirmOrder/confirmOrder?type=sale&pay=buy&goods_id=' + goodsDetail.id)">我想要</text>
+				<text @click="go('/pages/leave/leaveShop/confirmOrder/confirmOrder?type=sale&pay=buy&goods_id=' + goodsDetail.id)">前往购买</text>
 			</view>
 		</view>
 		<u-popup v-model="sharePopup" mode="bottom" border-radius="20" @touchmove.native.stop.prevent>
@@ -226,6 +228,7 @@
 	export default {
 		data() {
 			return {
+				loginId: uni.getStorageSync('userInfo').id || '', // 当前登录用户id
 				id: '',
 				scrollTop: 0,
 				status: 'loadmore',
@@ -373,22 +376,26 @@
 					} 
 				}, 2000)
 			},
-			// 收藏
-			enshrine(){
+			// 收藏 / 想要
+			enshrine(e){
 				this.request({
 					url: 'idle/goods/collect',
 					data: {
 						token: uni.getStorageSync('userInfo').token,
 						goods_id: this.id,
-						type: 'collect'
+						type: e
 					}
 				}).then(res=>{
 					if(res.data.code == 1){
-						this.getData(this.id)
 						uni.showToast({
 							title: res.data.msg,
 							icon: "none"
 						})
+						if(e == 'collect'){
+							this.goodsDetail.isCollect = res.data.data.isCollect
+						}else{
+							this.goodsDetail.isLikes = this.goodsDetail.isCollect
+						}
 					}
 				})
 			},
@@ -402,6 +409,7 @@
 						this.getCommentList(this.id)
 						this.commentPopup = false
 						this.replyFocus = false
+						this.comment.pid = ''
 						this.comment.content = ''
 						uni.showToast({
 							title: res.data.msg,
@@ -417,7 +425,12 @@
 				})
 			},
 			// 评论
-			reply(e){
+			reply(e, n){
+				if(n){
+					this.comment.content = '@' + n + ' '
+				}else{
+					this.comment.content = ''
+				}
 				this.comment.pid = e
 				this.commentPopup = true
 				this.replyFocus = true
@@ -703,20 +716,36 @@
 			}
 			.detail{
 				margin-top: 30rpx;
-				image{
+				>image{
 					width: 100%;
 					margin-bottom: 10rpx;
 					border-radius: 10rpx;
 					background: #F0F3F8;
 				}
-				text{
+				.delBot{
 					width: 100%;
-					display: inline-flex;
+					display: flex;
 					justify-content: flex-end;
-					font-size: 22rpx;
-					font-family: PingFang SC;
-					font-weight: 500;
-					color: #9094A6;
+					align-items: center;
+					text{
+						font-size: 22rpx;
+						font-family: PingFang SC;
+						font-weight: 500;
+						color: #9094A6;
+					}
+					.report{
+						width: 90rpx;
+						display: flex;
+						justify-content: space-between;
+						align-items: center;
+						margin-left: 20rpx;
+						image{
+							min-width: 36rpx;
+							min-height: 36rpx;
+							width: 36rpx;
+							height: 36rpx;
+						}
+					}
 				}
 			}
 		}
@@ -898,15 +927,16 @@
 					font-family: PingFang SC;
 					font-weight: bold;
 				}
+				// >:nth-child(1){
+				// 	width: 160rpx;
+				// 	height: 74rpx;
+				// 	border: 2px solid #E8E8E8;
+				// 	color: #000000;
+				// 	margin-right: 12rpx;
+				// }
 				>:nth-child(1){
-					width: 160rpx;
-					height: 74rpx;
-					border: 2px solid #E8E8E8;
-					color: #000000;
-					margin-right: 12rpx;
-				}
-				>:nth-child(2){
-					width: 314rpx;
+					width: 450rpx;
+					// width: 314rpx;
 					height: 74rpx;
 					background: #F55454;
 					
@@ -993,6 +1023,13 @@
 				font-weight: bold;
 				color: #fff;
 			}
+		}
+		.backBt{
+			font-size: 30rpx;
+			font-family: PingFang SC;
+			font-weight: bold;
+			color: #4e4e56;
+			margin-left: 30rpx;
 		}
 	}
 </style>

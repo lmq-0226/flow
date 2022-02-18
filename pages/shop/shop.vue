@@ -3,7 +3,7 @@
 		<view class="nav">
 			<view class="status_bar"></view>
 			<view class="nav_bar">
-				 <!-- @click="go('./newPro/newPro')" -->
+				 <!--  @click="go('./newPro/newPro')" -->
 				<view class="nav_left">
 					<view class="left_top">
 						<text>保障全新正品</text>

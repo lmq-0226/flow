@@ -41,8 +41,7 @@ api密钥： ShNTVhy451f7d8
 极光推送
 
 APPKEY: e54ded84ee6e4c0de3cb9fc4
-master 
-secret: 21511f0fceda3717537946a1
+master secret: 21511f0fceda3717537946a1
 
 流象 微信开放平台
 微信开放平台账号：2827708043@qq.com   zblx1234

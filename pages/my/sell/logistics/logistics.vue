@@ -44,7 +44,9 @@
 		methods:{
 			getData(e){
 				this.request({
-					url: 'idle/consign/relative',
+					// idle/consign/relative
+					// 闲置售卖订单查询快递
+					url: 'idle/order/relative',
 					data: {
 						token: uni.getStorageSync('userInfo').token,
 						order_id: e

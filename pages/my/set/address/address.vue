@@ -30,8 +30,12 @@
 			};
 		},
 		onLoad(option) {
-			this.type = option.type
-			this.item = JSON.parse(option.address)
+			if(option.type){
+				this.type = option.type
+			}
+			if(option.address){
+				this.item = JSON.parse(option.address)
+			}
 		},
 		onBackPress() {
 			// 返回上一个页面携带参数

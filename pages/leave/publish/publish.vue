@@ -132,12 +132,12 @@
 				express_type: 2, // 1包邮/2距离估算/3固定运费
 				status: 1,// 1=在售 4=存草稿
 				area: '未知',
-				site: ''
+				site: '',
+				id: '', // 编辑id
 				// }
 			};
 		},
 		onLoad(option) {
-			console.log(option)
 			this.getConfig()
 			this.type = option.type
 			if(option.site){
@@ -154,7 +154,7 @@
 			}
 		},
 		onShow() {
-			if(this.id){
+			if(this.id != ''){
 				this.getDetail(this.id)
 			}
 		},
@@ -209,7 +209,7 @@
 						// })
 						this.name = res.data.data.name
 						this.content = res.data.data.content
-						this.price = res.data.data.price
+						this.price = res.data.data.original_price
 						this.original_price = res.data.data.original_price
 						this.express_fee = res.data.data.express_fee
 						this.express_type = res.data.data.express_type
@@ -384,8 +384,6 @@
 			},
 			// 寄卖
 			conPush(){
-				// console.log(this.id, this.site)
-				// return
 				// 编辑
 				if(this.id && this.site == ''){
 					this.request({
@@ -475,7 +473,10 @@
 						    success: res => {
 						        console.log(res)
 								this.area = res.address.district
-						    }
+						    },
+							complete: (all) => {
+								console.log(all)
+							}
 						})
 					} else if (result == 0) {
 					    // "未获得授权"

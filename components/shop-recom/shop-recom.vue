@@ -38,11 +38,11 @@
 									</view>
 									<text class="sub">{{item.describe}}</text>
 								</view>
-								<view class="classIfy">
+								<!-- <view class="classIfy">
 									<view class="" v-for="(elem,cut) in item.images" :key="cut">
 										<image :src="ImgUrl + elem.image" mode="widthFix"></image>
 									</view>
-								</view>
+								</view> -->
 							</view>
 						</view>
 					</view>

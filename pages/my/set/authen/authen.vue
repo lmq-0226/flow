@@ -77,7 +77,7 @@
 				ticket: '',
 				orderId: '',
 				faceId: '',
-				authen: true
+				// authen: true
 			};
 		},
 		onReady() {

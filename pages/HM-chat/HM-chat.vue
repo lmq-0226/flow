@@ -446,7 +446,6 @@ export default {
 				key: 'wanlchat:message_' + id,
 				success: res => {
 					var list = res.data;
-					console.log(list)
 					for (let i = 0; i < list.length; i++) {
 						// 获取消息中的图片,并处理显示尺寸
 						if (list[i].type == 'chat' && list[i].message.type == 'img') {
@@ -677,19 +676,6 @@ export default {
 					this.isHistoryLoading = false;
 				}
 			})
-			// this.$api.post({
-			// 	url: '/wanlshop/chat/history',
-			// 	data: {
-			// 		to_id: this.to_id,
-			// 		page: this.current_page
-			// 	},
-			// 	success: res => {
-					
-			// 	},
-			// 	fail: res => {
-			// 		this.isHistoryLoading = false;
-			// 	}
-			// });
 		},
 
 		//处理图片尺寸，如果不处理宽高，新进入页面加载图片时候会闪
@@ -866,14 +852,6 @@ export default {
 					this.modalName = 'goods';
 				}
 			})
-			// this.$api.post({
-			// 	url: '/wanlshop/product/getBrowsingToShop',
-			// 	data: {shop_id: this.shop_id},
-			// 	success: res => {
-			// 		this.goodsData = res;
-			// 		this.modalName = 'goods';
-			// 	}
-			// });
 		},
 		// 查询订单
 		order(){
@@ -893,14 +871,6 @@ export default {
 					this.modalName = 'order';
 				}
 			})
-			// this.$api.post({
-			// 	url: '/wanlshop/order/getOrderListToShop',
-			// 	data: {shop_id: this.shop_id},
-			// 	success: res => {
-			// 		this.orderData = res;
-			// 		this.modalName = 'order';
-			// 	}
-			// });
 		},
 		hideModal() {
 			this.modalName = null;
@@ -976,7 +946,6 @@ export default {
 						token: uni.getStorageSync('userInfo').token
 					}
 				}).then(res=>{
-					console.log(res, '1111111111111')
 					uni.uploadFile({
 						url: res.data.data.uploadurl, //仅为示例，非真实的接口地址
 						header:{
@@ -986,7 +955,6 @@ export default {
 						name: 'file',
 						formData: res.data.data.storage == 'local' ? null : res.data.data.multipart,
 						success: (data) => {
-							console.log(JSON.parse(data.data).data.fullurl, '11111')
 							let msg = {length: 0, url: JSON.parse(data.data).data.fullurl};
 							msg.length = this.recordLength % 60;
 							if (msg.length > 0) {
@@ -998,27 +966,6 @@ export default {
 						}
 					});
 				})
-				// this.$api.get({
-				// 	url: '/wanlshop/common/uploadData',
-				// 	success: updata => {
-				// 		this.$api.upload({
-				// 			url: updata.uploadurl,
-				// 			filePath: e.tempFilePath,
-				// 			name: 'file',
-				// 			formData: updata.storage == 'local' ? null : updata.multipart,
-				// 			success: data => {
-				// 				let msg = {length: 0, url: data.fullurl};
-				// 				msg.length = this.recordLength % 60;
-				// 				if (msg.length > 0) {
-				// 					this.sendMsg(msg, 'voice');
-				// 				}
-				// 			},
-				// 			fail: error =>{
-				// 				this.$wanlshop.msg(JSON.parse(error.data).msg);
-				// 			}
-				// 		});
-				// 	}
-				// });
 			} else {
 				console.log('取消发送录音');
 			}

@@ -163,12 +163,6 @@
 				
 			};
 		},
-		onBackPress() {
-			uni.navigateTo({
-				url: '../buy'
-			})
-			return true
-		},
 		onReady() {
 			uni.setNavigationBarColor({
 			    frontColor: '#ffffff',
@@ -213,6 +207,7 @@
 				this.content = '是否确认收货？'
 				this.modelshow = true
 			},
+			// 确认收货
 			receipt(){
 				this.request({
 					url: 'wanlshop/order/confirmOrder',
@@ -228,16 +223,15 @@
 				})
 			},
 			back(){
-				if(this.type == 'pay'){
+				if(this.type === 'pay'){
 					uni.navigateTo({
-						url: '../buy'
+						url: '/pages/my/buy/buy'
 					})
 				}else{
 					uni.navigateBack({
 						delta: 1
 					})
 				}
-				
 			},
 			copy(e){
 				setText(e)

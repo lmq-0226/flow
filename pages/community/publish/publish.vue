@@ -96,6 +96,7 @@
 			</view>
 		</u-popup>
 		<u-toast ref="uToast" />
+		<u-modal v-model="modelShow" content="发布成功,等待审核" @confirm="back"></u-modal>
 	</view>
 </template>
 
@@ -137,7 +138,8 @@
 				topic_id: '',
 				editorCtx: '',
 				content: '',
-				goods_ids: []
+				goods_ids: [],
+				modelShow: false, // 发布成功提示
 			};
 		},
 		onLoad(option) {
@@ -170,6 +172,20 @@
 					type: 'want',
 					video_id: null
 				}
+				if(this.imgs.length <= 0){
+					uni.showToast({
+						title: '请上传图片',
+						icon: 'none'
+					})
+					return
+				}
+				if(this.content == ''){
+					uni.showToast({
+						title: '请填写内容',
+						icon: 'none'
+					})
+					return
+				}
 				console.log(form)
 				// return
 				this.request({
@@ -187,14 +203,19 @@
 					}
 				}).then(res=>{
 					if(res.data.code == 1){
-						uni.showToast({
-							title: '发布成功',
-							icon: 'none'
-						})
-						uni.navigateBack({
-							delta: 1
-						})
+						this.modelShow = true
+						// uni.showToast({
+						// 	title: '发布成功',
+						// 	icon: 'none'
+						// })
+						
 					}
+				})
+			},
+			// 返回
+			back(){
+				uni.navigateBack({
+					delta: 1
 				})
 			},
 			change(index) {
@@ -289,6 +310,7 @@
 			},
 			onEditorInput(e) {
 				this.content = e.detail.html;
+				console.log(e.detail.html)
 			},
 			onEditorReady() {
 				// #ifdef MP-BAIDU
@@ -299,7 +321,11 @@
 				uni.createSelectorQuery()
 					.select('#editor')
 					.context(res => {
+						console.log(res, '111')
 						this.editorCtx = res.context;
+						this.editorCtx.setContents({    
+								html: "你好"   //this.EditGoodsDetail.content为赋值内容。    
+						})   
 					})
 					.exec();
 				// #endif

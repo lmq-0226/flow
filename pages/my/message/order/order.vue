@@ -1,23 +1,16 @@
 <template>
 	<view class="content">
 		<view class="userList">
-			<view class="item">
-				<image src="" mode=""></image>
+			<view class="item" v-for="(item,index) in list" :key="index" @click="go('/pages/my/buy/receiving/receiving?type=message&order_id=' + item.modules_id)">
+				<image :src="ImgUrl + item.image" mode=""></image>
 				<view class="">
-					<text>交易关闭</text>
-					<text>NIKE AIR 空军一号</text>
-					<text>9月21日</text>
-				</view>
-			</view>
-			<view class="item">
-				<image src="" mode=""></image>
-				<view class="">
-					<text>已发货</text>
-					<text>NIKE AIR 空军一号</text>
-					<text>9月21日</text>
+					<text>{{item.title}}</text>
+					<text>{{item.content}}</text>
+					<text>{{item.come}}</text>
 				</view>
 			</view>
 		</view>
+		<u-empty v-if="list.length <= 0" text="暂无消息" mode="message" marginTop="300"></u-empty>
 	</view>
 </template>
 
@@ -25,8 +18,36 @@
 	export default {
 		data() {
 			return {
-				
+				list: []
 			};
+		},
+		onLoad() {
+			this.getData()
+		},
+		methods: {
+			getData(){
+				this.request({
+					url: 'wanlshop/notice/getNoticeList',
+					method: 'GET',
+					header: {
+						"content-type": "application/json;charset=UTF-8",
+						"token": uni.getStorageSync('userInfo').token
+					},
+					data: {
+						type: 'order',
+						page: 1
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.list = res.data.data.data
+					}
+				})
+			},
+			go(e){
+				uni.navigateTo({
+					url: e
+				})
+			}
 		}
 	}
 </script>
@@ -39,6 +60,7 @@
 				padding: 28rpx 0;
 				display: flex;
 				justify-content: flex-start;
+				align-items: center;
 				border-bottom: solid 1px #F1F1F6;
 				image{
 					width: 100rpx;

@@ -16,13 +16,10 @@
 						</view>
 					</view>
 					<view class="btns">
-						<!-- <text>更多</text> -->
-						<!-- <text>删除</text> -->
-						<text @click.stop="back(item.id)">编辑</text>
+						<!--go('/pages/leave/detail/detail?type=0&order_id=' + item.id) -->
+						<text v-if="item.status == 4" @click.stop="back(item.id)">编辑</text>
 						<!-- <text v-else @click.stop="go('/pages/leave/publish/publish?type=2&id=' + item.id)">编辑</text> -->
 						<view class="">
-
-							<!-- <text>详情</text> -->
 						</view>
 					</view>
 				</view>

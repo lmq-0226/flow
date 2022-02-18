@@ -31,7 +31,8 @@ export default {
 		token: '', // 令牌
 		pushs: true, // 推送
 		shock: true, // 震动
-		voice: true // 提示音
+		voice: true, // 提示音
+		registerID: '' // 极光注册id
 	},
 	mutations: {
 		setUserInfo(state, payload) {
@@ -43,6 +44,9 @@ export default {
 				}
 			}
 			uni.setStorageSync("wanlshop:user", state);
+		},
+		setRegisterID(state, data){
+			state.registerID = data.id
 		}
 	},
 	actions: {

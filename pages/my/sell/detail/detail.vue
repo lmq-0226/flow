@@ -92,13 +92,13 @@
 				<!-- <text>关闭订单</text> -->
 				<text v-if="goodsDetail.type == 'sale'" class="active" @click="go('/pages/my/sell/deliver/deliver?order_id=' + goodsDetail.id)">去发货</text>
 			</view>
-			<!-- <view class="" v-else-if="status == 2 || status == 3 || status == 4">
+			<view class="" v-else-if="goodsDetail.state == 3">
 				<text @click="go('/pages/HM-chat/HM-chat')">联系买家</text>
-				<text @click="go('/pages/my/buy/logistics/logistics')">查看物流</text>
-				<text class="active" v-if="status == 2">提醒收货</text>
+				<text class="active" @click="go('/pages/my/sell/logistics/logistics?order_id=' + goodsDetail.id)">查看物流</text>
+				<!-- <text class="active" v-if="status == 2">提醒收货</text>
 				<text class="active" v-else-if="status == 3">提醒评价</text>
-				<text class="active" v-else-if="status == 4">查看评价</text>
-			</view> -->
+				<text class="active" v-else-if="status == 4">查看评价</text> -->
+			</view>
 		</view>
 	</view>
 </template>

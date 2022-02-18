@@ -3,69 +3,69 @@
 		<view class="popup">
 			<view class="title">
 				<image class="title_img" src="" mode=""></image>
-				<text class="title_text">715条评论</text>
+				<text class="title_text">{{count}}条评论</text>
 				<image class="title_img" src="/static/my/close.png" mode="" @click="closePopup"></image>
 			</view>
 			<list ref="list" class="comments" @loadmore="scrollEnd" :loadmoreoffset="0" :pagingEnabled="false" :scrollable="true" :show-scrollbar="false">
 			    <!-- 注意事项: 不能使用 index 作为 key 的唯一标识 模拟数据,接口数据使用id-->
 				<cell>
-					<view class="firstFloor" v-for="(item,index) in commentsList" :key="index">
+					<view class="firstFloor" v-for="(item,index) in commentsList" :key="index" v-if="item.user">
 						<view class="first_left">
-							<image class="avatar" src="/static/comm/avatar.png" mode=""></image>
+							<image class="avatar" :src="item.user.cdn_avatar" mode=""></image>
 						</view>
 						<view class="secondFloor">
 							<view class="first_right">
 								<view class="info">
 									<view class="nickname">
-										<text class="name">小马斑比</text>
-										<text class="writer" v-if="false">作者</text>
+										<text class="name">{{item.user.nickname}}</text>
+										<text class="writer" v-if="item.user.id == user_id">作者</text>
 									</view>
-									<text class="desc">妈耶，这个真的好好看妈耶，这个真的好好看妈耶，这个真的好好看妈耶，这个真的好好看妈耶，这个真的好好看妈耶</text>
+									<text class="desc">{{item.content}}</text>
 									<view class="back">
-										<text class="time">9月21日</text>
-										<text class="backBt" @click="focus">回复</text>
+										<text class="time">{{item.createtime_text}}</text>
+										<text class="backBt" @click="focus(item.id)">回复</text>
 									</view>
 								</view>
-								<view class="praise" @click="item.praise = !item.praise">
-									<image v-if="item.praise" class="praise_img" src="/static/comm/praise_on.png" mode=""></image>
+								<view class="praise" @click="praise(index,null,$event)">
+									<image v-if="item.hasLike" class="praise_img" src="/static/comm/praise_on.png" mode=""></image>
 									<image v-else class="praise_img" src="/static/comm/praise.png" mode=""></image>
-									<text class="num">{{item.praise ? item.praiseNum + 1 : item.praiseNum}}</text>
+									<text class="num">{{item.like}}</text>
 								</view>
 							</view>
 							<view class="reply">
-								<view class="second" v-for="(elem,cut) in item.replyList" :key="cut">
+								<view class="second" v-for="(elem,cut) in item.childlist" :key="cut" v-if="elem.user">
 									<view class="second_left">
-										<image class="avatar second_avatar" src="/static/comm/avatar.png" mode=""></image>
+										<image class="avatar second_avatar" :src="elem.user.cdn_avatar" mode=""></image>
 									</view>
 									<view class="second_right">
 										<view class="info second_info">
 											<view class="nickname">
-												<text class="name">小马斑比</text>
-												<text class="writer">作者</text>
+												<text class="name">{{elem.user.nickname}}</text>
+												<text class="writer" v-if="elem.user.id == user_id">作者</text>
 											</view>
-											<text class="desc">妈耶，这个真的好好看妈耶，这个真的好好看妈耶，这个真的好好看妈耶，这个真的好好看妈耶，这个真的好好看妈耶</text>
+											<text class="desc">{{elem.content}}</text>
 											<view class="back">
-												<text class="time">9月21日</text>
-												<text class="backBt" @click="focus">回复</text>
+												<text class="time">{{elem.createtime_text}}</text>
+												<text class="backBt" @click="focus(item.id,elem.user.nickname)">回复</text>
 											</view>
 											
 										</view>
-										<view class="praise" @click="elem.rPraise = !elem.rPraise">
-											<image v-if="elem.rPraise" class="praise_img" src="/static/comm/praise_on.png" mode=""></image>
+										<view class="praise" @click="praise(index,cut,$event)">
+											<image v-if="elem.hasLike" class="praise_img" src="/static/comm/praise_on.png" mode=""></image>
 											<image v-else class="praise_img" src="/static/comm/praise.png" mode=""></image>
-											<text class="num">{{elem.rPraise ? elem.rPraiseNum + 1 : elem.rPraiseNum}}</text>
+											<text class="num">{{elem.like}}</text>
 										</view>
 									</view>
 								</view>
-								<view class="second_reply" @click="loadingMore(item)" v-if="item.replyList.length < 5">
+								<!-- <view class="second_reply" @click="loadingMore(item)" v-if="item.childlist.length < 5">
 									<text class="more">--- 展开更多回复</text>
 									<my-loading v-if="item.loading" :size="30" color="#9392A0"></my-loading>
 									<image class="down" src="/static/leave/down.png" mode="" v-else></image>
-								</view>
+								</view> -->
 							</view>
 						</view>
 					</view>
-					<load-more iconType="snow" :status="status" :contentText="contentText"></load-more>
+					<!-- <load-more iconType="snow" :status="status" :contentText="contentText"></load-more> -->
 				</cell>
 			</list>
 			<!-- <scroll-view :scroll-y="true" class="comments" :show-scrollbar="false" :lower-threshold="0" @scrolltolower="scrollEnd">
@@ -133,7 +133,7 @@
 					class="input" 
 					ref="input"
 					type="text" 
-					value="" 
+					v-model="value" 
 					placeholder="来说两句" 
 					confirm-type="send" 
 					:adjust-position="false" 
@@ -150,6 +150,7 @@
 <script>
 	import myLoading from '@/components/my-loading/my-loading.nvue'
 	import loadMore from '@/components/uni-load-more/uni-load-more.vue'
+	import request from '@/utils/request.js'
 	export default {
 		components:{
 			myLoading,
@@ -229,13 +230,52 @@
 							}
 						]
 					}
-				]
+				],
+				count: 0, // 评论总数
+				id: '', // 当前视频id
+				pid: null, // 回复上级id
+				value: '', // 回复内容
+				user_id: '' // 作者id
 			};
 		},
 		created() {
-			
+			uni.$on('subNVueShow',res=>{
+				this.id = res.id
+				this.user_id = res.user_id
+				this.getData()
+			})
+			uni.$on('clearCom',()=>{
+				this.commentsList = []
+				this.count = 0
+			})
 		},
 		methods:{
+			// 获取评论列表
+			getData(){
+				uni.showLoading({
+					title: '加载中...',
+					mask: true
+				})
+				request({
+					url: 'wanlshop/find/comments/getList',
+					header: {
+						"content-type": "application/json; charset=utf-8",
+						"token": uni.getStorageSync('userInfo').token
+					},
+					data: {
+						id: this.id
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.count = res.data.data.count
+						this.commentsList = res.data.data.list
+					}
+					let timer = setTimeout(()=>{
+						uni.hideLoading()
+						clearTimeout(timer)
+					}, 300)
+				})
+			},
 			closePopup(){
 				// #ifdef APP-PLUS
 				// 通过 id 获取 nvue 子窗体
@@ -250,6 +290,7 @@
 			},
 			// 加载更多回复
 			loadingMore(e){
+				return
 				e.loading = true
 				let timer = setTimeout(()=>{
 					e.loading = false
@@ -271,21 +312,80 @@
 				},2000)
 			},
 			// nvue事件获取焦点，并且显示遮罩
-			focus(e){
+			focus(e,n){
+				if(n){
+					this.value = '@' + n + ' '
+					// console.log()
+				}else{
+					this.value = ''
+				}
+				this.pid = e
 				this.$refs.input.focus()
 				this.maskShow = true
 			},
-			// 监听键盘发送按钮
+			// 评论
 			send(e){
-				console.log(e)
+				uni.request({
+					url: 'http://app.51liuxiang.com/api/wanlshop/find/comments/addData',
+					method: 'POST',
+					header: {
+						token: uni.getStorageSync('userInfo').token,
+						'content-type': 'application/json'
+					},
+					data: {
+						content:this.value,
+						find_id: this.id,
+						pid: this.pid
+					},
+					success: (res) => {
+						uni.$emit('add', {count: this.count + 1})
+						this.getData()
+						// this.closePopup() // 关闭评论弹窗
+						this.maskHide() // 关闭遮罩
+					}
+				})
+			},
+			// 点赞
+			praise(e, n, m){
+				let comment = n === null ? this.commentsList[e] : this.commentsList[e].childlist[n]
+				request({
+					url: 'wanlshop/find/comments/likeData',
+					method: 'GET',
+					header: {
+						"content-type": "application/json; charset=utf-8",
+						'Accept-Language':'zh-CN,zh;q=0.9',
+						"token": uni.getStorageSync('userInfo').token
+					},
+					data: {
+						id: comment.id
+					}
+				}).then(res=>{
+					if(res.data.code === 1){
+						// 避免再次请求
+						comment.hasLike = res.data.data.data;
+						if(res.data.data.data){
+							comment.like += 1;
+						}else{
+							comment.like -= 1;
+						}
+					}else{
+						uni.showToast({
+							title: res.data.msg,
+							icon: 'none'
+						})
+					}
+				})
+				m.stopPropagation()
 			},
 			// 隐藏遮罩取消焦点
 			maskHide(){
 				this.$refs.input.blur()
 				this.maskShow = false
+				this.value = ''
 			},
 			// list触底加载
 			scrollEnd(){
+				return
 				this.status = 'loading'
 				let timer = setTimeout(()=>{
 					for(let i = 0; i <= 1; i ++){
@@ -374,6 +474,7 @@
 						.avatar{
 							width: 80rpx;
 							height: 80rpx;
+							border-radius: 50%;
 						}
 					}
 					.secondFloor{
@@ -398,6 +499,7 @@
 									.writer{
 										width: 58rpx;
 										height: 26rpx;
+										margin-left: 10rpx;
 										text-align: center;
 										line-height: 26rpx;
 										background: #F55454;
@@ -461,6 +563,7 @@
 									.second_avatar{
 										width: 60rpx;
 										height: 60rpx;
+										border-radius: 50%;
 									}
 								}
 								.second_right{

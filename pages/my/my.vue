@@ -7,12 +7,12 @@
 			<image src="/static/my/set.png" mode="" @click="go('./set/set')"></image>
 		</view>
 		<view class="user">
-			<view class="info" @click.stop="go('./homePage/homePage?type=1')">
+			<view class="info">
 				<image :src="ImgUrl + userInfo.avatar" mode=""></image>
 				<view class="name">
 					<view class="nickname">
 						<text v-if="userInfo.nickname">{{userInfo.nickname}}</text>
-						<text v-else @click.stop="go('/pages/login/login')">去登陆</text>
+						<text v-else @click.stop="go('/pages/login/login')">去登录</text>
 						<image src="/static/my/right.png" mode=""></image>
 					</view>
 					<text>{{userInfo.bio == '' ? '未设置签名' : userInfo.bio}}</text>
@@ -20,24 +20,25 @@
 			</view>
 			<view class="number">
 				<view class="" @click="praiseShow = true">
-					<text>0</text>
+					<text>{{Numbers.praised}}</text>
 					<text>获赞与收藏</text>
 				</view>
 				<view class="" @click="go('./fans/fans')">
-					<text>0</text>
+					<text>{{Numbers.fans}}</text>
 					<text>粉丝</text>
 				</view>
 				<view class="" @click="go('./attention/attention')">
-					<text>0</text>
+					<text>{{Numbers.likes}}</text>
 					<text>关注</text>
 				</view>
-				<view class="" @click="go('/pages/my/homePage/homePage?type=1')">
-					<text>0</text>
+				<view class="" @click="go('/pages/my/homePage/homePage?type=myfind')">
+					<text>{{order.delive}}</text>
 					<text>动态</text>
 				</view>
 			</view>
 		</view>
-		<view class="writeCenter" @click="go('./writingCenter/writingCenter')">
+		<!-- @click="go('./writingCenter/writingCenter')" -->
+		<view class="writeCenter" @click.stop="go('./homePage/homePage?type=myfind')">
 			<view class="">
 				<text>创作中心</text>
 				<text></text>
@@ -129,6 +130,7 @@
 				<text class="good" @click="praiseShow = false">好的</text>
 			</view>
 		</u-popup>
+		<u-toast ref="uToast" />
 	</view>
 </template>
 
@@ -157,11 +159,16 @@
 					{lettle: '邀请好友', icon: require('@/static/my/invite.png'),url: 'invite/invite'},
 					{lettle: '意见反馈', icon: require('@/static/my/feedback.png'),url: './feedback/feedback'}
 				],
-				dynamic: {}
+				dynamic: {},
+				Numbers: {},
+				order: {}
 			};
 		},
 		onLoad() {
 			
+		},
+		onTabItemTap(e){
+			console.log(e, '111')
 		},
 		onShow() {
 			this.getData()
@@ -170,6 +177,16 @@
 		methods:{
 			getData(){
 				this.request({
+					url: 'wanlshop/find/user/userInfo',
+					data: {
+						token: uni.getStorageSync('userInfo').token
+					}
+				}).then(res=>{
+					if(res.data.code == 1){
+						this.Numbers = res.data.data
+					}
+				})
+				this.request({
 					url: 'wanlshop/user/refresh',
 					data: {
 						token: uni.getStorageSync('userInfo').token
@@ -177,12 +194,18 @@
 				}).then(res=>{
 					if(res.data.code == 1){
 						this.dynamic = res.data.data.statistics.dynamic
+						this.order = res.data.data.statistics.order
 						this.userInfo = res.data.data.userinfo
 						uni.setStorageSync('userInfo', res.data.data.userinfo)
 					}
 				})
 			},
 			scan(){
+				this.$refs.uToast.show({
+					title: '登录成功',
+					type: 'success'
+				})
+				return
 				uni.scanCode({
 					success: (res) => {
 						console.log(res)

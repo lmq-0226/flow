@@ -180,25 +180,9 @@
 			return {
 				leaveShow: false,
 				type: 1, // 1 寄卖 2 售卖
-				current: 0,
-				tabList: [{
-						name: '推荐'
-					}, {
-						name: '电影'
-					}, {
-						name: '电视剧'
-					}, {
-						name: '小视频'
-					}, {
-						name: '游戏'
-					}, {
-						name: '校园'
-					}, {
-						name: '影视'
-					}, {
-						name: '音乐'
-					}],
-				swiperList: [],
+				current: 0, // rabs索引
+				tabList: [], // 分类tabs
+				swiperList: [], // 轮播图
 				slideLeft: 0, // 动态设置slide的margin-left
 				scrollWhidth: '' ,// scroll可视区域的宽
 				loadStatus: 'loadmore', // 加载更多状态
@@ -213,7 +197,6 @@
 			}
 		},
 		onLoad() {
-			
 			// scroll可视区域的宽
 			setTimeout(()=>{
 				let obj = uni.createSelectorQuery().select('.scroll-view_H')
@@ -221,9 +204,10 @@
 					this.scrollWhidth = data.width
 				}).exec()
 			}, 100)
-			// this.addRandomData()
+			this.getData()
 		},
-		onShow() {
+		// 下拉刷新
+		onPullDownRefresh() {
 			this.getData()
 		},
 		onHide() {
@@ -262,8 +246,12 @@
 						this.bottom = res.data.data.bottom
 						this.swiperList = res.data.data.advert.data
 					}
+					let timer = setTimeout(()=>{
+						 uni.stopPullDownRefresh()
+					}, 300)
 				})
 			},
+			// 切换tabs页
 			change(index) {
 				this.current = index;
 				let timer = setTimeout(()=>{
@@ -272,7 +260,6 @@
 				let timers = setTimeout(()=>{
 					this.flowList = this.tabList[index].goods_list
 				}, 100)
-				
 			},
 			scan(){
 				uni.scanCode({
@@ -313,6 +300,7 @@
 					})
 					return
 				}
+				// 判断实名认证
 				this.request({
 					url: 'userauth/info',
 					data: {
@@ -366,7 +354,7 @@
 			position: sticky;
 			position: -webkit-sticky;
 			top: var(--status-bar-height);
-			z-index: 9999;
+			z-index: 99;
 			background-color: #fff;
 			display: flex;
 			justify-content: space-between;
